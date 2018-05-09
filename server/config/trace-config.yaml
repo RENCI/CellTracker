@@ -1,0 +1,20 @@
+### Hostname ###
+FQDN_OR_IP: localhost
+
+### Application configuration ###
+CC_PATH: /home/cellcycle/CellTracker/server
+HOST_USER_UID: 20044
+HOST_USER_GID: 10000
+HOST_SSL_DIR: /opt/cc-certs
+### Nginx configuration ###
+USE_NGINX: false
+USE_SSL: false
+NGINX_DIR: nginx
+NGINX_CONF_FILE: cc-nginx.conf
+
+### SSL Configuration Variables ###
+SSL_CERT_DIR: /home/cellcycle/CellTracker/server/nginx/cert-files
+SSL_CERT_FILE:
+SSL_KEY_FILE:
+
+### REQUIRES BLANK LINE AFTER LAST VARIABLE DEFINITION ###

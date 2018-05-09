@@ -1,0 +1,54 @@
+db:
+  image: postgres:9.4
+  container_name: ct-db
+redis:
+  image: redis:2.8
+  container_name: ct-redis
+rabbitmq:
+  image: rabbitmq:3.5
+  container_name: ct-rabbitmq
+celltracker:
+  build: .
+  container_name: celltracker
+  environment:
+    POSTGRES_PASSWORD: postgres
+    POSTGRES_USER: postgres
+    POSTGRES_DB: postgres
+    REDIS_HOST: redis
+    REDIS_PORT: 6379
+  volumes:
+    # celltracker repository
+    - "/home/hongyi/CellTracker/server:/home/docker/celltracker"
+    # log files
+    - "/home/hongyi/CellTracker/server/log:/home/docker/celltracker/log"
+    - "/home/hongyi/pycharm-debug:/home/docker/pycharm-debug"
+    # shared location for uwsgi.sock between containers
+    - "/var/run"
+    # temp directory shared with celery workers
+    - "/shared_temp"
+  ports:
+    - "1338:22"
+    - "8000:8000"
+  links:
+    - db:db
+    - redis:redis
+    - rabbitmq:rabbitmq
+  command: /bin/bash init
+defaultworker:
+  build: .
+  container_name: ct-defaultworker
+  environment:
+    POSTGRES_PASSWORD: postgres
+    POSTGRES_USER: postgres
+    POSTGRES_DB: postgres
+    REDIS_HOST: redis
+    REDIS_PORT: 6379
+  volumes_from:
+    - celltracker
+  volumes:
+    - "/var/run/docker.sock:/docker.sock"
+  links:
+    - db:db
+    - redis:redis
+    - rabbitmq:rabbitmq
+  command: /bin/bash init-defaultworker
