@@ -3,6 +3,8 @@ FQDN_OR_IP: localhost
 
 ### Application configuration ###
 CC_PATH: /home/cellcycle/CellTracker/server
+CC_DATABASE: 
+CC_MEDIA_FILES: media.cc-testing.tar.gz
 HOST_USER_UID: 20044
 HOST_USER_GID: 10000
 HOST_SSL_DIR: /opt/cc-certs
