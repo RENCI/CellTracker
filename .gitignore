@@ -4,6 +4,7 @@
 .coverage
 .DS_Store
 .idea
+/server/celery
 /server/celltracker/local_settings.py
 /server/ct_core/static/cc_core/js/index*
 /server/static
