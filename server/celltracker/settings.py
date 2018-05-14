@@ -168,7 +168,64 @@ CRISPY_TEMPLATE_PACK = 'bootstrap'
 ####################
 # LOGGING SETTINGS #
 ####################
-
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+            'datefmt' : "%d/%b/%Y %H:%M:%S"
+        },
+        'simple': {
+            'format': '[%(asctime)s] %(levelname)s %(message)s',
+            'datefmt' : "%d/%b/%Y %H:%M:%S"
+        },
+    },
+    'handlers': {
+        'syslog': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '/home/docker/celltracker/log/system.log',
+            'formatter': 'simple',
+            'maxBytes': 1024*1024*15, # 15MB
+            'backupCount': 10,
+        },
+        'djangolog': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '/home/docker/celltracker/log/django.log',
+            'formatter': 'verbose',
+            'maxBytes': 1024*1024*15, # 15MB
+            'backupCount': 10,
+        },
+        'celltrackerlog': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '/home/docker/celltracker/log/celltracker.log',
+            'formatter': 'verbose',
+            'maxBytes': 1024*1024*15, # 15MB
+            'backupCount': 10,
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['syslog', 'djangolog'],
+            'propagate': True,
+            'level': 'DEBUG',
+        },
+        'django.db.backends': {
+            'handlers': ['syslog'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        # Catch-all logger for CellTracker  apps
+        '': {
+            'handlers': ['celltrackerlog'],
+            'propagate': False,
+            'level': 'DEBUG'
+        },
+    }
+}
 
 # info django that a reverse proxy sever (nginx) is handling ssl/https for it
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
