@@ -45,7 +45,7 @@ RUN pip install numpy==1.11.1
 RUN pip install \
     arrow==0.7.0 \
     beautifulsoup4==4.4.1 \
-    celery==4.1.0 \
+    celery==4.1.1 \
     djangorestframework==3.8.2 \
     future==0.16.0 \
     gunicorn==19.8.1 \
