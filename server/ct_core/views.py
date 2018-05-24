@@ -13,10 +13,10 @@ from irods.session import iRODSSession
 
 # Create your views here.
 def index(request, session=''):
-    import sys
-    sys.path.append("/home/docker/pycharm-debug")
-    import pydevd
-    pydevd.settrace('152.54.9.92', port=21000, suspend=False)
+    #import sys
+    #sys.path.append("/home/docker/pycharm-debug")
+    #import pydevd
+    #pydevd.settrace('152.54.9.92', port=21000, suspend=False)
 
     template = loader.get_template('ct_core/index.html')
     context = {
@@ -40,8 +40,8 @@ def stream_video(request, path):
         if mime_type[0] is not None:
             mtype = mime_type[0]
         fobj = file_obj.open('r')
-
-        response = FileResponse(fobj.read().decode(), content_type=mtype)
+        fobj_stream = fobj.read()
+        response = FileResponse(fobj_stream, content_type=mtype)
         response['Content-Disposition'] = 'attachment; filename="{name}"'.format(
             name=path.split('/')[-1])
         response['Content-Length'] = file_obj.size
