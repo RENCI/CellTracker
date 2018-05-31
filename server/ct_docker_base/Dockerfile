@@ -1,18 +1,18 @@
-FROM python:2.7.11
+FROM python:2
 MAINTAINER Hong Yi <hongyi@renci.org>
 
 RUN apt-get update && apt-get install -y apt-transport-https
 COPY docker.list /etc/apt/sources.list.d/
 
-RUN apt-get update && apt-get install --fix-missing -y --force-yes \
+RUN apt-get update && apt-get install --fix-missing -y --allow-unauthenticated \
     docker-engine \
     sudo \
     libjpeg62-turbo \
     libjpeg62-turbo-dev \
     binutils \
     build-essential \
-    postgresql-9.4 \
-    postgresql-client-9.4 \
+    postgresql-9.6 \
+    postgresql-client-9.6 \
     git \
     zip \
     rsync \
@@ -56,4 +56,13 @@ RUN pip install \
     requests==2.18.4 \
     python-irodsclient \
     sh==1.12.14
+
+# install iRODS v4.2.2
+RUN echo "deb http://ftp.debian.org/debian jessie-backports main" \
+    > /etc/apt/sources.list.d/jessie-backports.list \
+    && wget -qO - https://packages.irods.org/irods-signing-key.asc | apt-key add - \
+    && echo "deb [arch=amd64] https://packages.irods.org/apt/ xenial main" \
+    > /etc/apt/sources.list.d/renci-irods.list 
+RUN apt-get update 
+RUN apt-get install -y irods-runtime=4.2.2 irods-icommands=4.2.2
 

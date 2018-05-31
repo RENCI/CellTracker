@@ -1,4 +1,4 @@
-FROM ct_base
+FROM renci/cell_tracker_docker_base
 MAINTAINER Hong Yi <hongyi@renci.org>
 
 RUN usermod -u 1000 docker
