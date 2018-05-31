@@ -6,6 +6,7 @@
 .idea
 /server/celery
 /server/celltracker/local_settings.py
+/server/celltracker/*.log
 /server/ct_core/static/cc_core/js/index*
 /server/static
 /server/log
