@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install --fix-missing -y --allow-unauthenticated \
 # Install SSH for remote PyCharm debugging
 RUN mkdir /var/run/sshd
 RUN echo 'root:docker' | chpasswd
-RUN sed -i 's/PermitRootLogin without-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 
 # SSH login fix. Otherwise user is kicked off after login
 RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
@@ -55,6 +55,7 @@ RUN pip install \
     redis==2.10.6 \
     requests==2.18.4 \
     python-irodsclient \
+    opencv-python \
     sh==1.12.14
 
 # install iRODS v4.2.2
