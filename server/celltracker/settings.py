@@ -166,6 +166,8 @@ ROOT_URLCONF = "%s.urls" % PROJECT_DIRNAME
 
 CRISPY_TEMPLATE_PACK = 'bootstrap'
 
+VIDEO_FRAME_INTERVAL_SECOND = 1
+
 ####################
 # LOGGING SETTINGS #
 ####################

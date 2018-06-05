@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import mimetypes
 import os
 import shutil
 
 from django.template import loader
 from django.conf import settings
-from django.http import HttpResponse, FileResponse, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseServerError, StreamingHttpResponse
 
+from django.views.decorators import gzip
+
+from ct_core.utils import read_video, exact_images_from_video
 from django_irods.storage import IrodsStorage
 
 
@@ -26,6 +28,7 @@ def index(request, session=''):
     return HttpResponse(template.render(context, request))
 
 
+@gzip.gzip_page
 def stream_video(request, exp_id):
     # remove the temp video directory before streaming the new one
     video_path = os.path.join(settings.IRODS_ROOT, 'video')
@@ -35,20 +38,12 @@ def stream_video(request, exp_id):
     dpath = istorage.getVideo(exp_id, settings.IRODS_ROOT)
     for vfile in os.listdir(dpath):
         # there is supposed to be only one video
-        ipath = os.path.join(exp_id, 'data', 'video', vfile)
-        fsize = istorage.size(ipath)
         vfilepath = os.path.join(dpath, vfile)
-        with open(vfilepath, 'rb') as fobj:
-            mtype = 'application-x/octet-stream'
-            mime_type = mimetypes.guess_type(vfile)
-            if mime_type[0] is not None:
-                mtype = mime_type[0]
-            fobj_stream = fobj.read()
-            response = FileResponse(fobj_stream, content_type=mtype)
-            response['Content-Disposition'] = 'attachment; filename="{name}"'.format(
-                name=vfile)
-            response['Content-Length'] = fsize
-            return response
+        try:
+            return StreamingHttpResponse(read_video(vfilepath), content_type="multipart/x-mixed-replace;boundary=frame")
+            #return StreamingHttpResponse(read_video(vfilepath), content_type="image/jpeg")
+        except HttpResponseServerError as e:
+            return HttpResponseServerError(e.content)
 
     return HttpResponseServerError('iRODS server error')
 
@@ -59,9 +54,9 @@ def display_images(request, exp_id):
     if os.path.exists(image_path):
         shutil.rmtree(image_path)
     istorage = IrodsStorage()
-    dpath = istorage.getAllImages(exp_id, settings.IRODS_ROOT)
-    file_list = []
-    for ifile in os.listdir(dpath):
-        file_list.append(ifile)
-
-    return HttpResponse(','.join(file_list))
+    dpath = istorage.getVideo(exp_id, settings.IRODS_ROOT)
+    for vfile in os.listdir(dpath):
+        # there is supposed to be only one video
+        vfilepath = os.path.join(dpath, vfile)
+        ret_img = exact_images_from_video(vfilepath, image_path)
+        return StreamingHttpResponse(ret_img, content_type="image/jpeg")
