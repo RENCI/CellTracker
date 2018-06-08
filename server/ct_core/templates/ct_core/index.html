@@ -1,38 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-{% load staticfiles %}
+{% extends 'base.html' %}
 
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block meta_title %}{% endblock %}{% if SITE_TITLE %} | {{ SITE_TITLE }}{% endif %}</title>
-  <link rel="shortcut icon" href="/static/ct_core/images/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
-  <link rel="stylesheet" type="text/css" href="{% static 'ct_core/css/slider.css' %}" >
-  <link rel="stylesheet" type="text/css" href="{% static 'ct_core/css/style.css' %}" />
-  <link rel="stylesheet" type="text/css" href="{% static 'ct_core/css/popover.css' %}" />
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.3.3/js/tether.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-  <script type="text/javascript" src="{% static 'ct_core/js/data_ajax.js' %}"></script>
-</head>
-<body>
-  {% csrf_token %}
-  <input type="hidden" id="task_id" name="task_id" value=''>
-  {% if status_msg %}
-      <div class="row alert alert-success alert-dismissible" role="alert">
-          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">x</span>
-          </button>
-          <span>{{ status_msg }}</span>
-      </div>
-  {% endif %}
-  <div id="alert"></div>
-  <div id="app">
-
-      <a type="button" class="btn btn-default row-selector" href="/display-images/16101015300">Display Images</a>
+{% block content %}
+  <div>
       <a type="button" class="btn btn-default row-selector" href="/stream-video/16101015300">Stream Video</a>
+      <div>
+      <a type="button" class="btn btn-default row-selector {% if extract %}hidden-form{% endif %}" href="/extract-images/16101015300">Extract images from video</a>
+      <a type="button" class="btn btn-default row-selector {% if not extract %}hidden-form{% endif %}" href="/display-images/0">Display Images</a>
+      </div>
   </div>
-</body>
-</html>
+{% endblock %}
