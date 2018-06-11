@@ -18,9 +18,9 @@ celltracker:
     REDIS_PORT: 6379
   volumes:
     # celltracker repository
-    - "/home/cellcycle/CellTracker/server:/home/docker/celltracker"
+    - "CC_PATH:/home/docker/celltracker"
     # log files
-    - "/home/cellcycle/CellTracker/server/log:/home/docker/celltracker/log"
+    - "CC_PATH/log:/home/docker/celltracker/log"
     # shared location for uwsgi.sock between containers
     - "/var/run"
     # temp directory shared with celery workers

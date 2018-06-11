@@ -26,8 +26,12 @@ if [[ $USE_NGINX = 'true' ]]; then
 else
     cp docker-compose-dev.yml docker-compose.yml
 fi
+sed -i 's!CC_PATH!'${CC_PATH}'!g' ${CC_PATH}/docker-compose.yml
+
 # copy DockerFile.template to DockerFile
-cp Dockerfile-template Dockerfile
+cp Dockerfile.template Dockerfile
+sed -i 's!HOST_USER_UID!'${HOST_USER_UID}'!g' ${CC_PATH}/Dockerfile
+sed -i 's!HOST_USER_GID!'${HOST_USER_UID}'!g' ${CC_PATH}/Dockerfile
 
 cd $HOME_DIR
 
@@ -108,8 +112,6 @@ restart_cc() {
 preflight_cc() {
     echo "*** PREFLIGHT ***";
     echo $CC_PATH
-    sed -i 's!HOST_USER_UID!'${HOST_USER_UID}'!g' ${CC_PATH}/Dockerfile
-    sed -i 's!HOST_USER_GID!'${HOST_USER_UID}'!g' ${CC_PATH}/Dockerfile
     yes | cp -rf ${NGINX_DIR}/${NGINX_CONF_FILE} ${NGINX_DIR}/nginx.conf
     sed -i 's/FQDN_OR_IP/'${FQDN_OR_IP}'/g' ${NGINX_DIR}/nginx.conf;
     if [[ $USE_SSL = 'true' ]]; then
