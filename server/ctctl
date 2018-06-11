@@ -26,6 +26,9 @@ if [[ $USE_NGINX = 'true' ]]; then
 else
     cp docker-compose-dev.yml docker-compose.yml
 fi
+# copy DockerFile.template to DockerFile
+cp Dockerfile-template Dockerfile
+
 cd $HOME_DIR
 
 display_usage() {

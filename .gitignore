@@ -9,7 +9,7 @@
 /server/celltracker/*.log
 /server/ct_core/static/cc_core/js/index*
 /server/static
-/server/log
+/server/log/*.log
 /server/config/local-env.sh
 /server/celeryd.pid
 /server/docker-compose.yml
