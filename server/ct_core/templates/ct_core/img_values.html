@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}Image Info for frame {{ frm_no }}{% endblock %}
+
+{% block content %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h3 class="meta-title">Image Info</h3>
+        </div>
+        {% if img_dict %}
+            <table class="table table-bordered">
+                {% for key, value in img_dict.items %}
+                    <tr>
+                        <td><strong>{{ key }}</strong></td>
+                        <td>{{ value|safe }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <div class="panel-body">
+                <h3>The image frame does not have any value.</h3>
+            </div>
+    s    {% endif %}
+    </div>
+{% endblock %}

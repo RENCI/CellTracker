@@ -2,6 +2,7 @@ import cv2
 import time
 import os
 import shutil
+import numpy as np
 
 from django.conf import settings
 
@@ -29,7 +30,7 @@ def extract_images_from_video(videofile, imagepath):
     os.mkdir(imagepath)
 
     while success:
-        ifile = os.path.join(imagepath, 'frame{}.jpg'.format(count))
+        ifile = os.path.join(imagepath, 'frame{}.png'.format(count))
         cv2.imwrite(ifile, frame)
         count += 1
         success, frame = cap.read()
@@ -38,3 +39,21 @@ def extract_images_from_video(videofile, imagepath):
         return True
     else:
         return False
+
+
+def read_image_frame(image_fname):
+    ifile = os.path.join(settings.IRODS_ROOT, 'image', image_fname)
+    prop_dict = {}
+    if os.path.isfile(ifile):
+        img = cv2.imread(ifile, cv2.IMREAD_GRAYSCALE)
+        rows, cols = img.shape
+        prop_dict['width'] = cols
+        prop_dict['height'] = rows
+        k = []
+        for i in range(rows):
+            k_row = []
+            for j in range(cols):
+                k_row.append(img[i, j])
+            k.append(k_row)
+        prop_dict['intensity_values'] = k
+    return prop_dict

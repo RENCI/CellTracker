@@ -11,7 +11,7 @@ from django.http import HttpResponse, HttpResponseServerError, StreamingHttpResp
 
 from django.views.decorators import gzip
 
-from ct_core.utils import read_video, extract_images_from_video
+from ct_core.utils import read_video, extract_images_from_video, read_image_frame
 from django_irods.storage import IrodsStorage
 
 
@@ -23,7 +23,7 @@ def index(request):
     #pydevd.settrace('172.17.0.1', port=21000, suspend=False)
 
     template = loader.get_template('ct_core/index.html')
-    image_file = os.path.join(settings.IRODS_ROOT, 'image', 'frame0.jpg')
+    image_file = os.path.join(settings.IRODS_ROOT, 'image', 'frame0.png')
     if os.path.isfile(image_file):
         extract = True
     else:
@@ -76,17 +76,22 @@ def extract_images(request, exp_id):
 
 
 def display_images(request, frame_no):
-    img_name = 'frame{}.jpg'.format(frame_no)
+    img_name = 'frame{}.png'.format(frame_no)
     ifile = os.path.join(settings.IRODS_ROOT, 'image', img_name)
     if os.path.isfile(ifile):
-        return HttpResponse(open(ifile, 'rb'), content_type='image/jpg')
-        #template = loader.get_template('ct_core/image_display.html')
-        #context = {
-        #    'img_src': '/static/frames/' + img_name,
-        #    'img_text': 'Video frame ' + str(frame_no),
-        #    'next_frame_no': str(int(frame_no) + 1)
-        #}
-        #return HttpResponse(template.render(context, request))
+        return HttpResponse(open(ifile, 'rb'), content_type='image/png')
+    else:
+        return HttpResponseServerError('The requested image frame does not exist on the server')
 
+
+def read_image(request, frame_no):
+    img_name = 'frame{}.png'.format(frame_no)
+    ret_dict = read_image_frame(img_name)
+    if ret_dict:
+        context = {'img_dict': ret_dict,
+                   "frm_no": frame_no
+                   }
+        template = loader.get_template('ct_core/img_values.html')
+        return HttpResponse(template.render(context, request))
     else:
         return HttpResponseServerError('The requested image frame does not exist on the server')
