@@ -25,7 +25,7 @@ This section is aimed for developers interested in working on the code. It provi
 
 ### Troubleshooting notes
 - You may need to run ```docker-compose stop``` followed by ```docker-compose up``` when you run into issues when bringing up containers the first time. 
-- To run ```./ccctl``` command again, you need to clean up existing containers and images by running ```docker rm -fv $(docker ps -a -q``` to remove all containers and ```docker rmi -f <image_id>``` to remove images that need to be rebuilt.
+- To run ```./ctctl``` command again, you need to clean up existing containers and images by running ```docker rm -fv $(docker ps -a -q``` to remove all containers and ```docker rmi -f <image_id>``` to remove images that need to be rebuilt.
    
 ## License 
 
