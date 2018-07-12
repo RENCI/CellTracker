@@ -129,13 +129,12 @@ def display_image(request, exp_id, frame_no):
             return HttpResponseServerError('Requested image frame does not exist')
 
 
-def read_image(request, exp_id, frame_no):
+def read_image(request, exp_id, img_file_name):
     # this view function is not used, but kept here for future reference
-    img_name = 'frame{}.png'.format(frame_no)
-    ret_dict = read_image_frame(exp_id, img_name)
+    ret_dict = read_image_frame(exp_id, img_file_name)
     if ret_dict:
         context = {'img_dict': ret_dict,
-                   "frm_no": frame_no
+                   "image_frame_name": img_file_name
                    }
         template = loader.get_template('ct_core/img_values.html')
         return HttpResponse(template.render(context, request))
