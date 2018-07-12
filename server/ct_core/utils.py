@@ -41,8 +41,8 @@ def extract_images_from_video(videofile, imagepath):
         return False
 
 
-def read_image_frame(image_fname):
-    ifile = os.path.join(settings.IRODS_ROOT, 'image', image_fname)
+def read_image_frame(exp_id, image_fname):
+    ifile = os.path.join(settings.IRODS_ROOT, exp_id, 'image', image_fname)
     prop_dict = {}
     if os.path.isfile(ifile):
         img = cv2.imread(ifile, cv2.IMREAD_GRAYSCALE)

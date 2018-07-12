@@ -1,4 +1,5 @@
 var numImages = 100;
+var expId = "16101015300";
 
 var images = [],
     imageIndex = 0;
@@ -8,8 +9,8 @@ var play = true;
 var positions = [];
 
 function preload() {
-  for (var i = 0; i < numImages; i++) {
-    images.push(loadImage("/display-images/" + i));
+  for (var i = 1; i <= numImages; i++) {
+    images.push(loadImage("/display-image/" + expId + "/" + i));
   }
 }
 

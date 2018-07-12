@@ -14,18 +14,48 @@ class IrodsStorage(Storage):
         self.session = GLOBAL_SESSION
         self.environment = GLOBAL_ENVIRONMENT
 
+
     def getVideo(self, exp_id, dest_path):
+        """
+        Get the experiement video
+        :param exp_id: experiment id
+        :param dest_path: destination path on web server to retrieve video from iRODS to
+        :return: the destination path that contains the retrieved video file
+        """
         src_path = os.path.join(exp_id, 'data', 'video')
         self.session.run("iget", None, '-rf', src_path, dest_path)
-        return os.path.join(dest_path, 'video')
+        return dest_path
+
 
     def getAllImages(self, exp_id, dest_path):
+        """
+        Get all image sequences of an experiment
+        :param exp_id: experiment id
+        :param dest_path: destination path on web server to retrieve image sequences from iRODS to
+        :return: the destination path that contains the retrieved image sequence files
+        """
         src_path = os.path.join(exp_id, 'data', 'image')
         self.session.run("iget", None, '-rf', src_path, dest_path)
         return os.path.join(dest_path, 'image')
 
+
+    def getOneImageFrame(self, exp_id, image_name, dest_path):
+        """
+        Get one image frame from an experiment.
+        :param exp_id: experiment id
+        :param frame_no: frame sequence no starting from 1
+        :param dest_path: destination path on web server to retrieve image from iRODS to
+        :return: the image file name with full path
+        """
+        src_path = os.path.join(exp_id, 'data', 'image', image_name)
+
+        self.session.run("iget", None, '-rf', src_path, dest_path)
+        return dest_path
+
+
     def getFile(self, src_name, dest_name):
         self.session.run("iget", None, '-f', src_name, dest_name)
+
 
     def saveFile(self, from_name, to_name, create_directory=False, data_type_str=''):
         """
@@ -58,10 +88,12 @@ class IrodsStorage(Storage):
                     self.session.run("iput", None, '-f', from_name, to_name)
         return
 
+
     def _open(self, name, mode='rb'):
         tmp = NamedTemporaryFile()
         self.session.run("iget", None, '-f', name, tmp.name)
         return tmp
+
 
     def _save(self, name, content):
         self.session.run("imkdir", None, '-p', name.rsplit('/', 1)[0])
@@ -78,8 +110,10 @@ class IrodsStorage(Storage):
             os.unlink(f.name)
         return name
 
+
     def delete(self, name):
         self.session.run("irm", None, "-rf", name)
+
 
     def exists(self, name):
         try:
@@ -87,6 +121,7 @@ class IrodsStorage(Storage):
             return stdout != ""
         except SessionException:
             return False
+
 
     def listdir(self, path):
         stdout = self.session.run("ils", None, path)[0].split("\n")
@@ -104,9 +139,11 @@ class IrodsStorage(Storage):
                     listing[1].append(filename)
         return listing
 
+
     def size(self, name):
         stdout = self.session.run("ils", None, "-l", name)[0].split()
         return int(stdout[3])
+
 
     def get_available_name(self, name):
         """
