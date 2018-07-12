@@ -11,7 +11,7 @@ This section is aimed for developers interested in working on the code. It provi
 ### Steps to run TRACE Django web server in your local development environment
 - git clone source code from this repo.
 - Modify server/config/ct-config.yaml file to change ```CC_PATH``` to point to the root directory of the source tree for TRACE, and change ```HOST_USER_UID``` and ```HOST_USER_GID``` to correspond to the uid and gid of the user on the host who is running docker containers for TRACE.
-- Copy local_settings.py from cellcycledev.renci.org and put it under the cellcycle directory. This local_settings.py holds sensitive information, so should not be exposed to the outside world.
+- Copy local_settings.py from cellcycledev.renci.org and put it under the celltracker directory. This local_settings.py holds sensitive information, so should not be exposed to the outside world.
 - From the root directory of the source tree, run ```./ctctl deploy_dev_nodb``` to build all containers.
 - At this point you should be able to open up your browser to get to the TRACE page: http://localhost:8000, or http://192.168.56.101:8000/ from the host if host-only adaptor is set up in VirtualBox for the Linux VM running on a windows box.
 
