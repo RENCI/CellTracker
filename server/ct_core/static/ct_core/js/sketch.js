@@ -20,11 +20,16 @@ function preload() {
 }
 
 function setup() {
+  // Get parent div
+  var div = select("#sketchDiv"),
+      w = innerWidth(div.elt);
+
   // Size canvas to image aspect ratio
   var im = images[0],
       aspect = im.width / im.height;
 
-  createCanvas(windowWidth, windowWidth / aspect);
+  var canvas = createCanvas(w, w / aspect);
+  canvas.parent(div);
   frameRate(2);
   pause();
 
@@ -38,11 +43,15 @@ function setup() {
 }
 
 function windowResized() {
+  // Get parent div
+  var div = select("#sketchDiv"),
+      w = innerWidth(div.elt);
+
   // Size canvas to image aspect ratio
   var im = images[0],
       aspect = im.width / im.height;
 
-  resizeCanvas(windowWidth, windowWidth / aspect);
+  resizeCanvas(w, w / aspect);
 
   redraw();
 }
@@ -139,4 +148,13 @@ function frameBack() {
   frame = Math.max(frame - 1, 0);
   pause();
   redraw();
+}
+
+function innerWidth(element) {
+  var cs = getComputedStyle(element);
+
+  var padding = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight),
+      border = parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
+
+  return element.offsetWidth - padding - border;
 }

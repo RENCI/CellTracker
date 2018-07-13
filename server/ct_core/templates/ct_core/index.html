@@ -1,12 +1,11 @@
 {% extends 'base.html' %}
 
 {% block content %}
-  <div>
-      <a type="button" class="btn btn-default row-selector" href="/stream-video/16101015300">Stream Video</a>
-      <div>
-      {# <a type="button" class="btn btn-default row-selector {% if extract %}hidden-form{% endif %}" href="/extract-images/16101015300">Extract images from video</a> #}
-      <a type="button" class="btn btn-default row-selector" href="/display-image/16101015300/1">Display Image</a>
-      <a type="button" class="btn btn-default row-selector"  href="/read-image/16101015300/frame001.png">Read Image</a>
-      </div>
+
+  <div class="row">
+    <div class="col-md-2">
+      Hello
+    </div>
+    <div class="col-md-10" id="sketchDiv"></div>
   </div>
 {% endblock %}
