@@ -30,7 +30,6 @@ var trace = new p5(function (s) {
         aspect = im.width / im.height;
 
     var canvas = s.createCanvas(w, w / aspect);
-    canvas.parent(div);
     s.frameRate(2);
     pause();
 
@@ -116,11 +115,11 @@ var trace = new p5(function (s) {
         break;
 
       case s.LEFT_ARROW:
-        frameForward();
+        frameBack();
         break;
 
       case s.RIGHT_ARROW:
-        frameBack();
+        frameForward();
         break;
     }
   }
