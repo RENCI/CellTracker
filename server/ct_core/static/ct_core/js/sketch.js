@@ -88,6 +88,8 @@ function draw() {
 function mouseClicked() {
   trace = !trace;
 
+  cursor(trace ? CROSS : ARROW);
+
   if (trace) positions = [];
 
   redraw();
