@@ -3,13 +3,15 @@ from __future__ import unicode_literals
 
 import os
 import shutil
-import cv2
+import json
 
 from django.template import loader
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseServerError, StreamingHttpResponse, HttpResponseBadRequest
 
 from django.views.decorators import gzip
+
+from irods.session import iRODSSession
 
 from ct_core.utils import read_video, extract_images_from_video, read_image_frame
 from django_irods.storage import IrodsStorage
@@ -25,6 +27,62 @@ def index(request):
     template = loader.get_template('ct_core/index.html')
     context = {}
     return HttpResponse(template.render(context, request))
+
+
+def get_experiment_list(request):
+    """
+    Invoked by an AJAX call and returns json object that holds experiment list in the format below:
+    [
+      {
+        name: string,
+        id: string
+      }
+    ]
+    :param request:
+    :return:
+    """
+    exp_list = []
+    with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
+                      password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
+        hpath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER
+        coll = session.collections.get(hpath)
+        for col in coll.subcollections:
+            exp_dict = {}
+            exp_dict['id'] = col.name
+            try:
+                key = str('experiment_name')
+                col_md = col.metadata.get_one(key)
+                exp_dict['name'] = col_md.value
+            except KeyError:
+                exp_dict['name'] = ''
+            exp_list.append(exp_dict)
+        return HttpResponse(json.dumps(exp_list), content_type='application/json')
+
+    return HttpResponseServerError('Cannot connect to iRODS data server')
+
+
+def get_experiment_info(request, exp_id):
+    """
+    Invoked by an AJAX call and returns json object that holds info of that experiment identified by id
+    in the format below:
+    {
+        frames: number
+    }
+
+    :param request:
+    :param exp_id: experiment identifier
+    :return:
+    """
+    exp_info = {}
+    with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
+                      password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
+        hpath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id) + '/data/image'
+        coll = session.collections.get(hpath)
+        fno = len(coll.data_objects)
+        exp_info['frames'] = fno
+        return HttpResponse(json.dumps(exp_info), content_type='application/json')
+
+    return HttpResponseServerError('Cannot connect to iRODS data server')
 
 
 @gzip.gzip_page
