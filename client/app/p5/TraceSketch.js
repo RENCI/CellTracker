@@ -1,5 +1,5 @@
 module.exports = function (sketch) {
-  var numImages = 10;
+  var numImages = 50;
   var expId = "16101015300";
 
   var images = [],
@@ -19,7 +19,7 @@ module.exports = function (sketch) {
 
     var r = i / 3,
         g = i * 2 / 3,
-        b = sketch.constrain(i * 2, 0, 255); 
+        b = sketch.constrain(i * 2, 0, 255);
 
     lut[i] = [r, g, b];
   }
@@ -82,9 +82,6 @@ module.exports = function (sketch) {
       return colorIm;
     });
 
-    console.log(images);
-    console.log(colorImages);
-
     // Draw initial frame
     sketch.redraw();
   }
@@ -139,7 +136,7 @@ module.exports = function (sketch) {
     if (play) {
       frame++;
       if (frame > maxFrame) {
-        play = !play;
+        pause();
         frame = 0;
       }
     }
@@ -153,6 +150,8 @@ module.exports = function (sketch) {
     if (trace) positions = [];
 
     sketch.redraw();
+
+    return false;
   }
 
   sketch.keyPressed = function() {
@@ -170,6 +169,8 @@ module.exports = function (sketch) {
         frameForward();
         break;
     }
+
+    return false;
   }
 
   function play() {
