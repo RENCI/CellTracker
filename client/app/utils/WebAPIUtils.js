@@ -32,7 +32,23 @@ function setupAjax() {
   });
 }
 
+var experimentList = [
+  {
+    id: "16101015300",
+    name: "Experiment 1"
+  }
+];
+
 function getExperimentList() {
+  setTimeout(function () {
+    // Create an action
+    ServerActionCreators.receiveExperimentList(experimentList);
+
+    // Request first workspace
+    // XXX: Should this go in receiveWorkspaceList?
+    getExperiment(experimentList[0].id);
+  }, 0);
+/*
   setupAjax();
 
   $.ajax({
@@ -40,19 +56,25 @@ function getExperimentList() {
     url: "/get_experiment_list/",
     success: function (data) {
       // Create an action
-      ServerActionCreators.receiveWorkspaceList(data);
+      ServerActionCreators.receiveExperimentList(data);
 
       // Request first workspace
       // XXX: Should this go in receiveWorkspaceList?
-      getWorkspace(data[0].id);
+      getExperiment(data[0].id);
     },
     error: function (xhr, textStatus, errorThrown) {
       console.log(textStatus + ": " + errorThrown);
     }
   });
+*/
 }
 
 function getExperiment(id) {
+  setTimeout(function () {
+    // Create an action
+    ServerActionCreators.receiveExperiment(experimentList[0]);
+  }, 0);
+/*
   setupAjax();
 
   $.ajax({
@@ -67,6 +89,7 @@ function getExperiment(id) {
       console.log(textStatus + ": " + errorThrown);
     }
   });
+*/
 }
 
 function saveTrackingData(id, traces) {
@@ -76,7 +99,7 @@ function saveTrackingData(id, traces) {
     type: "POST",
     url: "/save_tracking_data/",
     data: {
-      id: id
+      id: id,
       traces: traces
     },
     success: function (data) {

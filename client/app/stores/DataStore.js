@@ -37,7 +37,7 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
       break;
 
     case Constants.RECEIVE_EXPERIMENT:
-      experiment = action.workspace;
+      experiment = action.experiment;
       DataStore.emitChange();
       break;
   }
