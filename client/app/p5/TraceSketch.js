@@ -1,4 +1,4 @@
-var trace = new p5(function (s) {
+module.exports = function (s) {
   var numImages = 100;
   var expId = "16101015300";
 
@@ -6,7 +6,7 @@ var trace = new p5(function (s) {
       frame = 0,
       maxFrame = 0;
 
-  var play = false
+  var play = false,
       direction = "forward";
 
   var trace = false,
@@ -161,4 +161,4 @@ var trace = new p5(function (s) {
 
     return element.offsetWidth - padding - border;
   }
-}, "sketchDiv");
+}

@@ -1,5 +1,6 @@
 var React = require("react");
 var PropTypes = require("prop-types");
+var TraceSketchWrapper = require("../p5/TraceSketchWrapper");
 
 function MainSection(props) {
   return (
@@ -8,7 +9,7 @@ function MainSection(props) {
         <button className="btn btn-default btn-block">Save Traces</button>
       </div>
       <div className="col-md-10 text-center" id="sketchDiv">
-        <h2>p5 here</h2>
+        <TraceSketchWrapper />
       </div>
     </div>
   );
