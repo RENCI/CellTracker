@@ -23,7 +23,7 @@ class TraceSketchWrapper extends React.Component {
   }
 
   render() {
-    return <div ref={div => this.div = div}></div>
+    return <div ref={div => this.div = div} />
   }
 }
 

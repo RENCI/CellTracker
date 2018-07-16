@@ -142,6 +142,7 @@ module.exports = function (sketch) {
     }
   }
 
+  // XXX: Need to limit to events on the canvas
   sketch.mouseClicked = function() {
     trace = !trace;
 
@@ -150,10 +151,9 @@ module.exports = function (sketch) {
     if (trace) positions = [];
 
     sketch.redraw();
-
-    return false;
   }
 
+  // XXX: Need to limit to events on the canvas
   sketch.keyPressed = function() {
     switch (sketch.keyCode) {
       case 32:
@@ -169,8 +169,6 @@ module.exports = function (sketch) {
         frameForward();
         break;
     }
-
-    return false;
   }
 
   function play() {
