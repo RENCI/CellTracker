@@ -1,10 +1,28 @@
-module.exports = function (s) {
-  var numImages = 100;
+module.exports = function (sketch) {
+  var numImages = 10;
   var expId = "16101015300";
 
   var images = [],
+      colorImages = [],
       frame = 0,
       maxFrame = 0;
+
+  var lut = [],
+      s1 = 256 / 3;
+  for (var i = 0; i < 256; i++) {
+    // Black-body radiation color map
+    /*
+    var r = sketch.map(i / 3, 0, s1, 0, 255, true),
+        g = sketch.map((i - s1) / 3, 0, s1, 0, 255, true),
+        b = sketch.map((i - s1 * 2) / 3, 0, s1, 0, 255, true);
+    */
+
+    var r = i / 3,
+        g = i * 2 / 3,
+        b = sketch.constrain(i * 2, 0, 255); 
+
+    lut[i] = [r, g, b];
+  }
 
   var play = false,
       direction = "forward";
@@ -12,58 +30,87 @@ module.exports = function (s) {
   var trace = false,
       positions = [];
 
-  s.preload = function() {
+  sketch.preload = function() {
     for (var i = 1; i <= numImages; i++) {
-      images.push(s.loadImage("/display-image/" + expId + "/" + i));
+      images.push(sketch.loadImage("/display-image/" + expId + "/" + i));
     }
 
     maxFrame = images.length - 1;
   }
 
-  s.setup = function() {
+  sketch.setup = function() {
     // Get parent div
-    var div = s.select("#sketchDiv"),
+    var div = sketch.select("#sketchDiv"),
         w = innerWidth(div.elt);
 
     // Size canvas to image aspect ratio
     var im = images[0],
         aspect = im.width / im.height;
 
-    var canvas = s.createCanvas(w, w / aspect);
-    s.frameRate(2);
+    var canvas = sketch.createCanvas(w, w / aspect);
+    sketch.frameRate(2);
     pause();
 
     // Resize images
     images.forEach(function(im) {
-      im.resize(s.width, s.height);
+      im.resize(sketch.width, sketch.height);
     });
 
+    colorImages = images.map(function(im) {
+      var colorIm = sketch.createImage(im.width, im.height);
+
+      im.loadPixels();
+      colorIm.loadPixels();
+
+      for (var x = 0; x < im.width; x++) {
+        for (var y = 0; y < im.height; y++ ) {
+          var i = (x + y * im.width) * 4;
+
+          var v = im.pixels[i];
+
+          var c = lut[v];
+
+          colorIm.pixels[i] = c[0];
+          colorIm.pixels[i + 1] = c[1];
+          colorIm.pixels[i + 2] = c[2];
+          colorIm.pixels[i + 3] = 255;
+        }
+      }
+
+      colorIm.updatePixels();
+
+      return colorIm;
+    });
+
+    console.log(images);
+    console.log(colorImages);
+
     // Draw initial frame
-    s.redraw();
+    sketch.redraw();
   }
 
-  s.windowResized = function() {
+  sketch.windowResized = function() {
     // Get parent div
-    var div = s.select("#sketchDiv"),
+    var div = sketch.select("#sketchDiv"),
         w = innerWidth(div.elt);
 
     // Size canvas to image aspect ratio
     var im = images[0],
         aspect = im.width / im.height;
 
-    s.resizeCanvas(w, w / aspect);
+    sketch.resizeCanvas(w, w / aspect);
 
-    s.redraw();
+    sketch.redraw();
   }
 
-  s.draw = function() {
+  sketch.draw = function() {
     // Get image
-    var im = images[frame];
+    var im = colorImages[frame];
 
     if (trace) {
       // Get normalized mouse position at end of last frame
-      var x = s.mouseX / (s.width - 1),
-          y = s.mouseY / (s.height - 1);
+      var x = sketch.mouseX / (sketch.width - 1),
+          y = sketch.mouseY / (sketch.height - 1);
 
       positions.push([
         Math.max(0, Math.min(x, 1)),
@@ -71,19 +118,20 @@ module.exports = function (s) {
       ]);
     }
 
-    s.image(im, 0, 0);
+    // Draw the image
+    sketch.image(im, 0, 0);
 
     // Draw path
-    s.strokeWeight(4)
+    sketch.strokeWeight(4)
     for (var i = 1; i < positions.length; i++) {
       var p0 = positions[i - 1],
           p1 = positions[i];
 
-      s.stroke(127, 127, 127, i / (positions.length - 1) * 255);
+      sketch.stroke(127, 127, 127, i / (positions.length - 1) * 255);
 
-      s.line(
-        p0[0] * (s.width - 1), p0[1] * (s.height - 1),
-        p1[0] * (s.width - 1), p1[1] * (s.height - 1)
+      sketch.line(
+        p0[0] * (sketch.width - 1), p0[1] * (sketch.height - 1),
+        p1[0] * (sketch.width - 1), p1[1] * (sketch.height - 1)
       );
     }
 
@@ -97,28 +145,28 @@ module.exports = function (s) {
     }
   }
 
-  s.mouseClicked = function() {
+  sketch.mouseClicked = function() {
     trace = !trace;
 
-    s.cursor(trace ? s.CROSS : s.ARROW);
+    sketch.cursor(trace ? sketch.CROSS : sketch.ARROW);
 
     if (trace) positions = [];
 
-    s.redraw();
+    sketch.redraw();
   }
 
-  s.keyPressed = function() {
-    switch (s.keyCode) {
+  sketch.keyPressed = function() {
+    switch (sketch.keyCode) {
       case 32:
         // Space bar
         togglePlay();
         break;
 
-      case s.LEFT_ARROW:
+      case sketch.LEFT_ARROW:
         frameBack();
         break;
 
-      case s.RIGHT_ARROW:
+      case sketch.RIGHT_ARROW:
         frameForward();
         break;
     }
@@ -126,31 +174,31 @@ module.exports = function (s) {
 
   function play() {
     play = true;
-    s.loop();
+    sketch.loop();
   }
 
   function pause() {
     play = false;
-    s.noLoop();
+    sketch.noLoop();
   }
 
   function togglePlay() {
     play = !play;
 
-    if (play) s.loop();
-    else s.noLoop();
+    if (play) sketch.loop();
+    else sketch.noLoop();
   }
 
   function frameForward() {
     frame = Math.min(frame + 1, maxFrame);
     pause();
-    s.redraw();
+    sketch.redraw();
   }
 
   function frameBack() {
     frame = Math.max(frame - 1, 0);
     pause();
-    s.redraw();
+    sketch.redraw();
   }
 
   function innerWidth(element) {
