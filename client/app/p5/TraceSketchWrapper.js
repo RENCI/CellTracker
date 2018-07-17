@@ -10,18 +10,13 @@ class TraceSketchWrapper extends React.Component {
   }
 
   componentDidMount() {
-    console.log(this.props.experiment);
-
     this.sketch = new p5(TraceSketch, this.div);
-  }
-
-  componentWillReceiveProps(props, newProps) {
-    if (this.sketch.myCustomRedrawAccordingToNewPropsHandler) {
-      this.sketch.myCustomRedrawAccordingToNewPropsHandler(newProps);
-    }
+    this.sketch.updateProps(this.props);
   }
 
   shouldComponentUpdate(props, state) {
+    this.sketch.updateProps(props);
+
     return false;
   }
 

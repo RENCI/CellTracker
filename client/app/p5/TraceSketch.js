@@ -1,6 +1,5 @@
 module.exports = function (sketch) {
-  var numImages = 50;
-  var expId = "16101015300";
+  var experimentId = null;
 
   var images = [],
       colorImages = [],
@@ -30,60 +29,39 @@ module.exports = function (sketch) {
   var trace = false,
       positions = [];
 
-  sketch.preload = function() {
-    for (var i = 1; i <= numImages; i++) {
-      images.push(sketch.loadImage("/display-image/" + expId + "/" + i));
-    }
+  sketch.updateProps = function(props) {
+    // Check for new experiment
+    if (experimentId !== props.experiment.id) {
+      experimentId = props.experiment.id;
+      var numFrames = props.experiment.frames;
 
-    maxFrame = images.length - 1;
+      // Clear current data and pause
+      images = [];
+      pause();
+
+      // Load images
+      var tempImages = [];
+      for (var i = 1; i <= numFrames; i++) {
+        sketch.loadImage("/display-image/" + experimentId + "/" + i, function (im) {
+          tempImages.push(im);
+
+          console.log("Loaded " + tempImages.length);
+
+          if (tempImages.length === numFrames) {
+            updateImages(tempImages);
+
+            // Draw initial frame
+            sketch.redraw();
+          }
+        });
+      }
+    }
   }
 
   sketch.setup = function() {
-    // Get parent div
-    var div = sketch.select("#sketchDiv"),
-        w = innerWidth(div.elt);
-
-    // Size canvas to image aspect ratio
-    var im = images[0],
-        aspect = im.width / im.height;
-
-    var canvas = sketch.createCanvas(w, w / aspect);
+    sketch.createCanvas(100, 100);
     sketch.frameRate(2);
     pause();
-
-    // Resize images
-    images.forEach(function(im) {
-      im.resize(sketch.width, sketch.height);
-    });
-
-    colorImages = images.map(function(im) {
-      var colorIm = sketch.createImage(im.width, im.height);
-
-      im.loadPixels();
-      colorIm.loadPixels();
-
-      for (var x = 0; x < im.width; x++) {
-        for (var y = 0; y < im.height; y++ ) {
-          var i = (x + y * im.width) * 4;
-
-          var v = im.pixels[i];
-
-          var c = lut[v];
-
-          colorIm.pixels[i] = c[0];
-          colorIm.pixels[i + 1] = c[1];
-          colorIm.pixels[i + 2] = c[2];
-          colorIm.pixels[i + 3] = 255;
-        }
-      }
-
-      colorIm.updatePixels();
-
-      return colorIm;
-    });
-
-    // Draw initial frame
-    sketch.redraw();
   }
 
   sketch.windowResized = function() {
@@ -101,6 +79,8 @@ module.exports = function (sketch) {
   }
 
   sketch.draw = function() {
+    if (images.length === 0) return;
+
     // Get image
     var im = colorImages[frame];
 
@@ -169,6 +149,57 @@ module.exports = function (sketch) {
         frameForward();
         break;
     }
+  }
+
+  function updateImages(newImages) {
+    images = newImages.slice();
+    maxFrame = images.length - 1;
+
+    console.log(images);
+
+    // Size canvas to image aspect ratio
+    var im = images[0],
+        aspect = im.width / im.height;
+
+    // Get parent div
+    // XXX: Pass through props?
+    var div = sketch.select("#sketchDiv"),
+        w = innerWidth(div.elt),
+        h = w / aspect;
+    // Resize images
+    images.forEach(function(im) {
+      im.resize(w, h);
+    });
+
+    colorImages = images.map(function(im) {
+      var colorIm = sketch.createImage(im.width, im.height);
+
+      im.loadPixels();
+      colorIm.loadPixels();
+
+      for (var x = 0; x < im.width; x++) {
+        for (var y = 0; y < im.height; y++ ) {
+          var i = (x + y * im.width) * 4;
+
+          var v = im.pixels[i];
+
+          var c = lut[v];
+
+          colorIm.pixels[i] = c[0];
+          colorIm.pixels[i + 1] = c[1];
+          colorIm.pixels[i + 2] = c[2];
+          colorIm.pixels[i + 3] = 255;
+        }
+      }
+
+      colorIm.updatePixels();
+
+      return colorIm;
+    });
+
+    sketch.resizeCanvas(w, h);
+
+    console.log(colorImages);
   }
 
   function play() {
