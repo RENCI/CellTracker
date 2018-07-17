@@ -39,12 +39,10 @@ class AppContainer extends React.Component {
   }
 
   render() {
-    console.log(this.state);
-
     return (
       <div className="container-fluid">
         <HeaderSection />
-        <MainSection />
+        {this.state.experiment ? <MainSection {...this.state} /> : null}
       </div>
     );
   }

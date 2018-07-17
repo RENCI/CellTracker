@@ -7,16 +7,18 @@ function MainSection(props) {
   return (
     <div className="row">
       <div className="col-md-2">
-        <Controls />
+        <Controls {...props} />
       </div>
       <div className="col-md-10 text-center" id="sketchDiv">
-        <TraceSketchWrapper />
+        <TraceSketchWrapper experiment={props.experiment} />
       </div>
     </div>
   );
 }
 
 MainSection.propTypes = {
+  experimentList: PropTypes.arrayOf(PropTypes.object).isRequired,
+  experiment: PropTypes.object.isRequired
 };
 
 module.exports = MainSection;
