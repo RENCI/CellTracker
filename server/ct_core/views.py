@@ -80,6 +80,7 @@ def get_experiment_info(request, exp_id):
         coll = session.collections.get(hpath)
         fno = len(coll.data_objects)
         exp_info['frames'] = fno
+        exp_info['id'] = exp_id
         return HttpResponse(json.dumps(exp_info), content_type='application/json')
 
     return HttpResponseServerError('Cannot connect to iRODS data server')
