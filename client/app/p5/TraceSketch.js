@@ -44,6 +44,7 @@ module.exports = function (sketch) {
   }
 
   sketch.updateProps = function(props) {
+    traces = props.traces;
     onUpdateTrace = props.onUpdateTrace;
 
     // Check for new experiment
@@ -86,10 +87,14 @@ numFrames = 10;
     // Get image
     var im = colorImages[frame];
 
+    // Dimensions
+    var maxX = sketch.width - 1;
+    var maxY = sketch.height - 1;
+
     if (trace) {
       // Get normalized mouse position at end of last frame
-      var x = sketch.map(sketch.mouseX, 0, sketch.width - 1, 0, 1, true),
-          y = sketch.map(sketch.mouseY, 0, sketch.height - 1, 0, 1, true);
+      var x = sketch.map(sketch.mouseX, 0, maxX, 0, 1, true),
+          y = sketch.map(sketch.mouseY, 0, maxY, 0, 1, true);
 
       points.push([x, y, frame]);
     }
@@ -97,8 +102,30 @@ numFrames = 10;
     // Draw the image
     sketch.image(im, 0, 0);
 
-    // Draw path
-    sketch.strokeWeight(4)
+    // Draw points for all traces
+    sketch.stroke(0, 0, 0, 127);
+    sketch.strokeWeight(1);
+    sketch.fill(255, 255, 255, 127);
+    traces.forEach(function (d) {
+      // Check for a point at this frame
+      var p = null;
+
+      for (var i = 0; i < d.points.length; i++) {
+        if (d.points[i][2] === frame) {
+          p = d.points[i];
+          break;
+        }
+      }
+
+      if (p === null) return;
+
+      var s = 10;
+      sketch.ellipse(p[0] * maxX, p[1] * maxY, s, s);
+    });
+
+    // Draw path for current trace
+    sketch.strokeWeight(4);
+    sketch.noFill();
     for (var i = 1; i < points.length; i++) {
       var p0 = points[i - 1],
           p1 = points[i],
@@ -106,10 +133,7 @@ numFrames = 10;
 
       sketch.stroke(127, 127, 127, alpha);
 
-      sketch.line(
-        p0[0] * (sketch.width - 1), p0[1] * (sketch.height - 1),
-        p1[0] * (sketch.width - 1), p1[1] * (sketch.height - 1)
-      );
+      sketch.line(p0[0] * maxX, p0[1] * maxY, p1[0] * maxX, p1[1] * maxY);
     }
 
     // Get next image
@@ -197,6 +221,8 @@ numFrames = 10;
   }
 
   function play() {
+    if (frame === maxFrame) frame = 0;
+
     play = true;
     sketch.loop();
   }
