@@ -68,16 +68,13 @@ function getExperiment(id) {
   });
 }
 
-function saveTrackingData(id, traces) {
+function saveTrackingData(data) {
   setupAjax();
 
   $.ajax({
     type: "POST",
     url: "/save_tracking_data/",
-    data: {
-      id: id,
-      traces: traces
-    },
+    data: data,
     success: function (data) {
       // Tracking saved action?
     },

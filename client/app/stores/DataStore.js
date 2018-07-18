@@ -11,6 +11,9 @@ var experimentList = [];
 // Active experiment
 var experiment = null;
 
+// Tracking data
+var trackingData = null;
+
 var DataStore = assign({}, EventEmitter.prototype, {
   emitChange: function () {
     this.emit(CHANGE_EVENT);
@@ -26,6 +29,9 @@ var DataStore = assign({}, EventEmitter.prototype, {
   },
   getExperiment: function () {
     return experiment;
+  },
+  getTrackingData: function () {
+    return trackingData;
   }
 });
 
@@ -38,6 +44,11 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.RECEIVE_EXPERIMENT:
       experiment = action.experiment;
+      DataStore.emitChange();
+      break;
+
+    case Constants.STORE_TRACKING_DATA:
+      trackingData = action.data;
       DataStore.emitChange();
       break;
   }

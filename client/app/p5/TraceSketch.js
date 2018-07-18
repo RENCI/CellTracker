@@ -2,8 +2,10 @@ var d3Scale = require("d3-scale");
 var d3ScaleChromatic = require("d3-scale-chromatic");
 
 module.exports = function (sketch) {
+  // Current experiment
   var experimentId = null;
 
+  // Images
   var images = [],
       colorImages = [],
       frame = 0,
@@ -23,13 +25,27 @@ module.exports = function (sketch) {
     ];
   }
 
+  // Playback
   var play = false,
-      direction = "forward";
+      direction = "forward",
+      frameRate = 0.5;
 
+  // Tracing
   var trace = false,
-      positions = [[]];
+      traceIndex = 0,
+      positions = [[]],
+      onStoreTrackingData = null;
+
+  sketch.setup = function() {
+    // Create canvas with default size
+    sketch.createCanvas(100, 100);
+    sketch.frameRate(frameRate);
+    pause();
+  }
 
   sketch.updateProps = function(props) {
+    onStoreTrackingData = props.onStoreTrackingData;
+
     // Check for new experiment
     if (experimentId !== props.experiment.id) {
       experimentId = props.experiment.id;
@@ -60,13 +76,6 @@ numFrames = 10;
     }
   }
 
-  sketch.setup = function() {
-    // Create canvas with default size
-    sketch.createCanvas(100, 100);
-    sketch.frameRate(2);
-    pause();
-  }
-
   sketch.windowResized = function() {
     resizeImages();
   }
@@ -77,12 +86,15 @@ numFrames = 10;
     // Get image
     var im = colorImages[frame];
 
+    // Get current trace data
+    var pos = positions[traceIndex];
+
     if (trace) {
       // Get normalized mouse position at end of last frame
       var x = sketch.map(sketch.mouseX, 0, sketch.width - 1, 0, 1, true),
           y = sketch.map(sketch.mouseY, 0, sketch.height - 1, 0, 1, true);
 
-      positions.push([x, y, frame]);
+      pos.push([x, y, frame]);
     }
 
     // Draw the image
@@ -90,10 +102,10 @@ numFrames = 10;
 
     // Draw path
     sketch.strokeWeight(4)
-    for (var i = 1; i < positions.length; i++) {
-      var p0 = positions[i - 1],
-          p1 = positions[i],
-          alpha = sketch.map(i, 1, positions.length - 1, 100, 255);
+    for (var i = 1; i < pos.length; i++) {
+      var p0 = pos[i - 1],
+          p1 = pos[i],
+          alpha = pos.length === 2 ? 255 : sketch.map(i, 1, pos.length - 1, 100, 255);
 
       sketch.stroke(127, 127, 127, alpha);
 
@@ -119,7 +131,8 @@ numFrames = 10;
 
     sketch.cursor(trace ? sketch.CROSS : sketch.ARROW);
 
-    if (trace) positions = [];
+    if (trace) positions[traceIndex] = [];
+    else onStoreTrackingData(getTrackingData());
   }
 
   // XXX: Need to limit to events on the canvas
@@ -138,6 +151,18 @@ numFrames = 10;
         frameForward();
         break;
     }
+  }
+
+  function getTrackingData() {
+    return {
+      id: experimentId,
+      traces: positions.map(function(d, i) {
+        return {
+          name: i + "",
+          points: d.slice()
+        };
+      })
+    };
   }
 
   function resizeImages() {
@@ -161,7 +186,7 @@ numFrames = 10;
 
       im.loadPixels();
       colorIm.loadPixels();
-      
+
       for (var x = 0; x < im.width; x++) {
         for (var y = 0; y < im.height; y++ ) {
           var i = (x + y * im.width) * 4,

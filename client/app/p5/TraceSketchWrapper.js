@@ -26,7 +26,8 @@ class TraceSketchWrapper extends React.Component {
 }
 
 TraceSketchWrapper.propTypes = {
-  experiment: PropTypes.object.isRequired
+  experiment: PropTypes.object.isRequired,
+  onStoreTrackingData: PropTypes.func.isRequired
 };
 
 module.exports = TraceSketchWrapper;

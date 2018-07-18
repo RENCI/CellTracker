@@ -7,7 +7,7 @@ function onExperimentSelectChange(e) {
 }
 
 function onSaveTrackingDataClick(e) {
-  console.log("Save tracking data...");
+  ViewActionCreators.saveTrackingData();
 }
 
 function Controls(props) {
