@@ -16,6 +16,7 @@ module.exports = function (sketch) {
         b = sketch.map((i - s1 * 2) / 3, 0, s1, 0, 255, true);
     */
 
+    // Blue color map
     var r = i / 3,
         g = i * 2 / 3,
         b = sketch.constrain(i * 2, 0, 255);
@@ -35,6 +36,8 @@ module.exports = function (sketch) {
       experimentId = props.experiment.id;
       var numFrames = props.experiment.frames;
 
+numFrames = 10;
+
       // Clear current data and pause
       images = [];
       pause();
@@ -48,10 +51,10 @@ module.exports = function (sketch) {
           console.log("Loaded " + tempImages.length);
 
           if (tempImages.length === numFrames) {
-            updateImages(tempImages);
+            images = tempImages.slice();
+            maxFrame = images.length - 1;
 
-            // Draw initial frame
-            sketch.redraw();
+            resizeImages();
           }
         });
       }
@@ -59,23 +62,14 @@ module.exports = function (sketch) {
   }
 
   sketch.setup = function() {
+    // Create canvas with default size
     sketch.createCanvas(100, 100);
     sketch.frameRate(2);
     pause();
   }
 
   sketch.windowResized = function() {
-    // Get parent div
-    var div = sketch.select("#sketchDiv"),
-        w = innerWidth(div.elt);
-
-    // Size canvas to image aspect ratio
-    var im = images[0],
-        aspect = im.width / im.height;
-
-    sketch.resizeCanvas(w, w / aspect);
-
-    sketch.redraw();
+    resizeImages();
   }
 
   sketch.draw = function() {
@@ -86,13 +80,10 @@ module.exports = function (sketch) {
 
     if (trace) {
       // Get normalized mouse position at end of last frame
-      var x = sketch.mouseX / (sketch.width - 1),
-          y = sketch.mouseY / (sketch.height - 1);
+      var x = sketch.map(sketch.mouseX, 0, sketch.width - 1, 0, 1, true),
+          y = sketch.map(sketch.mouseY, 0, sketch.height - 1, 0, 1, true);
 
-      positions.push([
-        Math.max(0, Math.min(x, 1)),
-        Math.max(0, Math.min(y, 1))
-      ]);
+      positions.push([x, y, frame]);
     }
 
     // Draw the image
@@ -102,9 +93,10 @@ module.exports = function (sketch) {
     sketch.strokeWeight(4)
     for (var i = 1; i < positions.length; i++) {
       var p0 = positions[i - 1],
-          p1 = positions[i];
+          p1 = positions[i],
+          alpha = sketch.map(i, 1, positions.length - 1, 100, 255);
 
-      sketch.stroke(127, 127, 127, i / (positions.length - 1) * 255);
+      sketch.stroke(127, 127, 127, alpha);
 
       sketch.line(
         p0[0] * (sketch.width - 1), p0[1] * (sketch.height - 1),
@@ -116,8 +108,8 @@ module.exports = function (sketch) {
     if (play) {
       frame++;
       if (frame > maxFrame) {
+        frame = maxFrame;
         pause();
-        frame = 0;
       }
     }
   }
@@ -129,8 +121,6 @@ module.exports = function (sketch) {
     sketch.cursor(trace ? sketch.CROSS : sketch.ARROW);
 
     if (trace) positions = [];
-
-    sketch.redraw();
   }
 
   // XXX: Need to limit to events on the canvas
@@ -151,12 +141,7 @@ module.exports = function (sketch) {
     }
   }
 
-  function updateImages(newImages) {
-    images = newImages.slice();
-    maxFrame = images.length - 1;
-
-    console.log(images);
-
+  function resizeImages() {
     // Size canvas to image aspect ratio
     var im = images[0],
         aspect = im.width / im.height;
@@ -166,6 +151,7 @@ module.exports = function (sketch) {
     var div = sketch.select("#sketchDiv"),
         w = innerWidth(div.elt),
         h = w / aspect;
+
     // Resize images
     images.forEach(function(im) {
       im.resize(w, h);
@@ -198,8 +184,6 @@ module.exports = function (sketch) {
     });
 
     sketch.resizeCanvas(w, h);
-
-    console.log(colorImages);
   }
 
   function play() {
