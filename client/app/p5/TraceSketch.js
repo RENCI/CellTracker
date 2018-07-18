@@ -1,3 +1,6 @@
+var d3Scale = require("d3-scale");
+var d3ScaleChromatic = require("d3-scale-chromatic");
+
 module.exports = function (sketch) {
   var experimentId = null;
 
@@ -6,29 +9,25 @@ module.exports = function (sketch) {
       frame = 0,
       maxFrame = 0;
 
-  var lut = [],
-      s1 = 256 / 3;
+  // Use d3 color scale, but generate a lookup table from that for speed
+  var colorScale = d3Scale.scaleSequential(d3ScaleChromatic.interpolateInferno),
+      lut = [];
+
   for (var i = 0; i < 256; i++) {
-    // Black-body radiation color map
-    /*
-    var r = sketch.map(i / 3, 0, s1, 0, 255, true),
-        g = sketch.map((i - s1) / 3, 0, s1, 0, 255, true),
-        b = sketch.map((i - s1 * 2) / 3, 0, s1, 0, 255, true);
-    */
+    var c = sketch.color(colorScale(i / 255));
 
-    // Blue color map
-    var r = i / 3,
-        g = i * 2 / 3,
-        b = sketch.constrain(i * 2, 0, 255);
-
-    lut[i] = [r, g, b];
+    lut[i] = [
+      sketch.red(c),
+      sketch.green(c),
+      sketch.blue(c)
+    ];
   }
 
   var play = false,
       direction = "forward";
 
   var trace = false,
-      positions = [];
+      positions = [[]];
 
   sketch.updateProps = function(props) {
     // Check for new experiment
@@ -162,14 +161,11 @@ numFrames = 10;
 
       im.loadPixels();
       colorIm.loadPixels();
-
+      
       for (var x = 0; x < im.width; x++) {
         for (var y = 0; y < im.height; y++ ) {
-          var i = (x + y * im.width) * 4;
-
-          var v = im.pixels[i];
-
-          var c = lut[v];
+          var i = (x + y * im.width) * 4,
+              c = lut[im.pixels[i]];
 
           colorIm.pixels[i] = c[0];
           colorIm.pixels[i + 1] = c[1];
