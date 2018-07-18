@@ -10,13 +10,28 @@ module.exports = {
   selectExperiment: function (id) {
     WebAPIUtils.getExperiment(id);
   },
-  storeTrackingData: function (data) {
+
+  addTrace: function () {
     AppDispatcher.dispatch({
-      actionType: Constants.STORE_TRACKING_DATA,
-      data: data
+      actionType: Constants.ADD_TRACE
     });
   },
-  saveTrackingData: function () {
-    WebAPIUtils.saveTrackingData(DataStore.getTrackingData());
+  updateTrace: function (points) {
+    AppDispatcher.dispatch({
+      actionType: Constants.UPDATE_TRACE,
+      points: points
+    });
+  },
+  selectTrace: function (index) {
+    AppDispatcher.dispatch({
+      actionType: Constants.SELECT_TRACE,
+      index: index
+    });
+  },
+  saveTraces: function () {
+    WebAPIUtils.saveTraces(
+      DataStore.getExperiment().id,
+      DataStore.getTraces()
+    );
   }
 };

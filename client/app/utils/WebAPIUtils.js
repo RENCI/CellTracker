@@ -68,12 +68,20 @@ function getExperiment(id) {
   });
 }
 
-function saveTrackingData(data) {
+function saveTraces(id, traces) {
   setupAjax();
+
+  // Only keep fields we need to send
+  var data = traces.map(function (trace) {
+    return {
+      name: trace.name,
+      points: trace.points
+    };
+  });
 
   $.ajax({
     type: "POST",
-    url: "/save_tracking_data/",
+    url: "/save_tracking_data/" + id,
     data: data,
     success: function (data) {
       // Tracking saved action?
@@ -87,5 +95,5 @@ function saveTrackingData(data) {
 module.exports = {
   getExperimentList: getExperimentList,
   getExperiment: getExperiment,
-  saveTrackingData: saveTrackingData
+  saveTraces: saveTraces
 };

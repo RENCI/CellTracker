@@ -4,8 +4,8 @@ var Controls = require("./Controls");
 var TraceSketchWrapper = require("../p5/TraceSketchWrapper");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
-function handleStoreTrackingData(data) {
-  ViewActionCreators.storeTrackingData(data);
+function handleUpdateTrace(points) {
+  ViewActionCreators.updateTrace(points);
 }
 
 function MainSection(props) {
@@ -17,7 +17,8 @@ function MainSection(props) {
       <div className="col-md-10 text-center" id="sketchDiv">
         <TraceSketchWrapper
           experiment={props.experiment}
-          onStoreTrackingData={handleStoreTrackingData} />
+          traces={props.traces}
+          onUpdateTrace={handleUpdateTrace} />
       </div>
     </div>
   );
@@ -25,7 +26,8 @@ function MainSection(props) {
 
 MainSection.propTypes = {
   experimentList: PropTypes.arrayOf(PropTypes.object).isRequired,
-  experiment: PropTypes.object.isRequired
+  experiment: PropTypes.object.isRequired,
+  traces: PropTypes.arrayOf(PropTypes.object).isRequired
 };
 
 module.exports = MainSection;

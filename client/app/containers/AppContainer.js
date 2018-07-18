@@ -9,7 +9,8 @@ var ViewActionCreators = require("../actions/ViewActionCreators");
 function getStateFromStore() {
   return {
     experimentList: DataStore.getExperimentList(),
-    experiment: DataStore.getExperiment()
+    experiment: DataStore.getExperiment(),
+    traces: DataStore.getTraces()
   };
 }
 

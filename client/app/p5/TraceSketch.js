@@ -32,9 +32,9 @@ module.exports = function (sketch) {
 
   // Tracing
   var trace = false,
-      traceIndex = 0,
-      positions = [[]],
-      onStoreTrackingData = null;
+      traces = [],
+      points = [],
+      onUpdateTrace = null;
 
   sketch.setup = function() {
     // Create canvas with default size
@@ -44,7 +44,7 @@ module.exports = function (sketch) {
   }
 
   sketch.updateProps = function(props) {
-    onStoreTrackingData = props.onStoreTrackingData;
+    onUpdateTrace = props.onUpdateTrace;
 
     // Check for new experiment
     if (experimentId !== props.experiment.id) {
@@ -86,15 +86,12 @@ numFrames = 10;
     // Get image
     var im = colorImages[frame];
 
-    // Get current trace data
-    var pos = positions[traceIndex];
-
     if (trace) {
       // Get normalized mouse position at end of last frame
       var x = sketch.map(sketch.mouseX, 0, sketch.width - 1, 0, 1, true),
           y = sketch.map(sketch.mouseY, 0, sketch.height - 1, 0, 1, true);
 
-      pos.push([x, y, frame]);
+      points.push([x, y, frame]);
     }
 
     // Draw the image
@@ -102,10 +99,10 @@ numFrames = 10;
 
     // Draw path
     sketch.strokeWeight(4)
-    for (var i = 1; i < pos.length; i++) {
-      var p0 = pos[i - 1],
-          p1 = pos[i],
-          alpha = pos.length === 2 ? 255 : sketch.map(i, 1, pos.length - 1, 100, 255);
+    for (var i = 1; i < points.length; i++) {
+      var p0 = points[i - 1],
+          p1 = points[i],
+          alpha = points.length === 2 ? 255 : sketch.map(i, 1, points.length - 1, 100, 255);
 
       sketch.stroke(127, 127, 127, alpha);
 
@@ -131,8 +128,8 @@ numFrames = 10;
 
     sketch.cursor(trace ? sketch.CROSS : sketch.ARROW);
 
-    if (trace) positions[traceIndex] = [];
-    else onStoreTrackingData(getTrackingData());
+    if (trace) points = [];
+    else onUpdateTrace(getTrace());
   }
 
   // XXX: Need to limit to events on the canvas
@@ -153,16 +150,8 @@ numFrames = 10;
     }
   }
 
-  function getTrackingData() {
-    return {
-      id: experimentId,
-      traces: positions.map(function(d, i) {
-        return {
-          name: i + "",
-          points: d.slice()
-        };
-      })
-    };
+  function getTrace() {
+    return points.slice();
   }
 
   function resizeImages() {

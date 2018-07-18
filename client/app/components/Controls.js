@@ -1,25 +1,24 @@
 var React = require("react");
 var PropTypes = require("prop-types");
+var TraceList = require("./TraceList");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
 function onExperimentSelectChange(e) {
   ViewActionCreators.selectExperiment(e.target.value);
 }
 
-function onSaveTrackingDataClick(e) {
-  ViewActionCreators.saveTrackingData();
+function onSaveTracesClick() {
+  ViewActionCreators.saveTraces();
 }
 
 function Controls(props) {
   var options = props.experimentList.map(function (experiment, i) {
     return (
       <option key={i} value={experiment.id}>
-          {experiment.name}
+        {experiment.name}
       </option>
     );
   });
-
-  options.push(<option key={1} value="test">Test</option>);
 
   return (
     <div>
@@ -33,11 +32,13 @@ function Controls(props) {
             {options}
         </select>
       </div>
+      <TraceList traces={props.traces} />
       <div className="form-group">
         <button
+          type="button"
           className="btn btn-default btn-block"
-          onClick={onSaveTrackingDataClick}>
-            Save Tracking Data
+          onClick={onSaveTracesClick}>
+            Save Traces
         </button>
       </div>
     </div>
@@ -46,7 +47,8 @@ function Controls(props) {
 
 Controls.propTypes = {
   experimentList: PropTypes.arrayOf(PropTypes.object).isRequired,
-  experiment: PropTypes.object.isRequired
+  experiment: PropTypes.object.isRequired,
+  traces: PropTypes.arrayOf(PropTypes.object).isRequired
 };
 
 module.exports = Controls;
