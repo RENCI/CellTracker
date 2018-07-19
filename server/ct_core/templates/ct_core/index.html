@@ -15,6 +15,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/addons/p5.dom.js"></script>
 </head>
 <body>
+  {% csrf_token %}
   <div id="app"></div>
   <script type="text/javascript" src="{% static 'ct_core/js/index_bundle.js' %}"></script>
 </body>
