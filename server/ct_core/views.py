@@ -19,10 +19,10 @@ from django_irods.storage import IrodsStorage
 
 # Create your views here.
 def index(request):
-    import sys
-    sys.path.append("/home/docker/pycharm-debug")
-    import pydevd
-    pydevd.settrace('172.17.0.1', port=21000, suspend=False)
+    #import sys
+    #sys.path.append("/home/docker/pycharm-debug")
+    #import pydevd
+    #pydevd.settrace('172.17.0.1', port=21000, suspend=False)
 
     template = loader.get_template('ct_core/index.html')
     context = {}
