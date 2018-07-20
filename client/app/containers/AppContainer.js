@@ -10,6 +10,7 @@ function getStateFromStore() {
   return {
     experimentList: DataStore.getExperimentList(),
     experiment: DataStore.getExperiment(),
+    loading: DataStore.getLoading(),
     traces: DataStore.getTraces()
   };
 }
@@ -27,12 +28,19 @@ class AppContainer extends React.Component {
   componentDidMount() {
     DataStore.addChangeListener(this.onDataChange);
 
-    // Bootstrap the application by getting initial data here
+    // Bootstrap the application by getting the experiment list here
     ViewActionCreators.getExperimentList();
   }
 
   componentWillUnmount() {
     DataStore.removeChangeListener(this.onDataChange);
+  }
+
+  componentDidUpdate() {
+    if (this.state.experimentList.length > 0 && !this.state.experiment) {
+      // Get the first experiment
+      ViewActionCreators.selectExperiment(this.state.experimentList[0].id);
+    }
   }
 
   onDataChange() {

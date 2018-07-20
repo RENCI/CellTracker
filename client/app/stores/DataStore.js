@@ -11,9 +11,19 @@ var experimentList = [];
 // Active experiment
 var experiment = null;
 
+// Loading information
+var loading = null;
+
 // Traces for this experiment
 var traces = [];
 var activeTrace = null;
+
+function updateLoading(frame, numFrames) {
+  loading = frame === null ? null : {
+    frame: frame,
+    numFrames: numFrames
+  };
+}
 
 function addTrace() {
   traces.forEach(function (trace) {
@@ -61,6 +71,9 @@ var DataStore = assign({}, EventEmitter.prototype, {
   getExperiment: function () {
     return experiment;
   },
+  getLoading: function () {
+    return loading;
+  },
   getTraces: function () {
     return traces;
   }
@@ -70,12 +83,19 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
   switch (action.actionType) {
     case Constants.RECEIVE_EXPERIMENT_LIST:
       experimentList = action.experimentList;
+      experiment = null;
       DataStore.emitChange();
       break;
 
     case Constants.RECEIVE_EXPERIMENT:
       experiment = action.experiment;
       resetTraces();
+      updateLoading(0, experiment.frames);
+      DataStore.emitChange();
+      break;
+
+    case Constants.UPDATE_LOADING:
+      updateLoading(action.frame, action.numFrames);
       DataStore.emitChange();
       break;
 

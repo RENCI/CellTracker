@@ -41,10 +41,6 @@ function getExperimentList() {
     success: function (data) {
       // Create an action
       ServerActionCreators.receiveExperimentList(data);
-
-      // Request first experiment
-      // XXX: Should this go in receiveExperimentList?
-      getExperimentInfo(data[0].id);
     },
     error: function (xhr, textStatus, errorThrown) {
       console.log(textStatus + ": " + errorThrown);

@@ -9,7 +9,8 @@ module.exports = function (sketch) {
   var images = [],
       colorImages = [],
       frame = 0,
-      maxFrame = 0;
+      maxFrame = 0,
+      onUpdateLoading = null;
 
   // Use d3 color scale, but generate a lookup table from that for speed
   var colorScale = d3Scale.scaleSequential(d3ScaleChromatic.interpolateInferno),
@@ -45,6 +46,7 @@ module.exports = function (sketch) {
 
   sketch.updateProps = function(props) {
     traces = props.traces;
+    onUpdateLoading = props.onUpdateLoading;
     onUpdateTrace = props.onUpdateTrace;
 
     // Check for new experiment
@@ -52,7 +54,7 @@ module.exports = function (sketch) {
       experimentId = props.experiment.id;
       var numFrames = props.experiment.frames;
 
-numFrames = 10;
+numFrames = 20;
 
       // Clear current data and pause
       images = [];
@@ -64,13 +66,16 @@ numFrames = 10;
         sketch.loadImage("/display-image/" + experimentId + "/" + i, function (im) {
           tempImages.push(im);
 
-          console.log("Loaded " + tempImages.length);
-
           if (tempImages.length === numFrames) {
+            onUpdateLoading(null);
+
             images = tempImages.slice();
             maxFrame = images.length - 1;
 
             resizeImages();
+          }
+          else {
+            onUpdateLoading(tempImages.length + 1, numFrames);
           }
         });
       }

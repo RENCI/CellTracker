@@ -11,6 +11,14 @@ module.exports = {
     WebAPIUtils.getExperimentInfo(id);
   },
 
+  updateLoading: function (frame, numFrames) {
+    AppDispatcher.dispatch({
+      actionType: Constants.UPDATE_LOADING,
+      frame: frame,
+      numFrames: numFrames
+    });
+  },
+
   addTrace: function () {
     AppDispatcher.dispatch({
       actionType: Constants.ADD_TRACE
