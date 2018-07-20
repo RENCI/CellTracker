@@ -8,7 +8,7 @@ module.exports = {
     WebAPIUtils.getExperimentList();
   },
   selectExperiment: function (id) {
-    WebAPIUtils.getExperiment(id);
+    WebAPIUtils.getExperimentInfo(id);
   },
 
   addTrace: function () {

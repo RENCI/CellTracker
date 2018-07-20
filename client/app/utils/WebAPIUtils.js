@@ -42,9 +42,9 @@ function getExperimentList() {
       // Create an action
       ServerActionCreators.receiveExperimentList(data);
 
-      // Request first workspace
-      // XXX: Should this go in receiveWorkspaceList?
-      getExperiment(data[0].id);
+      // Request first experiment
+      // XXX: Should this go in receiveExperimentList?
+      getExperimentInfo(data[0].id);
     },
     error: function (xhr, textStatus, errorThrown) {
       console.log(textStatus + ": " + errorThrown);
@@ -52,7 +52,7 @@ function getExperimentList() {
   });
 }
 
-function getExperiment(id) {
+function getExperimentInfo(id) {
   setupAjax();
 
   $.ajax({
@@ -94,6 +94,6 @@ function saveTraces(id, traces) {
 
 module.exports = {
   getExperimentList: getExperimentList,
-  getExperiment: getExperiment,
+  getExperimentInfo: getExperimentInfo,
   saveTraces: saveTraces
 };
