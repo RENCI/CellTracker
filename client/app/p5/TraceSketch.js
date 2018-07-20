@@ -64,7 +64,7 @@ numFrames = 20;
       // Load images
       var tempImages = [];
       for (var i = 1; i <= numFrames; i++) {
-        sketch.loadImage("/display-image/" + experimentId + "/" + i, function (im) {
+        sketch.loadImage("/display-image/" + experimentId + "/png/" + i, function (im) {
           tempImages.push(im);
 
           if (tempImages.length === numFrames) {

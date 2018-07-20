@@ -19,10 +19,10 @@ from django_irods.storage import IrodsStorage
 
 # Create your views here.
 def index(request):
-    #import sys
-    #sys.path.append("/home/docker/pycharm-debug")
-    #import pydevd
-    #pydevd.settrace('172.17.0.1', port=21000, suspend=False)
+    import sys
+    sys.path.append("/home/docker/pycharm-debug")
+    import pydevd
+    pydevd.settrace('172.17.0.1', port=21000, suspend=False)
 
     template = loader.get_template('ct_core/index.html')
     context = {}
@@ -132,7 +132,7 @@ def extract_images(request, exp_id):
         return HttpResponse(template.render(context, request))
 
 
-def display_image(request, exp_id, frame_no):
+def display_image(request, exp_id, type, frame_no):
     """
     Return requested image to client
     :param request:
@@ -165,7 +165,7 @@ def display_image(request, exp_id, frame_no):
         start_idx = len('frame')
         seq_len = len(img1_name[start_idx:-4])
         if len(frame_no) == seq_len:
-            img_name = 'frame' + frame_no + '.png'
+            img_name = 'frame' + frame_no + '.' + type
         elif len(frame_no) > seq_len:
             return HttpResponseBadRequest('Requested frame_no does not exist')
         else:
@@ -174,16 +174,16 @@ def display_image(request, exp_id, frame_no):
             packstr = ''
             for i in range(0, zero_cnt):
                 packstr += '0'
-            img_name = 'frame' + packstr + frame_no + '.png'
+            img_name = 'frame' + packstr + frame_no + '.' + type
 
     ifile = os.path.join(image_path, img_name)
     if os.path.isfile(ifile):
-        return HttpResponse(open(ifile, 'rb'), content_type='image/png')
+        return HttpResponse(open(ifile, 'rb'), content_type='image/' + type)
     else:
         dest_path = istorage.getOneImageFrame(exp_id, img_name, image_path)
         ifile = os.path.join(dest_path, img_name)
         if os.path.isfile(ifile):
-            return HttpResponse(open(ifile, 'rb'), content_type='image/png')
+            return HttpResponse(open(ifile, 'rb'), content_type='image/' + type)
         else:
             return HttpResponseServerError('Requested image frame does not exist')
 
@@ -199,3 +199,7 @@ def read_image(request, exp_id, img_file_name):
         return HttpResponse(template.render(context, request))
     else:
         return HttpResponseServerError('Requested image frame does not exist')
+
+
+def save_tracking_data(request, exp_id):
+    return HttpResponse(json.dumps(request.POST))
