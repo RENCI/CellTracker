@@ -39,7 +39,8 @@ module.exports = function (sketch) {
 
   sketch.setup = function() {
     // Create canvas with default size
-    sketch.createCanvas(100, 100);
+    var canvas = sketch.createCanvas(100, 100);
+    canvas.mouseClicked(mouseClicked);
     sketch.frameRate(frameRate);
     pause();
   }
@@ -151,17 +152,7 @@ numFrames = 20;
     }
   }
 
-  // XXX: Need to limit to events on the canvas
-  sketch.mouseClicked = function() {
-    trace = !trace;
-
-    sketch.cursor(trace ? sketch.CROSS : sketch.ARROW);
-
-    if (trace) points = [];
-    else onUpdateTrace(getTrace());
-  }
-
-  // XXX: Need to limit to events on the canvas
+  // XXX: Limit to events on the canvas?
   sketch.keyPressed = function() {
     switch (sketch.keyCode) {
       case 32:
@@ -177,6 +168,15 @@ numFrames = 20;
         frameForward();
         break;
     }
+  }
+
+  function mouseClicked() {
+    trace = !trace;
+
+    sketch.cursor(trace ? sketch.CROSS : sketch.ARROW);
+
+    if (trace) points = [];
+    else onUpdateTrace(getTrace());
   }
 
   function getTrace() {

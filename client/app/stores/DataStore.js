@@ -14,15 +14,41 @@ var experiment = null;
 // Loading information
 var loading = null;
 
+// Playback
+var play = false;
+
 // Traces for this experiment
 var traces = [];
 var activeTrace = null;
+
+function setExperimentList(newList) {
+  experimentList = newList;
+  experiment = null;
+}
+
+function setExperiment(newExperiment) {
+  experiment = newExperiment;
+  resetTraces();
+  updateLoading(0, experiment.frames);
+}
 
 function updateLoading(frame, numFrames) {
   loading = frame === null ? null : {
     frame: frame,
     numFrames: numFrames
   };
+}
+
+function stopPlay() {
+  play = false;
+
+  console.log(play);
+}
+
+function togglePlay() {
+  play = !play;
+
+  console.log(play);
 }
 
 function addTrace() {
@@ -82,20 +108,27 @@ var DataStore = assign({}, EventEmitter.prototype, {
 DataStore.dispatchToken = AppDispatcher.register(function (action) {
   switch (action.actionType) {
     case Constants.RECEIVE_EXPERIMENT_LIST:
-      experimentList = action.experimentList;
-      experiment = null;
+      setExperimentList(action.experimentList);
       DataStore.emitChange();
       break;
 
     case Constants.RECEIVE_EXPERIMENT:
-      experiment = action.experiment;
-      resetTraces();
-      updateLoading(0, experiment.frames);
+      setExperiment(action.experiment);
       DataStore.emitChange();
       break;
 
     case Constants.UPDATE_LOADING:
       updateLoading(action.frame, action.numFrames);
+      DataStore.emitChange();
+      break;
+
+    case Constants.STOP_PLAY:
+      stopPlay();
+      DataStore.emitChange();
+      break;
+
+    case Constants.TOGGLE_PLAY:
+      togglePlay();
       DataStore.emitChange();
       break;
 

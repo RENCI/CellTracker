@@ -3,6 +3,7 @@ var PropTypes = require("prop-types");
 var Controls = require("./Controls");
 var LoadingProgress = require("./LoadingProgress");
 var TraceSketchWrapper = require("../p5/TraceSketchWrapper");
+var MediaControls = require("./MediaControls");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
 function handleUpdateLoading(frame, numFrames) {
@@ -31,6 +32,9 @@ function MainSection(props) {
           traces={props.traces}
           onUpdateLoading={handleUpdateLoading}
           onUpdateTrace={handleUpdateTrace} />
+        {props.loading === null ?
+          <MediaControls />
+        : null}
       </div>
     </div>
   );

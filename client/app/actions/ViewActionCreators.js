@@ -19,6 +19,17 @@ module.exports = {
     });
   },
 
+  stopPlay: function() {
+    AppDispatcher.dispatch({
+      actionType: Constants.STOP_PLAY
+    });
+  },
+  togglePlay: function() {
+    AppDispatcher.dispatch({
+      actionType: Constants.TOGGLE_PLAY
+    });
+  },
+
   addTrace: function () {
     AppDispatcher.dispatch({
       actionType: Constants.ADD_TRACE

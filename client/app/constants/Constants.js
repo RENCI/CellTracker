@@ -6,6 +6,9 @@ module.exports = keyMirror({
 
   UPDATE_LOADING: null,
 
+  STOP_PLAY: null,
+  TOGGLE_PLAY: null,
+
   ADD_TRACE: null,
   UPDATE_TRACE: null,
   SELECT_TRACE: null
