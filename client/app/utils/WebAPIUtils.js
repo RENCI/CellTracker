@@ -68,12 +68,14 @@ function saveTraces(id, traces) {
   setupAjax();
 
   // Only keep fields we need to send
-  var data = traces.map(function (trace) {
+  var data = JSON.stringify(traces.map(function (trace) {
     return {
       name: trace.name,
       points: trace.points
     };
-  });
+  }));
+
+  console.log(data);
 
   $.ajax({
     type: "POST",
