@@ -39,15 +39,16 @@ class IrodsStorage(Storage):
         return os.path.join(dest_path, 'image')
 
 
-    def getOneImageFrame(self, exp_id, image_name, dest_path):
+    def getOneImageFrame(self, exp_id, image_type, image_name, dest_path):
         """
         Get one image frame from an experiment.
         :param exp_id: experiment id
-        :param frame_no: frame sequence no starting from 1
+        :param image_type: type of the image, only 'png' and 'jpg' are supported
+        :param image_name: name of the image to retrieve
         :param dest_path: destination path on web server to retrieve image from iRODS to
         :return: the image file name with full path
         """
-        src_path = os.path.join(exp_id, 'data', 'image', image_name)
+        src_path = os.path.join(exp_id, 'data', 'image', image_type, image_name)
 
         self.session.run("iget", None, '-rf', src_path, dest_path)
         return dest_path

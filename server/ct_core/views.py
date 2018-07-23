@@ -76,7 +76,7 @@ def get_experiment_info(request, exp_id):
     exp_info = {}
     with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
                       password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
-        hpath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id) + '/data/image'
+        hpath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id) + '/data/image/png'
         coll = session.collections.get(hpath)
         fno = len(coll.data_objects)
         exp_info['frames'] = fno
@@ -147,8 +147,8 @@ def display_image(request, exp_id, type, frame_no):
         os.makedirs(image_path)
     fno = int(frame_no)
     istorage = IrodsStorage()
-    img_path = os.path.join(exp_id, 'data', 'image')
-    file_list = istorage.listdir(img_path)[1]
+    irods_img_path = os.path.join(exp_id, 'data', 'image', type)
+    file_list = istorage.listdir(irods_img_path)[1]
     flistlen = len(file_list)
     if flistlen <= 0:
         return HttpResponseServerError("Requested experiment does not contain any image")
@@ -180,7 +180,7 @@ def display_image(request, exp_id, type, frame_no):
     if os.path.isfile(ifile):
         return HttpResponse(open(ifile, 'rb'), content_type='image/' + type)
     else:
-        dest_path = istorage.getOneImageFrame(exp_id, img_name, image_path)
+        dest_path = istorage.getOneImageFrame(exp_id, type, img_name, image_path)
         ifile = os.path.join(dest_path, img_name)
         if os.path.isfile(ifile):
             return HttpResponse(open(ifile, 'rb'), content_type='image/' + type)
