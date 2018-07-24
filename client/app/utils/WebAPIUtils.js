@@ -55,6 +55,10 @@ function getExperimentInfo(id) {
     type: "POST",
     url: "/get_experiment_info/" + id,
     success: function (data) {
+
+// XXX: For testing
+data.frames = 20;
+
       // Create an action
       ServerActionCreators.receiveExperiment(data);
     },

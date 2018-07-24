@@ -19,14 +19,20 @@ module.exports = {
     });
   },
 
-  stopPlay: function() {
+  stopPlay: function () {
     AppDispatcher.dispatch({
       actionType: Constants.STOP_PLAY
     });
   },
-  togglePlay: function() {
+  togglePlay: function () {
     AppDispatcher.dispatch({
       actionType: Constants.TOGGLE_PLAY
+    });
+  },
+  updateFrame: function (frame) {
+    AppDispatcher.dispatch({
+      actionType: Constants.UPDATE_FRAME,
+      frame: frame
     });
   },
 

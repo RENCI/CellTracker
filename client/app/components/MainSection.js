@@ -6,8 +6,62 @@ var TraceSketchWrapper = require("../p5/TraceSketchWrapper");
 var MediaControls = require("./MediaControls");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
+function handleKeyPress(keyCode) {
+  switch (keyCode) {
+    case 32:
+      // Space bar
+      ViewActionCreators.togglePlay();
+      break;
+
+    case sketch.LEFT_ARROW:
+//      frameBack();
+      break;
+
+    case sketch.RIGHT_ARROW:
+//      frameForward();
+      break;
+  }
+}
+
+/*
+  function play() {
+    if (frame === maxFrame) frame = 0;
+
+    play = true;
+    sketch.loop();
+  }
+
+  function pause() {
+    play = false;
+    sketch.noLoop();
+  }
+
+  function togglePlay() {
+    play = !play;
+
+    if (play) sketch.loop();
+    else sketch.noLoop();
+  }
+
+  function frameForward() {
+    frame = Math.min(frame + 1, maxFrame);
+    pause();
+    sketch.redraw();
+  }
+
+  function frameBack() {
+    frame = Math.max(frame - 1, 0);
+    pause();
+    sketch.redraw();
+  }
+*/
+
 function handleUpdateLoading(frame, numFrames) {
   ViewActionCreators.updateLoading(frame, numFrames);
+}
+
+function handleUpdateFrame(frame) {
+  ViewActionCreators.updateFrame(frame);
 }
 
 function handleUpdateTrace(points) {
@@ -28,12 +82,13 @@ function MainSection(props) {
             maxValue={props.loading.numFrames} />
         : null}
         <TraceSketchWrapper
-          experiment={props.experiment}
-          traces={props.traces}
+          {...props}
+          onKeyPress={handleKeyPress}
           onUpdateLoading={handleUpdateLoading}
+          onUpdateFrame={handleUpdateFrame}
           onUpdateTrace={handleUpdateTrace} />
         {props.loading === null ?
-          <MediaControls />
+          <MediaControls {...props} />
         : null}
       </div>
     </div>

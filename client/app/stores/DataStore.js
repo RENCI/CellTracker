@@ -16,6 +16,7 @@ var loading = null;
 
 // Playback
 var play = false;
+var frame = 0;
 
 // Traces for this experiment
 var traces = [];
@@ -41,14 +42,19 @@ function updateLoading(frame, numFrames) {
 
 function stopPlay() {
   play = false;
-
-  console.log(play);
+  frame = 0;
 }
 
 function togglePlay() {
   play = !play;
+}
 
-  console.log(play);
+function updateFrame(newFrame) {
+  frame = newFrame;
+
+  if (frame === experiment.frames - 1) {
+    play = !play;
+  }
 }
 
 function addTrace() {
@@ -100,6 +106,12 @@ var DataStore = assign({}, EventEmitter.prototype, {
   getLoading: function () {
     return loading;
   },
+  getPlay: function () {
+    return play;
+  },
+  getFrame: function () {
+    return frame;
+  },
   getTraces: function () {
     return traces;
   }
@@ -114,6 +126,8 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.RECEIVE_EXPERIMENT:
       setExperiment(action.experiment);
+      stopPlay();
+      updateFrame(0);
       DataStore.emitChange();
       break;
 
@@ -129,6 +143,11 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.TOGGLE_PLAY:
       togglePlay();
+      DataStore.emitChange();
+      break;
+
+    case Constants.UPDATE_FRAME:
+      updateFrame(action.frame);
       DataStore.emitChange();
       break;
 

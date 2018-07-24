@@ -11,6 +11,8 @@ function getStateFromStore() {
     experimentList: DataStore.getExperimentList(),
     experiment: DataStore.getExperiment(),
     loading: DataStore.getLoading(),
+    play: DataStore.getPlay(),
+    frame: DataStore.getFrame(),
     traces: DataStore.getTraces()
   };
 }

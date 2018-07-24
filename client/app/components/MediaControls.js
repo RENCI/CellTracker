@@ -6,8 +6,12 @@ function onStopClick() {
   ViewActionCreators.stopPlay();
 }
 
-function onPlayClick(e) {
+function onPlayClick() {
   ViewActionCreators.togglePlay();
+}
+
+function onRangeChange(e) {
+  ViewActionCreators.updateFrame(+e.target.value);
 }
 
 var rangeStyle = {
@@ -26,18 +30,30 @@ function button(icon, callback) {
 }
 
 function MediaControls(props) {
+  var playIcon = props.play ? "glyphicon-pause" : "glyphicon-play";
+
   return (
     <div className="input-group input-group-sm">
       <div className="input-group-btn">
         {button("glyphicon-stop", onStopClick)}
-        {button("glyphicon-play", onPlayClick)}
+        {button(playIcon, onPlayClick)}
       </div>
-      <input className="form-control" type="range" min="0" max="100" style={rangeStyle} />
+      <input
+        className="form-control"
+        type="range"
+        min={0}
+        max={props.experiment.frames - 1}
+        value={props.frame}
+        style={rangeStyle}
+        onChange={onRangeChange} />
     </div>
   );
 }
 
 MediaControls.propTypes = {
+  experiment: PropTypes.object.isRequired,
+  play: PropTypes.bool.isRequired,
+  frame: PropTypes.number.isRequired
 };
 
 module.exports = MediaControls;

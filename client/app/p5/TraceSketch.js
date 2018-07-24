@@ -5,6 +5,9 @@ module.exports = function (sketch) {
   // Current experiment
   var experimentId = null;
 
+  // PNG or JPG
+  var imageType = "png";
+
   // Images
   var images = [],
       colorImages = [],
@@ -29,7 +32,9 @@ module.exports = function (sketch) {
   // Playback
   var play = false,
       direction = "forward",
-      frameRate = 0.5;
+      frameRate = 0.5,
+      onKeyPress = null,
+      onUpdateFrame = null;
 
   // Tracing
   var trace = false,
@@ -42,29 +47,45 @@ module.exports = function (sketch) {
     var canvas = sketch.createCanvas(100, 100);
     canvas.mouseClicked(mouseClicked);
     sketch.frameRate(frameRate);
-    pause();
   }
 
   sketch.updateProps = function(props) {
+    // Set props
     traces = props.traces;
+    onKeyPress = props.onKeyPress;
+    onUpdateFrame = props.onUpdateFrame;
     onUpdateLoading = props.onUpdateLoading;
     onUpdateTrace = props.onUpdateTrace;
+
+    // Set play
+    if (play !== props.play) {
+      play = props.play;
+
+      if (play) sketch.loop();
+      else sketch.noLoop();
+    }
+
+    // Set frame
+    if (frame !== props.frame) {
+      frame = props.frame;
+
+      if (!play) {
+        sketch.redraw();
+      }
+    }
 
     // Check for new experiment
     if (experimentId !== props.experiment.id) {
       experimentId = props.experiment.id;
       var numFrames = props.experiment.frames;
 
-numFrames = 20;
-
-      // Clear current data and pause
+      // Clear current data
       images = [];
-      pause();
 
       // Load images
       var tempImages = [];
       for (var i = 1; i <= numFrames; i++) {
-        sketch.loadImage("/display-image/" + experimentId + "/png/" + i, function (im) {
+        sketch.loadImage("/display-image/" + experimentId + "/" + imageType + "/" + i, function (im) {
           tempImages.push(im);
 
           if (tempImages.length === numFrames) {
@@ -144,30 +165,17 @@ numFrames = 20;
 
     // Get next image
     if (play) {
-      frame++;
-      if (frame > maxFrame) {
-        frame = maxFrame;
-        pause();
-      }
+      var nextFrame = Math.min(frame + 1, maxFrame);
+
+      onUpdateFrame(nextFrame);
     }
   }
 
   // XXX: Limit to events on the canvas?
   sketch.keyPressed = function() {
-    switch (sketch.keyCode) {
-      case 32:
-        // Space bar
-        togglePlay();
-        break;
-
-      case sketch.LEFT_ARROW:
-        frameBack();
-        break;
-
-      case sketch.RIGHT_ARROW:
-        frameForward();
-        break;
-    }
+    play = false;
+    sketch.noLoop();
+    onKeyPress(sketch.keyCode);
   }
 
   function mouseClicked() {
@@ -222,38 +230,9 @@ numFrames = 20;
       return colorIm;
     });
 
-    sketch.resizeCanvas(w, h);
-  }
-
-  function play() {
-    if (frame === maxFrame) frame = 0;
-
-    play = true;
-    sketch.loop();
-  }
-
-  function pause() {
-    play = false;
-    sketch.noLoop();
-  }
-
-  function togglePlay() {
-    play = !play;
-
-    if (play) sketch.loop();
-    else sketch.noLoop();
-  }
-
-  function frameForward() {
-    frame = Math.min(frame + 1, maxFrame);
-    pause();
-    sketch.redraw();
-  }
-
-  function frameBack() {
-    frame = Math.max(frame - 1, 0);
-    pause();
-    sketch.redraw();
+    setTimeout(function() {
+      sketch.resizeCanvas(w, h);
+    }, 1);
   }
 
   function innerWidth(element) {
