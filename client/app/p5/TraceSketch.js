@@ -47,6 +47,7 @@ module.exports = function (sketch) {
     var canvas = sketch.createCanvas(100, 100);
     canvas.mouseClicked(mouseClicked);
     sketch.frameRate(frameRate);
+    sketch.noLoop();
   }
 
   sketch.updateProps = function(props) {
@@ -61,17 +62,15 @@ module.exports = function (sketch) {
     if (play !== props.play) {
       play = props.play;
 
-      if (play) sketch.loop();
-      else sketch.noLoop();
+//      if (play) sketch.loop();
+//      else sketch.noLoop();
     }
 
     // Set frame
     if (frame !== props.frame) {
       frame = props.frame;
 
-      if (!play) {
-        sketch.redraw();
-      }
+      sketch.redraw();
     }
 
     // Check for new experiment
@@ -164,17 +163,19 @@ module.exports = function (sketch) {
     }
 
     // Get next image
+/*
     if (play) {
       var nextFrame = Math.min(frame + 1, maxFrame);
 
       onUpdateFrame(nextFrame);
     }
+*/
   }
 
   // XXX: Limit to events on the canvas?
   sketch.keyPressed = function() {
-    play = false;
-    sketch.noLoop();
+//    play = false;
+//    sketch.noLoop();
     onKeyPress(sketch.keyCode);
   }
 

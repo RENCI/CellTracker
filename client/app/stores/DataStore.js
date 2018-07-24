@@ -62,13 +62,14 @@ function setPlay(newPlay) {
   play = newPlay;
 
   if (play && !timer) {
-    timer = setTimeout(function () {
-      console.log("play");
+    timer = setInterval(function () {
+      frame = Math.min(frame + 1, experiment.frames - 1);
+      DataStore.emitChange();
     }, 1000);
   }
   else {
     if (timer) {
-      clearTimeout(timer);
+      clearInterval(timer);
       timer = null;
     }
   }
