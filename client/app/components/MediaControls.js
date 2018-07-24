@@ -11,7 +11,7 @@ function onPlayClick() {
 }
 
 function onRangeChange(e) {
-  ViewActionCreators.updateFrame(+e.target.value);
+  ViewActionCreators.setFrame(+e.target.value);
 }
 
 var rangeStyle = {

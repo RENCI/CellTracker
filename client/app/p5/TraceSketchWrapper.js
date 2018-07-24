@@ -28,11 +28,9 @@ class TraceSketchWrapper extends React.Component {
 TraceSketchWrapper.propTypes = {
   experiment: PropTypes.object.isRequired,
   traces: PropTypes.arrayOf(PropTypes.object).isRequired,
-  play: PropTypes.bool.isRequired,
   frame: PropTypes.number.isRequired,
   onKeyPress: PropTypes.func.isRequired,
   onUpdateLoading: PropTypes.func.isRequired,
-  onUpdateFrame: PropTypes.func.isRequired,
   onUpdateTrace: PropTypes.func.isRequired
 };
 

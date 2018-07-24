@@ -13,48 +13,17 @@ function handleKeyPress(keyCode) {
       ViewActionCreators.togglePlay();
       break;
 
-    case sketch.LEFT_ARROW:
-//      frameBack();
+    case 37:
+      // Left arrow
+      ViewActionCreators.frameBack();
       break;
 
-    case sketch.RIGHT_ARROW:
-//      frameForward();
+    case 39:
+      // Right arrow
+      ViewActionCreators.frameForward();
       break;
   }
 }
-
-/*
-  function play() {
-    if (frame === maxFrame) frame = 0;
-
-    play = true;
-    sketch.loop();
-  }
-
-  function pause() {
-    play = false;
-    sketch.noLoop();
-  }
-
-  function togglePlay() {
-    play = !play;
-
-    if (play) sketch.loop();
-    else sketch.noLoop();
-  }
-
-  function frameForward() {
-    frame = Math.min(frame + 1, maxFrame);
-    pause();
-    sketch.redraw();
-  }
-
-  function frameBack() {
-    frame = Math.max(frame - 1, 0);
-    pause();
-    sketch.redraw();
-  }
-*/
 
 function handleUpdateLoading(frame, numFrames) {
   ViewActionCreators.updateLoading(frame, numFrames);

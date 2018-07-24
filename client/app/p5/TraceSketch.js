@@ -12,29 +12,11 @@ module.exports = function (sketch) {
   var images = [],
       colorImages = [],
       frame = 0,
-      maxFrame = 0,
+      lut = createLut(d3ScaleChromatic.interpolateInferno),
       onUpdateLoading = null;
 
-  // Use d3 color scale, but generate a lookup table from that for speed
-  var colorScale = d3Scale.scaleSequential(d3ScaleChromatic.interpolateInferno),
-      lut = [];
-
-  for (var i = 0; i < 256; i++) {
-    var c = sketch.color(colorScale(i / 255));
-
-    lut[i] = [
-      sketch.red(c),
-      sketch.green(c),
-      sketch.blue(c)
-    ];
-  }
-
-  // Playback
-  var play = false,
-      direction = "forward",
-      frameRate = 0.5,
-      onKeyPress = null,
-      onUpdateFrame = null;
+  // Interaction
+  var onKeyPress = null;
 
   // Tracing
   var trace = false,
@@ -46,32 +28,16 @@ module.exports = function (sketch) {
     // Create canvas with default size
     var canvas = sketch.createCanvas(100, 100);
     canvas.mouseClicked(mouseClicked);
-    sketch.frameRate(frameRate);
     sketch.noLoop();
   }
 
   sketch.updateProps = function(props) {
     // Set props
+    frame = props.frame;
     traces = props.traces;
     onKeyPress = props.onKeyPress;
-    onUpdateFrame = props.onUpdateFrame;
     onUpdateLoading = props.onUpdateLoading;
     onUpdateTrace = props.onUpdateTrace;
-
-    // Set play
-    if (play !== props.play) {
-      play = props.play;
-
-//      if (play) sketch.loop();
-//      else sketch.noLoop();
-    }
-
-    // Set frame
-    if (frame !== props.frame) {
-      frame = props.frame;
-
-      sketch.redraw();
-    }
 
     // Check for new experiment
     if (experimentId !== props.experiment.id) {
@@ -91,7 +57,6 @@ module.exports = function (sketch) {
             onUpdateLoading(null);
 
             images = tempImages.slice();
-            maxFrame = images.length - 1;
 
             resizeImages();
           }
@@ -101,6 +66,8 @@ module.exports = function (sketch) {
         });
       }
     }
+
+    sketch.redraw();
   }
 
   sketch.windowResized = function() {
@@ -161,21 +128,10 @@ module.exports = function (sketch) {
 
       sketch.line(p0[0] * maxX, p0[1] * maxY, p1[0] * maxX, p1[1] * maxY);
     }
-
-    // Get next image
-/*
-    if (play) {
-      var nextFrame = Math.min(frame + 1, maxFrame);
-
-      onUpdateFrame(nextFrame);
-    }
-*/
   }
 
   // XXX: Limit to events on the canvas?
   sketch.keyPressed = function() {
-//    play = false;
-//    sketch.noLoop();
     onKeyPress(sketch.keyCode);
   }
 
@@ -190,6 +146,23 @@ module.exports = function (sketch) {
 
   function getTrace() {
     return points.slice();
+  }
+
+  function createLut(colors) {
+    var colorScale = d3Scale.scaleSequential(colors),
+        lut = [];
+
+    for (var i = 0; i < 256; i++) {
+      var c = sketch.color(colorScale(i / 255));
+
+      lut[i] = [
+        sketch.red(c),
+        sketch.green(c),
+        sketch.blue(c)
+      ];
+    }
+
+    return lut;
   }
 
   function resizeImages() {
@@ -231,9 +204,7 @@ module.exports = function (sketch) {
       return colorIm;
     });
 
-    setTimeout(function() {
-      sketch.resizeCanvas(w, h);
-    }, 1);
+    sketch.resizeCanvas(w, h);
   }
 
   function innerWidth(element) {

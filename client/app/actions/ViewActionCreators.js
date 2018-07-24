@@ -29,10 +29,20 @@ module.exports = {
       actionType: Constants.TOGGLE_PLAY
     });
   },
-  updateFrame: function (frame) {
+  setFrame: function (frame) {
     AppDispatcher.dispatch({
-      actionType: Constants.UPDATE_FRAME,
+      actionType: Constants.SET_FRAME,
       frame: frame
+    });
+  },
+  frameBack: function () {
+    AppDispatcher.dispatch({
+      actionType: Constants.FRAME_BACK
+    });
+  },
+  frameForward: function () {
+    AppDispatcher.dispatch({
+      actionType: Constants.FRAME_FORWARD
     });
   },
 

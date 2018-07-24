@@ -42,20 +42,25 @@ function updateLoading(frame, numFrames) {
 }
 
 function stopPlay() {
-  frame = 0;
-  setPlay(false);
+  setFrame(0);
 }
 
 function togglePlay() {
   setPlay(!play);
 }
 
-function updateFrame(newFrame) {
-  frame = newFrame;
+function setFrame(newFrame) {
+  frame = Math.max(0, Math.min(newFrame, experiment.frames - 1));
 
-  if (frame === experiment.frames - 1) {
-    setPlay(false);
-  }
+  setPlay(false);
+}
+
+function frameBack() {
+  setFrame(frame - 1);
+}
+
+function frameForward() {
+  setFrame(frame + 1);
 }
 
 function setPlay(newPlay) {
@@ -145,7 +150,6 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
     case Constants.RECEIVE_EXPERIMENT:
       setExperiment(action.experiment);
       stopPlay();
-      updateFrame(0);
       DataStore.emitChange();
       break;
 
@@ -164,8 +168,18 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
       DataStore.emitChange();
       break;
 
-    case Constants.UPDATE_FRAME:
-      updateFrame(action.frame);
+    case Constants.SET_FRAME:
+      setFrame(action.frame);
+      DataStore.emitChange();
+      break;
+
+    case Constants.FRAME_BACK:
+      frameBack();
+      DataStore.emitChange();
+      break;
+
+    case Constants.FRAME_FORWARD:
+      frameForward();
       DataStore.emitChange();
       break;
 
