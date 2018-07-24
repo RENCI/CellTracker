@@ -42,6 +42,11 @@ function handleUpdateTrace(points) {
 }
 
 function MainSection(props) {
+  // Put in DataStore?
+  var experimentName = props.experimentList.filter(function (experiment) {
+    return props.experiment.id === experiment.id;
+  })[0].name;
+
   return (
     <div className="row">
       <div className="col-md-2">
@@ -50,7 +55,7 @@ function MainSection(props) {
       <div className="col-md-10 text-center" id="sketchDiv">
         {props.loading !== null ?
           <LoadingProgress
-            label={"Loading"}
+            label={"Loading " + experimentName}
             value={props.loading.frame}
             maxValue={props.loading.numFrames} />
         : null}

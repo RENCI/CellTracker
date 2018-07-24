@@ -17,6 +17,7 @@ var loading = null;
 // Playback
 var play = false;
 var frame = 0;
+var frameRate = 5;
 var timer = null;
 
 // Traces for this experiment
@@ -70,7 +71,7 @@ function setPlay(newPlay) {
     timer = setInterval(function () {
       frame = Math.min(frame + 1, experiment.frames - 1);
       DataStore.emitChange();
-    }, 1000);
+    }, 1 / frameRate * 1000);
   }
   else {
     if (timer) {

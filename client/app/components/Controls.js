@@ -34,6 +34,14 @@ function Controls(props) {
       </div>
       <TraceList traces={props.traces} />
       <div className="form-group">
+        <label htmlFor="userNameInput">User name</label>
+        <input
+          type="text"
+          className="form-control"
+          id="userNameInput"
+          placeholder="User name" />
+      </div>
+      <div className="form-group">
         <button
           type="button"
           className="btn btn-default btn-block"
