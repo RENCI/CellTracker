@@ -16,7 +16,8 @@ module.exports = function (sketch) {
       onUpdateLoading = null;
 
   // Interaction
-  var onKeyPress = null;
+  var onKeyPress = null,
+      onMouseWheel = null;
 
   // Tracing
   var trace = false,
@@ -28,6 +29,7 @@ module.exports = function (sketch) {
     // Create canvas with default size
     var canvas = sketch.createCanvas(100, 100);
     canvas.mouseClicked(mouseClicked);
+    canvas.mouseWheel(mouseWheel);
     sketch.noLoop();
   }
 
@@ -36,6 +38,7 @@ module.exports = function (sketch) {
     frame = props.frame;
     traces = props.traces;
     onKeyPress = props.onKeyPress;
+    onMouseWheel = props.onMouseWheel;
     onUpdateLoading = props.onUpdateLoading;
     onUpdateTrace = props.onUpdateTrace;
 
@@ -84,12 +87,12 @@ module.exports = function (sketch) {
     var maxX = sketch.width - 1;
     var maxY = sketch.height - 1;
 
-    if (trace) {
+    if (trace && frame > 0) {
       // Get normalized mouse position at end of last frame
       var x = sketch.map(sketch.mouseX, 0, maxX, 0, 1, true),
           y = sketch.map(sketch.mouseY, 0, maxY, 0, 1, true);
 
-      points.push([x, y, frame]);
+      points.push([x, y, frame - 1]);
     }
 
     // Draw the image
@@ -142,6 +145,14 @@ module.exports = function (sketch) {
 
     if (trace) points = [];
     else onUpdateTrace(getTrace());
+
+    return false;
+  }
+
+  function mouseWheel(e) {
+    onMouseWheel(-e.deltaY / 100);
+
+    return false;
   }
 
   function getTrace() {

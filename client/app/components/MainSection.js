@@ -25,6 +25,10 @@ function handleKeyPress(keyCode) {
   }
 }
 
+function handleMouseWheel(delta) {
+  ViewActionCreators.frameDelta(delta);
+}
+
 function handleUpdateLoading(frame, numFrames) {
   ViewActionCreators.updateLoading(frame, numFrames);
 }
@@ -53,6 +57,7 @@ function MainSection(props) {
         <TraceSketchWrapper
           {...props}
           onKeyPress={handleKeyPress}
+          onMouseWheel={handleMouseWheel}
           onUpdateLoading={handleUpdateLoading}
           onUpdateFrame={handleUpdateFrame}
           onUpdateTrace={handleUpdateTrace} />

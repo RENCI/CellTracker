@@ -30,6 +30,7 @@ TraceSketchWrapper.propTypes = {
   traces: PropTypes.arrayOf(PropTypes.object).isRequired,
   frame: PropTypes.number.isRequired,
   onKeyPress: PropTypes.func.isRequired,
+  onMouseWheel: PropTypes.func.isRequired,
   onUpdateLoading: PropTypes.func.isRequired,
   onUpdateTrace: PropTypes.func.isRequired
 };

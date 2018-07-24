@@ -35,14 +35,10 @@ module.exports = {
       frame: frame
     });
   },
-  frameBack: function () {
+  frameDelta: function (delta) {
     AppDispatcher.dispatch({
-      actionType: Constants.FRAME_BACK
-    });
-  },
-  frameForward: function () {
-    AppDispatcher.dispatch({
-      actionType: Constants.FRAME_FORWARD
+      actionType: Constants.FRAME_DELTA,
+      delta: delta
     });
   },
   fastForward: function () {

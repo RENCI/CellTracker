@@ -9,11 +9,8 @@ module.exports = keyMirror({
   STOP_PLAY: null,
   TOGGLE_PLAY: null,
   SET_FRAME: null,
-  FRAME_BACK: null,
-  FRAME_FORWARD: null,
+  FRAME_DELTA: null,
   FAST_FORWARD: null,
-
-  // XXX: Maybe use PLAY_FROM and STOP_AT to combine play/pause and frame number?
 
   ADD_TRACE: null,
   UPDATE_TRACE: null,

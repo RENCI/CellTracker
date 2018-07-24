@@ -11,11 +11,11 @@ function onPlayClick() {
 }
 
 function onStepBackwardClick() {
-  ViewActionCreators.frameBack();
+  ViewActionCreators.frameDelta(-1);
 }
 
 function onStepForwardClick() {
-  ViewActionCreators.frameForward();
+  ViewActionCreators.frameDelta(1);
 }
 
 function onFastForwardClick() {

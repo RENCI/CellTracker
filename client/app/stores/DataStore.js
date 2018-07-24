@@ -55,12 +55,8 @@ function setFrame(newFrame) {
   setPlay(false);
 }
 
-function frameBack() {
-  setFrame(frame - 1);
-}
-
-function frameForward() {
-  setFrame(frame + 1);
+function frameDelta(delta) {
+  setFrame(frame + delta);
 }
 
 function fastForward() {
@@ -177,13 +173,8 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
       DataStore.emitChange();
       break;
 
-    case Constants.FRAME_BACK:
-      frameBack();
-      DataStore.emitChange();
-      break;
-
-    case Constants.FRAME_FORWARD:
-      frameForward();
+    case Constants.FRAME_DELTA:
+      frameDelta(action.delta);
       DataStore.emitChange();
       break;
 
