@@ -17,6 +17,7 @@ var loading = null;
 // Playback
 var play = false;
 var frame = 0;
+var timer = null;
 
 // Traces for this experiment
 var traces = [];
@@ -41,19 +42,35 @@ function updateLoading(frame, numFrames) {
 }
 
 function stopPlay() {
-  play = false;
   frame = 0;
+  setPlay(false);
 }
 
 function togglePlay() {
-  play = !play;
+  setPlay(!play);
 }
 
 function updateFrame(newFrame) {
   frame = newFrame;
 
   if (frame === experiment.frames - 1) {
-    play = !play;
+    setPlay(false);
+  }
+}
+
+function setPlay(newPlay) {
+  play = newPlay;
+
+  if (play && !timer) {
+    timer = setTimeout(function () {
+      console.log("play");
+    }, 1000);
+  }
+  else {
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+    }
   }
 }
 
