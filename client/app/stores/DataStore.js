@@ -63,6 +63,10 @@ function frameForward() {
   setFrame(frame + 1);
 }
 
+function fastForward() {
+  setFrame(experiment.frames - 1);
+}
+
 function setPlay(newPlay) {
   play = newPlay;
 
@@ -180,6 +184,11 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.FRAME_FORWARD:
       frameForward();
+      DataStore.emitChange();
+      break;
+
+    case Constants.FAST_FORWARD:
+      fastForward();
       DataStore.emitChange();
       break;
 

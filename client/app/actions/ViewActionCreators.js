@@ -45,6 +45,11 @@ module.exports = {
       actionType: Constants.FRAME_FORWARD
     });
   },
+  fastForward: function () {
+    AppDispatcher.dispatch({
+      actionType: Constants.FAST_FORWARD
+    });
+  },
 
   addTrace: function () {
     AppDispatcher.dispatch({

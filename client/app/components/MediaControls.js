@@ -10,6 +10,18 @@ function onPlayClick() {
   ViewActionCreators.togglePlay();
 }
 
+function onStepBackwardClick() {
+  ViewActionCreators.frameBack();
+}
+
+function onStepForwardClick() {
+  ViewActionCreators.frameForward();
+}
+
+function onFastForwardClick() {
+  ViewActionCreators.fastForward();
+}
+
 function onRangeChange(e) {
   ViewActionCreators.setFrame(+e.target.value);
 }
@@ -35,8 +47,11 @@ function MediaControls(props) {
   return (
     <div className="input-group input-group-sm">
       <div className="input-group-btn">
-        {button("glyphicon-stop", onStopClick)}
         {button(playIcon, onPlayClick)}
+        {button("glyphicon-stop", onStopClick)}
+        {button("glyphicon-step-backward", onStepBackwardClick)}
+        {button("glyphicon-step-forward", onStepForwardClick)}
+        {button("glyphicon-fast-forward", onFastForwardClick)}
       </div>
       <input
         className="form-control"
