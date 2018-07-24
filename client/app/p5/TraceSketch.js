@@ -6,7 +6,7 @@ module.exports = function (sketch) {
   var experimentId = null;
 
   // PNG or JPG
-  var imageType = "png";
+  var imageType = "jpg";
 
   // Images
   var images = [],
@@ -30,6 +30,7 @@ module.exports = function (sketch) {
     var canvas = sketch.createCanvas(100, 100);
     canvas.mouseClicked(mouseClicked);
     canvas.mouseWheel(mouseWheel);
+    canvas.mouseMoved(mouseMoved);
     sketch.noLoop();
   }
 
@@ -157,6 +158,41 @@ module.exports = function (sketch) {
 
   function getTrace() {
     return points.slice();
+  }
+
+  function mouseMoved() {
+/*
+    var x = sketch.mouseX,
+        y = sketch.mouseY;
+
+    if (x < 0 || x >= sketch.width ||
+        y < 0 || y >= sketch.height) return;
+
+    var r = 20,
+        delta = 50;
+
+    var im = images[frame],
+        colorIm = colorImages[frame];
+
+    im.loadPixels();
+    colorIm.loadPixels();
+
+    for (var i = Math.max(0, x - r); i <= Math.min(x + r, im.width - 1); i++) {
+      for (var j = Math.max(0, y - r); j <= Math.min(y + r, im.height - 1); j++) {
+        var k = (i + j * im.width) * 4,
+            v = Math.min(im.pixels[k] + delta, 255),
+            c = lut[v];
+
+        colorIm.pixels[k] = c[0];
+        colorIm.pixels[k + 1] = c[1];
+        colorIm.pixels[k + 2] = c[2];
+      }
+    }
+
+    colorIm.updatePixels();
+
+    sketch.redraw();
+*/    
   }
 
   function createLut(colors) {
