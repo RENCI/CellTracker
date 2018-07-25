@@ -11,6 +11,7 @@ module.exports = function (sketch) {
   // Images
   var images = [],
       colorImages = [],
+      contrastImages = [],
       frame = 0,
       lut = createLut(d3ScaleChromatic.interpolateInferno),
       onUpdateLoading = null;
@@ -169,19 +170,30 @@ module.exports = function (sketch) {
         y < 0 || y >= sketch.height) return;
 
     var r = 20,
-        delta = 50;
+        r2 = r * r;
 
     var im = images[frame],
+        contrastIm = contrastImages[frame],
         colorIm = colorImages[frame];
 
     im.loadPixels();
     colorIm.loadPixels();
 
-    for (var i = Math.max(0, x - r); i <= Math.min(x + r, im.width - 1); i++) {
-      for (var j = Math.max(0, y - r); j <= Math.min(y + r, im.height - 1); j++) {
+    var minMax = contrastIm[x + y * im.width];
+
+    for (var i = 0; i < im.width; i++) {
+      for (var j = 0; j < im.height; j++) {
         var k = (i + j * im.width) * 4,
-            v = Math.min(im.pixels[k] + delta, 255),
-            c = lut[v];
+            v = im.pixels[k],
+            dx = i - x,
+            dy = j - y,
+            d2 = dx * dx + dy * dy;
+
+        if (d2 <= r2) {
+          v = Math.round(sketch.map(v, minMax[0], minMax[1], 0, 255, true));
+        }
+
+        var c = lut[v];
 
         colorIm.pixels[k] = c[0];
         colorIm.pixels[k + 1] = c[1];
@@ -227,6 +239,43 @@ module.exports = function (sketch) {
     images.forEach(function(im) {
       im.resize(w, h);
     });
+/*
+    var r = 20,
+        r2 = r * r;
+
+    contrastImages = images.map(function(im) {
+      var contrastIm = [];
+
+      // XXX: Move after im.resize?
+      im.loadPixels();
+
+      for (var x = 0; x < im.width; x++) {
+        for (var y = 0; y < im.height; y++ ) {
+          var min = 255,
+              max = 0;
+
+          for (var i = Math.max(0, x - r); i <= Math.min(x + r, im.width - 1); i++) {
+            for (var j = Math.max(0, y - r); j <= Math.min(y + r, im.height - 1); j++) {
+              var k = (i + j * im.width) * 4,
+                  v = im.pixels[k],
+                  dx = i - x,
+                  dy = j - y,
+                  d2 = dx * dx + dy * dy;
+
+              if (d2 <= r2) {
+                if (v < min) min = v;
+                if (v > max) max = v;
+              }
+            }
+          }
+
+          contrastIm.push([min, max]);
+        }
+      }
+
+      return contrastIm;
+    });
+*/
 
     colorImages = images.map(function(im) {
       var colorIm = sketch.createImage(im.width, im.height);
