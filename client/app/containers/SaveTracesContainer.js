@@ -16,7 +16,12 @@ class SaveTracesContainer extends React.Component {
   }
 
   onUserNameChange(e) {
-    if (e.target.value.match(/^\w+$/)) {
+    if (e.target.value === "") {
+      this.setState({
+        userName: null
+      });
+    }
+    else if (e.target.value.match(/^\w+$/)) {
       this.setState({
         userName: e.target.value
       });
