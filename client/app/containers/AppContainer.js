@@ -13,6 +13,7 @@ function getStateFromStore() {
     loading: DataStore.getLoading(),
     play: DataStore.getPlay(),
     frame: DataStore.getFrame(),
+    frameRate: DataStore.getFrameRate(),
     traces: DataStore.getTraces()
   };
 }

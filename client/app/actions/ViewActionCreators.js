@@ -46,6 +46,12 @@ module.exports = {
       actionType: Constants.FAST_FORWARD
     });
   },
+  selectFrameRate: function (frameRate) {
+    AppDispatcher.dispatch({
+      actionType: Constants.SELECT_FRAME_RATE,
+      frameRate: frameRate
+    });
+  },
 
   addTrace: function () {
     AppDispatcher.dispatch({

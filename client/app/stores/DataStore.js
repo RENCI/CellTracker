@@ -17,7 +17,7 @@ var loading = null;
 // Playback
 var play = false;
 var frame = 0;
-var frameRate = 5;
+var frameRate = 4;
 var timer = null;
 
 // Traces for this experiment
@@ -68,16 +68,31 @@ function setPlay(newPlay) {
   play = newPlay;
 
   if (play && !timer) {
-    timer = setInterval(function () {
-      frame = Math.min(frame + 1, experiment.frames - 1);
-      DataStore.emitChange();
-    }, 1 / frameRate * 1000);
+    createTimer();
   }
-  else {
-    if (timer) {
-      clearInterval(timer);
-      timer = null;
-    }
+  else if (timer) {
+    removeTimer();
+  }
+}
+
+function createTimer() {
+  timer = setInterval(function () {
+    frame = Math.min(frame + 1, experiment.frames - 1);
+    DataStore.emitChange();
+  }, 1 / frameRate * 1000);
+}
+
+function removeTimer() {
+  clearInterval(timer);
+  timer = null;
+}
+
+function setFrameRate(newFrameRate) {
+  frameRate = newFrameRate;
+
+  if (timer) {
+    removeTimer();
+    createTimer();
   }
 }
 
@@ -136,6 +151,9 @@ var DataStore = assign({}, EventEmitter.prototype, {
   getFrame: function () {
     return frame;
   },
+  getFrameRate: function () {
+    return frameRate;
+  },
   getTraces: function () {
     return traces;
   }
@@ -181,6 +199,11 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.FAST_FORWARD:
       fastForward();
+      DataStore.emitChange();
+      break;
+
+    case Constants.SELECT_FRAME_RATE:
+      setFrameRate(action.frameRate);
       DataStore.emitChange();
       break;
 

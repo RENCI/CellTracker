@@ -11,6 +11,7 @@ module.exports = keyMirror({
   SET_FRAME: null,
   FRAME_DELTA: null,
   FAST_FORWARD: null,
+  SELECT_FRAME_RATE: null,
 
   ADD_TRACE: null,
   UPDATE_TRACE: null,

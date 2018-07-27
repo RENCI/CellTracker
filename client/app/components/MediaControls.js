@@ -22,9 +22,21 @@ function onFastForwardClick() {
   ViewActionCreators.fastForward();
 }
 
+function onFrameRateChange(e) {
+  ViewActionCreators.selectFrameRate(+e.target.value);
+}
+
 function onRangeChange(e) {
   ViewActionCreators.setFrame(+e.target.value);
 }
+
+var frameRateOptions = [0.25, 0.5, 1, 2, 4, 8, 16].map(function (frameRate, i) {
+  return (
+    <option key={i} value={frameRate}>
+      {frameRate + "x"}
+    </option>
+  );
+});
 
 var rangeStyle = {
   marginLeft: 5
@@ -55,6 +67,11 @@ function MediaControls(props) {
         {button("oi-media-step-backward", onStepBackwardClick)}
         {button("oi-media-step-forward", onStepForwardClick)}
         {button("oi-media-skip-forward", onFastForwardClick)}
+        <select
+          value={props.frameRate}
+          onChange={onFrameRateChange}>
+            {frameRateOptions}
+        </select>
       </div>
       <input
         className="form-control form-control-range custom-range"
@@ -75,7 +92,8 @@ function MediaControls(props) {
 MediaControls.propTypes = {
   experiment: PropTypes.object.isRequired,
   play: PropTypes.bool.isRequired,
-  frame: PropTypes.number.isRequired
+  frame: PropTypes.number.isRequired,
+  frameRate: PropTypes.number.isRequired
 };
 
 module.exports = MediaControls;
