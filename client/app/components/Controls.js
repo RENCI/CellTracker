@@ -1,14 +1,11 @@
 var React = require("react");
 var PropTypes = require("prop-types");
 var TraceList = require("./TraceList");
+var SaveTracesContainer = require("../containers/SaveTracesContainer");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
 function onExperimentSelectChange(e) {
   ViewActionCreators.selectExperiment(e.target.value);
-}
-
-function onSaveTracesClick() {
-  ViewActionCreators.saveTraces();
 }
 
 function Controls(props) {
@@ -33,22 +30,7 @@ function Controls(props) {
         </select>
       </div>
       <TraceList traces={props.traces} />
-      <div className="form-group">
-        <label htmlFor="userNameInput">User name</label>
-        <input
-          type="text"
-          id="userNameInput"
-          className="form-control"
-          placeholder="User name" />
-      </div>
-      <div className="form-group">
-        <button
-          type="button"
-          className="btn btn btn-outline-secondary btn-block"
-          onClick={onSaveTracesClick}>
-            Save Traces
-        </button>
-      </div>
+      <SaveTracesContainer />
     </div>
   );
 }

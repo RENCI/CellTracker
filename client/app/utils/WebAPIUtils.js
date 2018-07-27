@@ -68,11 +68,12 @@ data.frames = 20;
   });
 }
 
-function saveTraces(id, traces) {
+function saveTraces(id, userName, traces) {
   setupAjax();
 
   // Only keep fields we need to send
   var data = {
+    userName: userName,
     traces: JSON.stringify(traces.map(function (trace) {
       return {
         name: trace.name,

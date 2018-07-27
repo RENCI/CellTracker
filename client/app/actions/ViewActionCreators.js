@@ -70,9 +70,10 @@ module.exports = {
       index: index
     });
   },
-  saveTraces: function () {
+  saveTraces: function (userName) {
     WebAPIUtils.saveTraces(
       DataStore.getExperiment().id,
+      userName,
       DataStore.getTraces()
     );
   }
