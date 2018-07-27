@@ -30,37 +30,44 @@ var rangeStyle = {
   marginLeft: 5
 };
 
-function button(icon, callback) {
+function button(iconName, callback) {
   return (
     <button
       type="button"
-      className="btn btn-default"
+      className="btn btn-outline-secondary"
       onClick={callback}>
-        <span className={"glyphicon " + icon}></span>
+        <span className={"oi " + iconName}></span>
     </button>
   );
 }
 
 function MediaControls(props) {
-  var playIcon = props.play ? "glyphicon-pause" : "glyphicon-play";
+  var playIcon = props.play ? "oi-media-pause" : "oi-media-play";
+
+  // Use maximum digits with 'em' as a conservative estimate of label length
+  var maxDigits = ("" + props.experiment.frames).length * 2 + 1;
 
   return (
     <div className="input-group input-group-sm">
-      <div className="input-group-btn">
+      <div className="input-group-prepend">
         {button(playIcon, onPlayClick)}
-        {button("glyphicon-stop", onStopClick)}
-        {button("glyphicon-step-backward", onStepBackwardClick)}
-        {button("glyphicon-step-forward", onStepForwardClick)}
-        {button("glyphicon-fast-forward", onFastForwardClick)}
+        {button("oi-media-stop", onStopClick)}
+        {button("oi-media-step-backward", onStepBackwardClick)}
+        {button("oi-media-step-forward", onStepForwardClick)}
+        {button("oi-media-skip-forward", onFastForwardClick)}
       </div>
       <input
-        className="form-control"
+        className="form-control form-control-range custom-range"
         type="range"
         min={0}
         max={props.experiment.frames - 1}
         value={props.frame}
-        style={rangeStyle}
         onChange={onRangeChange} />
+      <div className="input-group-append">
+        <span className="input-group-text" style={{width: maxDigits + "em"}}>
+          {(props.frame + 1) + "/" + props.experiment.frames}
+        </span>
+      </div>
     </div>
   );
 }

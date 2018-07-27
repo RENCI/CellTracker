@@ -9,9 +9,9 @@ function LoadingProgress(props) {
 
   return (
     <div>
-      <h3>{props.label}</h3>
+      <h4>{props.label}</h4>
       <div className="progress">
-        <div className="progress-bar progress-bar-striped active" style={style} />
+        <div className="progress-bar progress-bar-striped progress-bar-animated" style={style} />
       </div>
     </div>
   );

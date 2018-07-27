@@ -3,7 +3,7 @@ var PropTypes = require("prop-types");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
 function TraceWidget(props) {
-  var classes = "btn btn-default btn-sm btn-block";
+  var classes = "btn btn-outline-secondary btn-sm btn-block";
 
   if (props.trace.active) classes += " active";
 

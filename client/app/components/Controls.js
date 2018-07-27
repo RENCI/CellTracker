@@ -37,14 +37,14 @@ function Controls(props) {
         <label htmlFor="userNameInput">User name</label>
         <input
           type="text"
-          className="form-control"
           id="userNameInput"
+          className="form-control"
           placeholder="User name" />
       </div>
       <div className="form-group">
         <button
           type="button"
-          className="btn btn-default btn-block"
+          className="btn btn btn-outline-secondary btn-block"
           onClick={onSaveTracesClick}>
             Save Traces
         </button>

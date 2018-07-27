@@ -2,7 +2,7 @@ var React = require("react");
 
 function HeaderSection() {
   return (
-    <div className="row well">
+    <div className="row border bg-light mb-3 py-3">
       <div className="col-sm-3 text-center">
         <a href="http://www.med.unc.edu/genetics/purvislab">
           <img

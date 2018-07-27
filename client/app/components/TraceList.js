@@ -22,19 +22,19 @@ function TraceList(props) {
   });
 
   return (
-    <div className="panel panel-default">
-      <div className="panel-heading">
+    <div className="card mb-3">
+      <h6 className="card-header">
         Traces
-      </div>
-      <div className="panel-body">
+      </h6>
+      <div className="card-body">
         {widgets}
       </div>
-      <div className="panel-footer text-right">
+      <div className="card-footer text-right p-0">
         <button
           type="button"
-          className="btn btn-default btn-xs"
+          className="btn btn-light btn-sm"
           onClick={onAddTraceClick}>
-            <span className="glyphicon glyphicon-plus"></span>
+            <span className="oi oi-plus"></span>
         </button>
       </div>
     </div>
