@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import errno
 import os
 import shutil
 import json
+from uuid import uuid4
 
 from django.template import loader
 from django.conf import settings
@@ -12,6 +14,7 @@ from django.http import HttpResponse, HttpResponseServerError, StreamingHttpResp
 from django.views.decorators import gzip
 
 from irods.session import iRODSSession
+from irods.exception import CollectionDoesNotExist
 
 from ct_core.utils import read_video, extract_images_from_video, read_image_frame
 from django_irods.storage import IrodsStorage
@@ -202,4 +205,41 @@ def read_image(request, exp_id, img_file_name):
 
 
 def save_tracking_data(request, exp_id):
-    return HttpResponse(json.dumps(request.POST))
+    uname = request.POST.get('userName', '')
+    if not uname:
+        return HttpResponseBadRequest("user name is empty")
+
+    traces = request.POST.get('traces', [])
+    if not traces:
+        return HttpResponseBadRequest("traces array is empty")
+
+    temp_path = os.path.join(settings.IRODS_ROOT, exp_id, uname, uuid4().hex)
+    try:
+        os.makedirs(temp_path)
+    except OSError as ex:
+        if ex.errno == errno.EEXIST:
+            shutil.rmtree(temp_path)
+            os.makedirs(temp_path)
+        else:
+            return HttpResponseServerError(ex.message)
+
+    with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
+                      password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
+        ipath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id) + \
+                '/tracking/' + uname
+        try:
+            coll = session.collections.get(ipath)
+        except CollectionDoesNotExist:
+            session.collections.create(ipath, recurse=True)
+            coll = session.collections.get(ipath)
+
+        trace_no = len(coll.data_objects)
+        irods_fname = 'trace_' + str(trace_no) + '.json'
+        temp_file_name = os.path.join(temp_path, irods_fname)
+        with open(temp_file_name, 'w') as out:
+            out.write(json.dumps(traces, indent=4))
+        session.data_objects.put(temp_file_name, ipath + '/' + irods_fname)
+        shutil.rmtree(temp_path)
+        return HttpResponse("Trace has been saved correctly")
+
+    return HttpResponseServerError('iRODS session error')
