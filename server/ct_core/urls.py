@@ -14,4 +14,5 @@ urlpatterns = [
     url(r'^extract-images/(?P<exp_id>.*)$', views.extract_images, name='extract_images'),
     url(r'^read-image/(?P<exp_id>.*)/(?P<img_file_name>.*)$', views.read_image, name='read_image'),
     url(r'^save_tracking_data/(?P<exp_id>.*)$', views.save_tracking_data, name='save_tracking_data'),
+    url(r'^get_seg_data/(?P<exp_id>.*)$', views.get_seg_data, name='get_seg_data'),
 ]

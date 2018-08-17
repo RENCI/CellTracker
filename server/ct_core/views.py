@@ -9,14 +9,16 @@ from uuid import uuid4
 
 from django.template import loader
 from django.conf import settings
-from django.http import HttpResponse, HttpResponseServerError, StreamingHttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseServerError, StreamingHttpResponse, \
+    HttpResponseBadRequest
 
 from django.views.decorators import gzip
 
 from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist
 
-from ct_core.utils import read_video, extract_images_from_video, read_image_frame
+from ct_core.utils import read_video, extract_images_from_video, read_image_frame, \
+    convert_csv_to_json
 from django_irods.storage import IrodsStorage
 
 
@@ -202,6 +204,11 @@ def read_image(request, exp_id, img_file_name):
         return HttpResponse(template.render(context, request))
     else:
         return HttpResponseServerError('Requested image frame does not exist')
+
+
+def get_seg_data(request, exp_id):
+    json_resp_dict = convert_csv_to_json(exp_id)
+    return HttpResponse(json.dumps(json_resp_dict), content_type='application/json')
 
 
 def save_tracking_data(request, exp_id):
