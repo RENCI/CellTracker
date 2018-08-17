@@ -79,7 +79,7 @@ def get_experiment_info(request, exp_id):
     exp_info = {}
     with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
                       password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
-        hpath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id) + '/data/image/png'
+        hpath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id) + '/data/image/jpg'
         coll = session.collections.get(hpath)
         fno = len(coll.data_objects)
         exp_info['frames'] = fno
