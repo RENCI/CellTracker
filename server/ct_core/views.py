@@ -20,7 +20,7 @@ from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist
 
 from ct_core.utils import read_video, extract_images_from_video, read_image_frame, \
-    convert_csv_to_json, get_exp_frame_no
+    convert_csv_to_json, get_exp_frame_no, get_seg_collection
 from django_irods.storage import IrodsStorage
 
 
@@ -86,6 +86,11 @@ def get_experiment_info(request, exp_id):
     exp_frame_no = get_exp_frame_no(exp_id)
 
     if exp_frame_no > 0:
+        _, coll, _ = get_seg_collection(exp_id)
+        if coll:
+            exp_info['hasSegmentation'] = 'true'
+        else:
+            exp_info['hasSegmentation'] = 'false'
         exp_info['frames'] = exp_frame_no
         exp_info['id'] = exp_id
         return HttpResponse(json.dumps(exp_info), content_type='application/json')

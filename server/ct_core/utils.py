@@ -5,6 +5,7 @@ import shutil
 import csv
 
 from irods.session import iRODSSession
+from irods.exception import CollectionDoesNotExist
 
 from django.conf import settings
 
@@ -83,15 +84,37 @@ def get_exp_frame_no(exp_id):
     return fno
 
 
-def convert_csv_to_json(exp_id):
-    resp_data = []
-    converted = False
+def get_seg_collection(exp_id):
+    """
+    return iRODS collection for segmentation data for experiment id
+    :param exp_id: experiment id
+    :return: irods session, irods collection, irods collection path, which could be None if
+    experiment does not have segmentation data
+    """
     with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
                       password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
-        hpath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id) \
-                + '/data/segmentation'
-        coll = session.collections.get(hpath)
+        coll_path = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' \
+                    + str(exp_id) + '/data/segmentation'
+        try:
+            coll = session.collections.get(coll_path)
+            return session, coll, coll_path
+        except CollectionDoesNotExist:
+            return session, None, coll_path
 
+    return None, None, None
+
+
+def convert_csv_to_json(exp_id):
+    """
+    Convert segmentation csv data to json. If segmentation csv data does not exist, return empty
+    list; otherwise, return json array that contains segmentation tracking data
+    :param exp_id: experiment id
+    :return: a list
+    """
+    resp_data = []
+    converted = False
+    session, coll, coll_path = get_seg_collection(exp_id)
+    if coll:
         for obj in coll.data_objects:
             if converted:
                 break
@@ -99,7 +122,7 @@ def convert_csv_to_json(exp_id):
             if ext != '.csv':
                 continue
 
-            logical_file = session.data_objects.get(hpath + '/' + obj.name)
+            logical_file = session.data_objects.get(coll_path + '/' + obj.name)
             with logical_file.open('r') as f:
                 contents = csv.reader(f)
                 last_fno = -1
