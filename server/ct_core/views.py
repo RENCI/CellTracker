@@ -14,11 +14,13 @@ from django.http import HttpResponse, HttpResponseServerError, StreamingHttpResp
 
 from django.views.decorators import gzip
 
+from rest_framework import status
+
 from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist
 
 from ct_core.utils import read_video, extract_images_from_video, read_image_frame, \
-    convert_csv_to_json
+    convert_csv_to_json, get_exp_frame_no
 from django_irods.storage import IrodsStorage
 
 
@@ -55,6 +57,7 @@ def get_experiment_list(request):
             exp_dict = {}
             exp_dict['id'] = col.name
             try:
+                # str() is needed by python irods client metadata method
                 key = str('experiment_name')
                 col_md = col.metadata.get_one(key)
                 exp_dict['name'] = col_md.value
@@ -63,7 +66,8 @@ def get_experiment_list(request):
             exp_list.append(exp_dict)
         return HttpResponse(json.dumps(exp_list), content_type='application/json')
 
-    return HttpResponseServerError('Cannot connect to iRODS data server')
+    return HttpResponse(json.dumps({'error': 'Cannot connect to iRODS data server'}),
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def get_experiment_info(request, exp_id):
@@ -79,16 +83,15 @@ def get_experiment_info(request, exp_id):
     :return:
     """
     exp_info = {}
-    with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
-                      password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
-        hpath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id) + '/data/image/jpg'
-        coll = session.collections.get(hpath)
-        fno = len(coll.data_objects)
-        exp_info['frames'] = fno
+    exp_frame_no = get_exp_frame_no(exp_id)
+
+    if exp_frame_no > 0:
+        exp_info['frames'] = exp_frame_no
         exp_info['id'] = exp_id
         return HttpResponse(json.dumps(exp_info), content_type='application/json')
-
-    return HttpResponseServerError('Cannot connect to iRODS data server')
+    else:
+        HttpResponse(json.dumps({'error': 'Cannot connect to iRODS data server'}),
+                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @gzip.gzip_page
@@ -207,8 +210,14 @@ def read_image(request, exp_id, img_file_name):
 
 
 def get_seg_data(request, exp_id):
-    json_resp_dict = convert_csv_to_json(exp_id)
-    return HttpResponse(json.dumps(json_resp_dict), content_type='application/json')
+    json_resp_data = convert_csv_to_json(exp_id)
+
+    if json_resp_data:
+        return HttpResponse(json.dumps(json_resp_data), content_type='application/json')
+    else:
+        return HttpResponse(json.dumps({'error': 'no csv segmentation file can be converted to '
+                                                 'JSON response'}),
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def save_tracking_data(request, exp_id):

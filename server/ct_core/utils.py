@@ -9,6 +9,9 @@ from irods.session import iRODSSession
 from django.conf import settings
 
 
+frame_no_key = 'frame_no'
+
+
 def read_video(filename):
     cap = cv2.VideoCapture(filename)
     success, frame = cap.read()
@@ -61,8 +64,27 @@ def read_image_frame(exp_id, image_fname):
     return prop_dict
 
 
+def get_exp_frame_no(exp_id):
+    fno = -1
+    with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
+                      password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
+        epath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id)
+        coll = session.collections.get(epath)
+        key = str(frame_no_key)
+        try:
+            col_md = coll.metadata.get_one(key)
+            fno = int(col_md.value)
+        except KeyError:
+            ipath = epath + '/data/image/jpg'
+            icoll = session.collections.get(ipath)
+            fno = len(icoll.data_objects)
+            coll.metadata.add(key, str(fno))
+
+    return fno
+
+
 def convert_csv_to_json(exp_id):
-    resp_data = {}
+    resp_data = []
     converted = False
     with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
                       password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
@@ -80,22 +102,47 @@ def convert_csv_to_json(exp_id):
             logical_file = session.data_objects.get(hpath + '/' + obj.name)
             with logical_file.open('r') as f:
                 contents = csv.reader(f)
-                fno = -1
-                obj_no = -1
+                last_fno = -1
+                obj_dict = {}
+                frame_ary = []
                 for row in contents:
                     if not row:
                         continue
-                    if row.startswith('#'):
-                        infostrs = row.split(' ')
+                    if row[0].startswith('#'):
+                        infostrs = row[0].split(' ')
                         for istr in infostrs:
+                            istr.strip()
                             if istr.startswith('frame'):
-                                # to do
-                                pass
+                                curr_fno = int(istr[len('frame'):])
+                                while last_fno < curr_fno-1:
+                                    resp_data.append([])
+                                    last_fno += 1
+                                if obj_dict:
+                                    frame_ary.append(obj_dict)
+                                    obj_dict = {}
+                                if frame_ary and last_fno < curr_fno:
+                                    # starting a new frame
+                                    resp_data.append(frame_ary)
+                                    frame_ary = []
+                                last_fno = curr_fno
+                            elif istr.startswith('object'):
+                                obj_dict['id'] = istr
+                                obj_dict['vertices'] = []
                         continue
 
+                    x = row[0].strip()
+                    y = row[1].strip()
+                    if 'id' in obj_dict:
+                        obj_dict['vertices'].append([x, y])
 
-
-    if not converted:
-        resp_data['error'] = 'no csv segmentation file can be converted to JSON response'
+                # add last obj_dict into resp_data
+                fno = get_exp_frame_no(exp_id)
+                while last_fno < fno - 1:
+                    resp_data.append([])
+                    last_fno += 1
+                if obj_dict:
+                    frame_ary.append(obj_dict)
+                    resp_data.append(frame_ary)
+                converted = True
 
     return resp_data
