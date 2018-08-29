@@ -228,6 +228,8 @@ module.exports = function (sketch) {
   }
 
   function resizeImages() {
+    if (images.length === 0) return;
+
     // Size canvas to image aspect ratio
     var im = images[0],
         aspect = im.width / im.height;
