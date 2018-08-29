@@ -54,11 +54,14 @@ module.exports = function (sketch) {
 
       // Load images
       var tempImages = [];
-      for (var i = 1; i <= numFrames; i++) {
-        sketch.loadImage("/display-image/" + experimentId + "/" + imageType + "/" + i, function (im) {
-          tempImages.push(im);
+      var loaded = 0;
 
-          if (tempImages.length === numFrames) {
+      function makeLoader(n) {
+        return function(im) {
+          tempImages[n] = im;
+          loaded++;
+
+          if (loaded === numFrames) {
             onUpdateLoading(null);
 
             images = tempImages.slice();
@@ -66,9 +69,15 @@ module.exports = function (sketch) {
             resizeImages();
           }
           else {
-            onUpdateLoading(tempImages.length + 1, numFrames);
+            onUpdateLoading(loaded + 1, numFrames);
           }
-        });
+        }
+      }
+
+      for (var i = 0; i < numFrames; i++) {
+        var loader = makeLoader(i);
+
+        sketch.loadImage("/display-image/" + experimentId + "/" + imageType + "/" + (i + 1), loader);
       }
     }
 
