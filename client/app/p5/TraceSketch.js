@@ -80,7 +80,10 @@ module.exports = function (sketch) {
   }
 
   sketch.draw = function() {
-    if (images.length === 0) return;
+    if (images.length === 0) {
+      sketch.clear();
+      return;
+    }
 
     // Get image
     var im = colorImages[frame];
@@ -204,7 +207,7 @@ module.exports = function (sketch) {
     colorIm.updatePixels();
 
     sketch.redraw();
-*/    
+*/
   }
 
   function createLut(colors) {

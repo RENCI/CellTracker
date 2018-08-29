@@ -172,6 +172,12 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
       DataStore.emitChange();
       break;
 
+    case Constants.RECEIVE_SEGMENTATION_DATA:
+      console.log(action.data);
+
+      DataStore.emitChange();
+      break;
+
     case Constants.UPDATE_LOADING:
       updateLoading(action.frame, action.numFrames);
       DataStore.emitChange();

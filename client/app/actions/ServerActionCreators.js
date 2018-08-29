@@ -13,5 +13,11 @@ module.exports = {
       actionType: Constants.RECEIVE_EXPERIMENT,
       experiment: experiment
     });
+  },
+  receiveSegmentationData: function (data) {
+    AppDispatcher.dispatch({
+      actionType: Constants.RECEIVE_SEGMENTATION_DATA,
+      data: data
+    });
   }
 };

@@ -59,8 +59,31 @@ function getExperimentInfo(id) {
 // XXX: For testing
 data.frames = 20;
 
+      data.hasSegmentation = data.hasSegmentation === "true";
+
       // Create an action
       ServerActionCreators.receiveExperiment(data);
+    },
+    error: function (xhr, textStatus, errorThrown) {
+      console.log(textStatus + ": " + errorThrown);
+    }
+  });
+}
+
+function getSegmentationData(id) {
+  console.log("SUP");
+
+  setupAjax();
+
+  $.ajax({
+    type: "POST",
+    url: "/get_seg_data/" + id,
+    success: function (data) {
+      console.log("SUP2");
+      console.log(data);
+
+      // Create an action
+      ServerActionCreators.receiveSegmentationData(data);
     },
     error: function (xhr, textStatus, errorThrown) {
       console.log(textStatus + ": " + errorThrown);
@@ -98,5 +121,6 @@ function saveTraces(id, userName, traces) {
 module.exports = {
   getExperimentList: getExperimentList,
   getExperimentInfo: getExperimentInfo,
+  getSegmentationData: getSegmentationData,
   saveTraces: saveTraces
 };

@@ -10,6 +10,9 @@ module.exports = {
   selectExperiment: function (id) {
     WebAPIUtils.getExperimentInfo(id);
   },
+  getSegmentationData: function (id) {
+    WebAPIUtils.getSegmentationData(id);
+  },
 
   updateLoading: function (frame, numFrames) {
     AppDispatcher.dispatch({
