@@ -137,9 +137,6 @@ def convert_csv_to_json(exp_id):
                             istr.strip()
                             if istr.startswith('frame'):
                                 curr_fno = int(istr[len('frame'):])
-                                while last_fno < curr_fno-1:
-                                    resp_data.append([])
-                                    last_fno += 1
                                 if obj_dict:
                                     frame_ary.append(obj_dict)
                                     obj_dict = {}
@@ -150,6 +147,7 @@ def convert_csv_to_json(exp_id):
                                 last_fno = curr_fno
                             elif istr.startswith('object'):
                                 obj_dict['id'] = istr
+                                obj_dict['frame'] = curr_fno + 1
                                 obj_dict['vertices'] = []
                         continue
 
@@ -159,10 +157,6 @@ def convert_csv_to_json(exp_id):
                         obj_dict['vertices'].append([x, y])
 
                 # add last obj_dict into resp_data
-                fno = get_exp_frame_no(exp_id)
-                while last_fno < fno - 1:
-                    resp_data.append([])
-                    last_fno += 1
                 if obj_dict:
                     frame_ary.append(obj_dict)
                     resp_data.append(frame_ary)

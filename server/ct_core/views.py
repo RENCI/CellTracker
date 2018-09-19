@@ -225,6 +225,24 @@ def get_seg_data(request, exp_id):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+def get_frame_seg_data(request, exp_id, frame_no):
+    json_resp_data = {}
+    with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
+                      password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
+        dpath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id) + \
+                '/data/segmentation/frame' + str(frame_no) + '.json'
+        fobj = session.data_objects.get(dpath)
+        with fobj.open('r') as f:
+            json_resp_data = json.load(f)
+
+    if json_resp_data:
+        return HttpResponse(json.dumps(json_resp_data), content_type='application/json')
+    else:
+        return HttpResponse(json.dumps({'error': 'no csv segmentation file can be converted to '
+                                                 'JSON response'}),
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 def save_tracking_data(request, exp_id):
     uname = request.POST.get('userName', '')
     if not uname:

@@ -19,15 +19,16 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         # experiment id to put splitted csv file frames to
-        parser.add_argument('--exp_id', nargs='*')
+        parser.add_argument('exp_id', help='experiment id')
 
         # csv filename with full path to split from
-        parser.add_argument('--input_file', nargs='*')
+        parser.add_argument('input_file', help='input csv file name with full path to be splitted')
 
     def handle(self, *args, **options):
-        irods_path = os.path.join(options['exp_id'], 'data', 'segmentation')
+        irods_path = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + \
+                     options['exp_id'] + '/data/segmentation'
         with open(options['input_file']) as inf:
-            outf_path = '/tmp/frame'
+            outf_path = '/tmp/'
             contents = csv.reader(inf)
             last_fno = -1
             obj_dict = {}
@@ -41,15 +42,13 @@ class Command(BaseCommand):
                         istr.strip()
                         if istr.startswith('frame'):
                             curr_fno = int(istr[len('frame'):])
-                            while last_fno < curr_fno - 1:
-                                last_fno += 1
                             if obj_dict:
                                 frame_ary.append(obj_dict)
                                 obj_dict = {}
                             if frame_ary and last_fno < curr_fno:
                                 # starting a new frame - write out frame csv file and put it to
                                 # irods under the corresponding experiment id collection
-                                ofilename = str(last_fno) + '.csv'
+                                ofilename = 'frame' + str(last_fno+1) + '.json'
                                 outf_name = outf_path + ofilename
                                 with open(outf_name, 'w') as outf:
                                     outf.write(json.dumps(frame_ary))
@@ -80,7 +79,7 @@ class Command(BaseCommand):
             # write the last frame
             if obj_dict:
                 frame_ary.append(obj_dict)
-                ofilename = str(last_fno) + '.csv'
+                ofilename = 'frame' + str(last_fno + 1) + '.json'
                 outf_name = outf_path + ofilename
                 with open(outf_name, 'w') as outf:
                     outf.write(json.dumps(frame_ary))
