@@ -42,7 +42,7 @@ class AppContainer extends React.Component {
   componentDidUpdate() {
     if (this.state.experimentList.length > 0 && !this.state.experiment) {
       // Get the first experiment
-      ViewActionCreators.selectExperiment(this.state.experimentList[0].id);
+//      ViewActionCreators.selectExperiment(this.state.experimentList[0].id);
     }
   }
 
@@ -63,7 +63,7 @@ class AppContainer extends React.Component {
     return (
       <div className="container-fluid">
         <HeaderSection />
-        {this.state.experiment ? <MainSection {...this.state} /> : null}
+        <MainSection {...this.state} />
       </div>
     );
   }

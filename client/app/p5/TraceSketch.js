@@ -164,7 +164,7 @@ module.exports = function (sketch) {
   }
 
   function mouseWheel(e) {
-    onMouseWheel(-e.deltaY / 100);
+    onMouseWheel(Math.round(-e.deltaY / 100));
 
     return false;
   }

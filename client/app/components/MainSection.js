@@ -43,40 +43,43 @@ function handleUpdateTrace(points) {
 
 function MainSection(props) {
   // Put in DataStore?
-  var experimentName = props.experimentList.filter(function (experiment) {
-    return props.experiment.id === experiment.id;
-  })[0].name;
+  var experimentName = props.experiment ?
+    props.experimentList.filter(function (experiment) {
+      return props.experiment.id === experiment.id;
+    })[0].name : null;
 
   return (
     <div className="row">
       <div className="col-md-2">
         <Controls {...props} />
       </div>
-      <div className="col-md-10 text-center" id="sketchDiv">
-        {props.loading !== null ?
-          <LoadingProgress
-            label={"Loading " + experimentName}
-            value={props.loading.frame}
-            maxValue={props.loading.numFrames} />
-        : null}
-        <TraceSketchWrapper
-          {...props}
-          onKeyPress={handleKeyPress}
-          onMouseWheel={handleMouseWheel}
-          onUpdateLoading={handleUpdateLoading}
-          onUpdateFrame={handleUpdateFrame}
-          onUpdateTrace={handleUpdateTrace} />
-        {props.loading === null ?
-          <MediaControls {...props} />
-        : null}
-      </div>
+      {props.experiment ?
+        <div className="col-md-10 text-center" id="sketchDiv">
+          {props.loading !== null ?
+            <LoadingProgress
+              label={"Loading " + experimentName}
+              value={props.loading.frame}
+              maxValue={props.loading.numFrames} />
+          : null}
+          <TraceSketchWrapper
+            {...props}
+            onKeyPress={handleKeyPress}
+            onMouseWheel={handleMouseWheel}
+            onUpdateLoading={handleUpdateLoading}
+            onUpdateFrame={handleUpdateFrame}
+            onUpdateTrace={handleUpdateTrace} />
+          {props.loading === null ?
+            <MediaControls {...props} />
+          : null}
+        </div>
+    : null}
     </div>
   );
 }
 
 MainSection.propTypes = {
   experimentList: PropTypes.arrayOf(PropTypes.object).isRequired,
-  experiment: PropTypes.object.isRequired,
+  experiment: PropTypes.object,
   loading: PropTypes.object,
   traces: PropTypes.arrayOf(PropTypes.object).isRequired
 };

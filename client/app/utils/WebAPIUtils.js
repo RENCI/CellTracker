@@ -55,10 +55,6 @@ function getExperimentInfo(id) {
     type: "POST",
     url: "/get_experiment_info/" + id,
     success: function (data) {
-
-// XXX: For testing
-data.frames = 20;
-
       data.hasSegmentation = data.hasSegmentation === "true";
 
       // Create an action
@@ -71,17 +67,12 @@ data.frames = 20;
 }
 
 function getSegmentationData(id) {
-  console.log("SUP");
-
   setupAjax();
 
   $.ajax({
     type: "POST",
     url: "/get_seg_data/" + id,
     success: function (data) {
-      console.log("SUP2");
-      console.log(data);
-
       // Create an action
       ServerActionCreators.receiveSegmentationData(data);
     },

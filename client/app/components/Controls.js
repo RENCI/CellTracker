@@ -9,13 +9,19 @@ function onExperimentSelectChange(e) {
 }
 
 function Controls(props) {
-  var options = props.experimentList.map(function (experiment, i) {
+  var options = [
+    <option key="-1" value="" disabled hidden>
+      Select experiment
+    </option>
+  ];
+
+  options = options.concat(props.experimentList.map(function (experiment, i) {
     return (
       <option key={i} value={experiment.id}>
         {experiment.name}
       </option>
     );
-  });
+  }));
 
   return (
     <div>
@@ -24,7 +30,7 @@ function Controls(props) {
         <select
           id="experimentSelect"
           className="form-control"
-          value={props.experiment.id}
+          value={props.experiment ? props.experiment.id : ""}
           onChange={onExperimentSelectChange}>
             {options}
         </select>
@@ -37,7 +43,7 @@ function Controls(props) {
 
 Controls.propTypes = {
   experimentList: PropTypes.arrayOf(PropTypes.object).isRequired,
-  experiment: PropTypes.object.isRequired,
+  experiment: PropTypes.object,
   traces: PropTypes.arrayOf(PropTypes.object).isRequired
 };
 
