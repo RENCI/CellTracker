@@ -10,6 +10,7 @@ var experimentList = [];
 
 // Active experiment
 var experiment = null;
+var segmentationTempData = null;
 
 // Loading information
 var loading = null;
@@ -31,8 +32,35 @@ function setExperimentList(newList) {
 
 function setExperiment(newExperiment) {
   experiment = newExperiment;
+  experiment.segmentationData = segmentationTempData;
+  segmentationTempData = null;
   resetTraces();
-  updateLoading(0, experiment.frames);
+
+  if (experiment) updateLoading(0, experiment.frames);
+}
+
+function setSegmentationData(data) {
+  // Process vertices
+  data.forEach(function (frame) {
+    frame.forEach(function (cell) {
+      cell.vertices.forEach(function (vertex) {
+        var v = vertex.slice();
+        
+        // Vertex data must be stored as row, column, so flip
+        vertex[0] = +v[1] / 1024;
+        vertex[1] = +v[0] / 1024;
+      });
+    });
+  });
+
+  if (experiment) {
+    experiment.segmentationData = data;
+  }
+  else {
+    segmentationTempData = data;
+  }
+
+  console.log(experiment);
 }
 
 function updateLoading(frame, numFrames) {
@@ -173,8 +201,7 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
       break;
 
     case Constants.RECEIVE_SEGMENTATION_DATA:
-      console.log(action.data);
-
+      setSegmentationData(action.data);
       DataStore.emitChange();
       break;
 

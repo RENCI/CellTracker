@@ -26,6 +26,9 @@ module.exports = function (sketch) {
       points = [],
       onUpdateTrace = null;
 
+  // Segmentation
+  var segmentationData = null;
+
   sketch.setup = function() {
     // Create canvas with default size
     var canvas = sketch.createCanvas(100, 100);
@@ -43,6 +46,7 @@ module.exports = function (sketch) {
     onMouseWheel = props.onMouseWheel;
     onUpdateLoading = props.onUpdateLoading;
     onUpdateTrace = props.onUpdateTrace;
+    segmentationData = props.experiment.segmentationData;
 
     // Check for new experiment
     if (experimentId !== props.experiment.id) {
@@ -132,6 +136,19 @@ module.exports = function (sketch) {
       var s = 10;
       sketch.ellipse(p[0] * maxX, p[1] * maxY, s, s);
     });
+
+    // Draw segmentation data
+    if (segmentationData) {
+      segmentationData[frame].forEach(function(cell) {
+        sketch.stroke(127, 127, 127, 127);
+
+        cell.vertices.forEach(function(p0, i, a) {
+          var p1 = i < a.length - 1 ? a[i + 1] : a[0];
+
+          sketch.line(p0[0] * maxX, p0[1] * maxY, p1[0] * maxX, p1[1] * maxY);
+        });
+      });
+    }
 
     // Draw path for current trace
     sketch.strokeWeight(4);
