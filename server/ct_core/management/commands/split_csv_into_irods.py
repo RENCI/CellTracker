@@ -12,6 +12,10 @@ class Command(BaseCommand):
     """
     This script splits a whole csv file that contains all frames into individual csv file per frame
     and put individual csv file into iRODS under corresponding experiment
+    To run this command, do:
+    docker exec -ti celltracker python manage.py split_csv_into_irods <exp_id> <input_file_with_path>
+    For example:
+    docker exec -ti celltracker python manage.py split_csv_into_irods '18061934100' 'data/example_vertices.csv'
     """
     help = "Split a whole csv file into individual frame and put split csv frame files to iRODS " \
            "accordingly"
