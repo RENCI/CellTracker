@@ -27,7 +27,8 @@ module.exports = function (sketch) {
       onUpdateTrace = null;
 
   // Segmentation
-  var segmentationData = null;
+  var segmentationData = null,
+      selected = null;
 
   sketch.setup = function() {
     // Create canvas with default size
@@ -140,7 +141,14 @@ module.exports = function (sketch) {
     // Draw segmentation data
     if (segmentationData) {
       segmentationData[frame].forEach(function(cell) {
-        sketch.stroke(127, 127, 127, 127);
+        if (cell.selected) sketch.stroke(203,24,29);
+        else sketch.stroke(127, 127, 127);
+
+        var weight = 1;
+        if (cell.selected) weight++;
+        if (cell.highlight) weight++;
+
+        sketch.strokeWeight(weight);
 
         cell.vertices.forEach(function(p0, i, a) {
           var p1 = i < a.length - 1 ? a[i + 1] : a[0];
@@ -170,6 +178,27 @@ module.exports = function (sketch) {
   }
 
   function mouseClicked() {
+    // Draw segmentation data
+    if (segmentationData) {
+      if (selected) {
+        selected.selected = false;
+      }
+
+      selected = segmentationData[frame].filter(function(cell) {
+        return cell.highlight;
+      });
+
+      selected = selected.length > 0 ? selected[0] : null;
+
+      if (selected) {
+        selected.selected = true;
+      }
+
+      sketch.redraw();
+    }
+
+    // XXX: Below for tracing
+/*
     trace = !trace;
 
     sketch.cursor(trace ? sketch.CROSS : sketch.ARROW);
@@ -178,6 +207,7 @@ module.exports = function (sketch) {
     else onUpdateTrace(getTrace());
 
     return false;
+*/
   }
 
   function mouseWheel(e) {
@@ -191,49 +221,66 @@ module.exports = function (sketch) {
   }
 
   function mouseMoved() {
-/*
+    // Get mouse position
     var x = sketch.mouseX,
         y = sketch.mouseY;
 
     if (x < 0 || x >= sketch.width ||
-        y < 0 || y >= sketch.height) return;
+        y < 0 || y >= sketch.height ||
+        !segmentationData) return;
 
-    var r = 20,
-        r2 = r * r;
+    // Normalize mouse position
+    var maxX = sketch.width - 1;
+    var maxY = sketch.height - 1;
 
-    var im = images[frame],
-        contrastIm = contrastImages[frame],
-        colorIm = colorImages[frame];
+    x = sketch.map(x, 0, maxX, 0, 1, true),
+    y = sketch.map(y, 0, maxY, 0, 1, true);
 
-    im.loadPixels();
-    colorIm.loadPixels();
+    // Clear highlighting
+    var seg = segmentationData[frame];
 
-    var minMax = contrastIm[x + y * im.width];
+    seg.forEach(function(cell) {
+      cell.highlight = false;
+    });
 
-    for (var i = 0; i < im.width; i++) {
-      for (var j = 0; j < im.height; j++) {
-        var k = (i + j * im.width) * 4,
-            v = im.pixels[k],
-            dx = i - x,
-            dy = j - y,
-            d2 = dx * dx + dy * dy;
+    for (var i = 0; i < seg.length; i++) {
+      if (insidePolygon([x, y], seg[i].vertices)) {
+        seg[i].highlight = true;
 
-        if (d2 <= r2) {
-          v = Math.round(sketch.map(v, minMax[0], minMax[1], 0, 255, true));
-        }
-
-        var c = lut[v];
-
-        colorIm.pixels[k] = c[0];
-        colorIm.pixels[k + 1] = c[1];
-        colorIm.pixels[k + 2] = c[2];
+        break;
       }
     }
 
-    colorIm.updatePixels();
-
     sketch.redraw();
-*/
+
+    // Adapted from: http://paulbourke.net/geometry/polygonmesh/
+    function insidePolygon(p, polygon) {
+      var n = polygon.length,
+          counter = 0;
+
+      var p0 = polygon[0];
+
+      for (var i = 1; i <= n; i++) {
+        var p1 = polygon[i % n];
+
+        if (p[1] > Math.min(p0[1], p1[1])) {
+          if (p[1] <= Math.max(p0[1], p1[1])) {
+            if (p[0] <= Math.max(p0[0], p1[0])) {
+              if (p0[1] !== p1[1]) {
+                var xInt = (p[1] - p0[1]) * (p1[0] - p0[0]) / (p1[1] - p0[1]) + p0[0];
+
+                if (p0[0] === p1[0] || p[0] <= xInt) counter++;
+              }
+            }
+          }
+        }
+
+        p0 = p1;
+      }
+
+      if (counter % 2 === 0) return false;
+      else return true;
+    }
   }
 
   function createLut(colors) {
