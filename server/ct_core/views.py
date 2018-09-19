@@ -10,14 +10,14 @@ from uuid import uuid4
 from django.template import loader
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseServerError, StreamingHttpResponse, \
-    HttpResponseBadRequest
+    HttpResponseBadRequest, JsonResponse
 
 from django.views.decorators import gzip
 
 from rest_framework import status
 
 from irods.session import iRODSSession
-from irods.exception import CollectionDoesNotExist
+from irods.exception import CollectionDoesNotExist, DataObjectDoesNotExist
 
 from ct_core.utils import read_video, extract_images_from_video, read_image_frame, \
     convert_csv_to_json, get_exp_frame_no, get_seg_collection
@@ -226,21 +226,17 @@ def get_seg_data(request, exp_id):
 
 
 def get_frame_seg_data(request, exp_id, frame_no):
-    json_resp_data = {}
     with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
                       password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
         dpath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id) + \
                 '/data/segmentation/frame' + str(frame_no) + '.json'
-        fobj = session.data_objects.get(dpath)
-        with fobj.open('r') as f:
-            json_resp_data = json.load(f)
-
-    if json_resp_data:
-        return HttpResponse(json.dumps(json_resp_data), content_type='application/json')
-    else:
-        return HttpResponse(json.dumps({'error': 'no csv segmentation file can be converted to '
-                                                 'JSON response'}),
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        try:
+            fobj = session.data_objects.get(dpath)
+            with fobj.open('r') as f:
+                json_resp_data = json.load(f)
+            return HttpResponse(json.dumps(json_resp_data), content_type='application/json')
+        except DataObjectDoesNotExist:
+            return JsonResponse({})
 
 
 def save_tracking_data(request, exp_id):
