@@ -15,12 +15,12 @@ function handleKeyPress(keyCode) {
 
     case 37:
       // Left arrow
-      ViewActionCreators.frameBack();
+      ViewActionCreators.frameDelta(-1);
       break;
 
     case 39:
       // Right arrow
-      ViewActionCreators.frameForward();
+      ViewActionCreators.frameDelta(1);
       break;
   }
 }
