@@ -9,6 +9,8 @@ from irods.exception import CollectionDoesNotExist
 
 from django.conf import settings
 
+from django_irods.storage import IrodsStorage
+
 
 frame_no_key = 'frame_no'
 
@@ -63,6 +65,31 @@ def read_image_frame(exp_id, image_fname):
             k.append(k_row)
         prop_dict['intensity_values'] = k
     return prop_dict
+
+
+def get_exp_image_size(exp_id):
+    istorage = IrodsStorage()
+    irods_img_path = os.path.join(exp_id, 'data', 'image', 'jpg')
+    file_list = istorage.listdir(irods_img_path)[1]
+    if len(file_list) > 0:
+        img_name = file_list[0]
+        image_path = os.path.join(settings.IRODS_ROOT, exp_id, 'image')
+        if not os.path.exists(image_path):
+            os.makedirs(image_path)
+        ifile = os.path.join(image_path, img_name)
+        if os.path.isfile(ifile):
+            img = cv2.imread(ifile, cv2.IMREAD_GRAYSCALE)
+            rows, cols = img.shape
+            return rows, cols
+        else:
+            dest_path = istorage.getOneImageFrame(exp_id, 'jpg', img_name, image_path)
+            ifile = os.path.join(dest_path, img_name)
+            if os.path.isfile(ifile):
+                img = cv2.imread(ifile, cv2.IMREAD_GRAYSCALE)
+                rows, cols = img.shape
+                return rows, cols
+            else:
+                return -1, -1
 
 
 def get_exp_frame_no(exp_id):

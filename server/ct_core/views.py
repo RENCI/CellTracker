@@ -260,6 +260,7 @@ def save_tracking_data(request, exp_id):
 
     with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
                       password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
+        session.default_resource = settings.IRODS_RESC
         ipath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id) + \
                 '/tracking/' + uname
         try:

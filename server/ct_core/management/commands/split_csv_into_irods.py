@@ -1,11 +1,18 @@
 import os
 import csv
 import json
+import logging
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
 from irods.session import iRODSSession
+from irods.exception import CollectionDoesNotExist
+
+from ct_core.utils import get_exp_image_size
+
+
+logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -31,6 +38,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         irods_path = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + \
                      options['exp_id'] + '/data/segmentation'
+        rows, cols = get_exp_image_size(exp_id=options['exp_id'])
+        if rows == -1:
+            logger.debug('cannot get experiment image size')
+            return
+        logger.debug('exp_id='+str(options['exp_id']) + ', rows=' + str(rows) + ', cols=' +
+                     str(cols))
         with open(options['input_file']) as inf:
             outf_path = '/tmp/'
             contents = csv.reader(inf)
@@ -61,7 +74,14 @@ class Command(BaseCommand):
                                                   port=settings.IRODS_PORT,
                                                   user=settings.IRODS_USER,
                                                   password=settings.IRODS_PWD,
-                                                  zone=settings.IRODS_ZONE) as session:
+                                                  zone=settings.IRODS_ZONE,
+                                                  ) as session:
+                                    session.default_resource = settings.IRODS_RESC
+                                    try:
+                                        coll = session.collections.get(irods_path)
+                                    except CollectionDoesNotExist:
+                                        session.collections.create(irods_path)
+
                                     session.data_objects.put(outf_name,
                                                              irods_path + '/' + ofilename)
 
@@ -77,8 +97,10 @@ class Command(BaseCommand):
 
                 x = row[0].strip()
                 y = row[1].strip()
+                numx = float(x)/rows
+                numy = float(y)/cols
                 if 'id' in obj_dict:
-                    obj_dict['vertices'].append([x, y])
+                    obj_dict['vertices'].append([str(numy), str(numx)])
 
             # write the last frame
             if obj_dict:
@@ -93,6 +115,12 @@ class Command(BaseCommand):
                                   user=settings.IRODS_USER,
                                   password=settings.IRODS_PWD,
                                   zone=settings.IRODS_ZONE) as session:
+                    session.default_resource = settings.IRODS_RESC
+                    try:
+                        coll = session.collections.get(irods_path)
+                    except CollectionDoesNotExist:
+                        session.collections.create(irods_path)
+
                     session.data_objects.put(outf_name,
                                              irods_path + '/' + ofilename)
 
