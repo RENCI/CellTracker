@@ -99,6 +99,8 @@ module.exports = function (sketch) {
       return;
     }
 
+    highlight(sketch.mouseX, sketch.mouseY);
+
     // Get image
     var im = colorImages[frame];
 
@@ -221,66 +223,8 @@ module.exports = function (sketch) {
   }
 
   function mouseMoved() {
-    // Get mouse position
-    var x = sketch.mouseX,
-        y = sketch.mouseY;
-
-    if (x < 0 || x >= sketch.width ||
-        y < 0 || y >= sketch.height ||
-        !segmentationData) return;
-
-    // Normalize mouse position
-    var maxX = sketch.width - 1;
-    var maxY = sketch.height - 1;
-
-    x = sketch.map(x, 0, maxX, 0, 1, true),
-    y = sketch.map(y, 0, maxY, 0, 1, true);
-
-    // Clear highlighting
-    var seg = segmentationData[frame];
-
-    seg.forEach(function(cell) {
-      cell.highlight = false;
-    });
-
-    for (var i = 0; i < seg.length; i++) {
-      if (insidePolygon([x, y], seg[i].vertices)) {
-        seg[i].highlight = true;
-
-        break;
-      }
-    }
-
+    highlight(sketch.mouseX, sketch.mouseY);
     sketch.redraw();
-
-    // Adapted from: http://paulbourke.net/geometry/polygonmesh/
-    function insidePolygon(p, polygon) {
-      var n = polygon.length,
-          counter = 0;
-
-      var p0 = polygon[0];
-
-      for (var i = 1; i <= n; i++) {
-        var p1 = polygon[i % n];
-
-        if (p[1] > Math.min(p0[1], p1[1])) {
-          if (p[1] <= Math.max(p0[1], p1[1])) {
-            if (p[0] <= Math.max(p0[0], p1[0])) {
-              if (p0[1] !== p1[1]) {
-                var xInt = (p[1] - p0[1]) * (p1[0] - p0[0]) / (p1[1] - p0[1]) + p0[0];
-
-                if (p0[0] === p1[0] || p[0] <= xInt) counter++;
-              }
-            }
-          }
-        }
-
-        p0 = p1;
-      }
-
-      if (counter % 2 === 0) return false;
-      else return true;
-    }
   }
 
   function createLut(colors) {
@@ -379,6 +323,67 @@ module.exports = function (sketch) {
     });
 
     sketch.resizeCanvas(w, h);
+  }
+
+  function highlight(x, y) {
+    // Get mouse position
+    var x = sketch.mouseX,
+        y = sketch.mouseY;
+
+    if (x < 0 || x >= sketch.width ||
+        y < 0 || y >= sketch.height ||
+        !segmentationData) return;
+
+    // Normalize mouse position
+    var maxX = sketch.width - 1;
+    var maxY = sketch.height - 1;
+
+    x = sketch.map(x, 0, maxX, 0, 1, true),
+    y = sketch.map(y, 0, maxY, 0, 1, true);
+
+    // Clear highlighting
+    var seg = segmentationData[frame];
+
+    seg.forEach(function(cell) {
+      cell.highlight = false;
+    });
+
+    for (var i = 0; i < seg.length; i++) {
+      if (insidePolygon([x, y], seg[i].vertices)) {
+        seg[i].highlight = true;
+
+        break;
+      }
+    }
+
+    // Adapted from: http://paulbourke.net/geometry/polygonmesh/
+    function insidePolygon(p, polygon) {
+      var n = polygon.length,
+          counter = 0;
+
+      var p0 = polygon[0];
+
+      for (var i = 1; i <= n; i++) {
+        var p1 = polygon[i % n];
+
+        if (p[1] > Math.min(p0[1], p1[1])) {
+          if (p[1] <= Math.max(p0[1], p1[1])) {
+            if (p[0] <= Math.max(p0[0], p1[0])) {
+              if (p0[1] !== p1[1]) {
+                var xInt = (p[1] - p0[1]) * (p1[0] - p0[0]) / (p1[1] - p0[1]) + p0[0];
+
+                if (p0[0] === p1[0] || p[0] <= xInt) counter++;
+              }
+            }
+          }
+        }
+
+        p0 = p1;
+      }
+
+      if (counter % 2 === 0) return false;
+      else return true;
+    }
   }
 
   function innerWidth(element) {
