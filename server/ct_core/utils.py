@@ -188,5 +188,6 @@ def convert_csv_to_json(exp_id):
                     frame_ary.append(obj_dict)
                     resp_data.append(frame_ary)
                 converted = True
-
+            break
+            s
     return resp_data
