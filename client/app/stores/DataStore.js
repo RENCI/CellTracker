@@ -44,11 +44,8 @@ function setSegmentationData(data) {
   data.forEach(function (frame) {
     frame.forEach(function (cell) {
       cell.vertices.forEach(function (vertex) {
-        var v = vertex.slice();
-        
-        // Vertex data must be stored as row, column, so flip
-        vertex[0] = +v[1] / 1024;
-        vertex[1] = +v[0] / 1024;
+        vertex[0] = +vertex[0];
+        vertex[1] = +vertex[1];
       });
     });
   });
@@ -59,8 +56,6 @@ function setSegmentationData(data) {
   else {
     segmentationTempData = data;
   }
-
-  console.log(experiment);
 }
 
 function updateLoading(frame, numFrames) {

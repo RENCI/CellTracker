@@ -80,9 +80,7 @@ module.exports = function (sketch) {
       }
 
       for (var i = 0; i < numFrames; i++) {
-        var loader = makeLoader(i);
-
-        sketch.loadImage("/display-image/" + experimentId + "/" + imageType + "/" + (i + 1), loader);
+        sketch.loadImage("/display-image/" + experimentId + "/" + imageType + "/" + (i + 1), makeLoader(i));
       }
     }
 

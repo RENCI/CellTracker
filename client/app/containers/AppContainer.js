@@ -52,7 +52,7 @@ class AppContainer extends React.Component {
     if (newState.experiment) {
       if ((!this.state.experiment || this.state.experiment.id !== newState.experiment.id) &&
           newState.experiment.hasSegmentation) {
-        ViewActionCreators.getSegmentationData(newState.experiment.id);
+        ViewActionCreators.getSegmentationData(newState.experiment.id, newState.experiment.frames);
       }
     }
 
