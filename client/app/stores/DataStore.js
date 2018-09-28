@@ -10,7 +10,6 @@ var experimentList = [];
 
 // Active experiment
 var experiment = null;
-var segmentationTempData = null;
 
 // Loading information
 var loading = null;
@@ -32,8 +31,7 @@ function setExperimentList(newList) {
 
 function setExperiment(newExperiment) {
   experiment = newExperiment;
-  experiment.segmentationData = segmentationTempData;
-  segmentationTempData = null;
+  experiment.segmentationData = null;
   resetTraces();
 
   if (experiment) updateLoading(0, experiment.frames);
@@ -50,12 +48,7 @@ function setSegmentationData(data) {
     });
   });
 
-  if (experiment) {
-    experiment.segmentationData = data;
-  }
-  else {
-    segmentationTempData = data;
-  }
+  experiment.segmentationData = data;
 }
 
 function updateLoading(frame, numFrames) {
