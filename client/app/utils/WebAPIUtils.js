@@ -1,4 +1,7 @@
 var ServerActionCreators = require("../actions/ServerActionCreators");
+var LoadingSketch = require("../p5/LoadingSketch");
+
+var loadingSketch = new p5(LoadingSketch);
 
 // Get a cookie for cross site request forgery (CSRF) protection
 function getCookie(name) {
@@ -51,16 +54,54 @@ function getExperimentList() {
 function getExperimentInfo(id) {
   setupAjax();
 
+  var imageType = "jpg";
+
+  function imageCallback(i) {
+    return function(data) {
+      ServerActionCreators.receiveFrame(i, data);
+    }
+  }
+
+  function segmentationCallback(i) {
+    return function(data) {
+      ServerActionCreators.receiveSegmentationFrame(i, data);
+    }
+  }
+
   $.ajax({
     type: "POST",
     url: "/get_experiment_info/" + id,
     success: function (data) {
       data.hasSegmentation = data.hasSegmentation === "true";
 
-data.frames = 20;
+      // Get frames from random location
+      var n = Math.min(data.frames, 20);
+      var start = Math.round(Math.random() * (data.frames - n));
+      data.frames = n;
+
+      console.log(start + ", " + (start + n - 1));
 
       // Create an action
       ServerActionCreators.receiveExperiment(data);
+
+      for (var i = 0; i < n; i++) {
+        var frame = start + 1;
+
+        // Load image frame
+        loadingSketch.loadImage("/display-image/" + id + "/" + imageType + "/" + frame, imageCallback(i));
+
+        // Load segmentation frame
+        if (data.hasSegmentation) {
+          $.ajax({
+            type: "POST",
+            url: "/get_frame_seg_data/" + id + "/" + frame,
+            success: segmentationCallback(i),
+            error: function (xhr, textStatus, errorThrown) {
+              console.log(textStatus + ": " + errorThrown);
+            }
+          });
+        }
+      }
     },
     error: function (xhr, textStatus, errorThrown) {
       console.log(textStatus + ": " + errorThrown);

@@ -47,15 +47,6 @@ class AppContainer extends React.Component {
   }
 
   onDataChange() {
-    var newState = getStateFromStore();
-
-    if (newState.experiment) {
-      if ((!this.state.experiment || this.state.experiment.id !== newState.experiment.id) &&
-          newState.experiment.hasSegmentation) {
-        ViewActionCreators.getSegmentationData(newState.experiment.id, newState.experiment.frames);
-      }
-    }
-
     this.setState(getStateFromStore());
   }
 

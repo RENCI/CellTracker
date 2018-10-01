@@ -58,18 +58,22 @@ function MainSection(props) {
           {props.loading !== null ?
             <LoadingProgress
               label={"Loading " + experimentName}
-              value={props.loading.frame}
-              maxValue={props.loading.numFrames} />
+              value1={props.loading.image}
+              maxValue1={props.loading.numImages}
+              value2={props.loading.segmentation}
+              maxValue2={props.loading.numSegmentation} />
           : null}
-          <TraceSketchWrapper
-            {...props}
-            onKeyPress={handleKeyPress}
-            onMouseWheel={handleMouseWheel}
-            onUpdateLoading={handleUpdateLoading}
-            onUpdateFrame={handleUpdateFrame}
-            onUpdateTrace={handleUpdateTrace} />
           {props.loading === null ?
-            <MediaControls {...props} />
+            <div>
+              <TraceSketchWrapper
+                {...props}
+                onKeyPress={handleKeyPress}
+                onMouseWheel={handleMouseWheel}
+                onUpdateLoading={handleUpdateLoading}
+                onUpdateFrame={handleUpdateFrame}
+                onUpdateTrace={handleUpdateTrace} />
+              <MediaControls {...props} />
+            </div>
           : null}
         </div>
     : null}

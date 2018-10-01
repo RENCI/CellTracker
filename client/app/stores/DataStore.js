@@ -12,6 +12,8 @@ var experimentList = [];
 var experiment = null;
 
 // Loading information
+var framesLoaded = 0;
+var segFramesLoaded = 0;
 var loading = null;
 
 // Playback
@@ -31,31 +33,54 @@ function setExperimentList(newList) {
 
 function setExperiment(newExperiment) {
   experiment = newExperiment;
-  experiment.segmentationData = null;
   resetTraces();
 
-  if (experiment) updateLoading(0, experiment.frames);
+  if (experiment) {
+    experiment.images = [];
+    experiment.segmentationData = experiment.hasSegmentation ? [] : null;
+
+    framesLoaded = 0;
+    segFramesLoaded = 0;
+
+    updateLoading();
+  }
 }
 
-function setSegmentationData(data) {
+function receiveFrame(i, frame) {
+  experiment.images[i] = frame;
+  framesLoaded++;
+
+  updateLoading();
+}
+
+function receiveSegmentationFrame(i, frame) {
   // Process vertices
-  data.forEach(function (frame) {
-    frame.forEach(function (cell) {
-      cell.vertices.forEach(function (vertex) {
-        vertex[0] = +vertex[0];
-        vertex[1] = +vertex[1];
-      });
+  frame.forEach(function (region) {
+    region.vertices.forEach(function (vertex) {
+      vertex[0] = +vertex[0];
+      vertex[1] = +vertex[1];
     });
   });
 
-  experiment.segmentationData = data;
+  experiment.segmentationData[i] = frame;
+  segFramesLoaded++;
+
+  updateLoading();
 }
 
-function updateLoading(frame, numFrames) {
-  loading = frame === null ? null : {
-    frame: frame,
-    numFrames: numFrames
-  };
+function updateLoading() {
+  var total = experiment.hasSegmentation ? experiment.frames * 2 : experiment.frames;
+
+  console.log(framesLoaded, segFramesLoaded, total);
+
+  loading = framesLoaded + segFramesLoaded < total ? {
+    image: framesLoaded,
+    numImages: experiment.frames,
+    segmentation: segFramesLoaded,
+    numSegmentation: experiment.hasSegmentation ? experiment.frames : 0
+  } : null;
+
+  console.log(loading);
 }
 
 function stopPlay() {
@@ -188,13 +213,13 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
       DataStore.emitChange();
       break;
 
-    case Constants.RECEIVE_SEGMENTATION_DATA:
-      setSegmentationData(action.data);
+    case Constants.RECEIVE_FRAME:
+      receiveFrame(action.frame, action.image);
       DataStore.emitChange();
       break;
 
-    case Constants.UPDATE_LOADING:
-      updateLoading(action.frame, action.numFrames);
+    case Constants.RECEIVE_SEGMENTATION_FRAME:
+      receiveSegmentationFrame(action.frame, action.segmentation);
       DataStore.emitChange();
       break;
 

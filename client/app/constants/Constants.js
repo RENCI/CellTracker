@@ -3,9 +3,8 @@ var keyMirror = require("keymirror");
 module.exports = keyMirror({
   RECEIVE_EXPERIMENT_LIST: null,
   RECEIVE_EXPERIMENT: null,
-  RECEIVE_SEGMENTATION_DATA: null,
-
-  UPDATE_LOADING: null,
+  RECEIVE_FRAME: null,
+  RECEIVE_SEGMENTATION_FRAME: null,
 
   STOP_PLAY: null,
   TOGGLE_PLAY: null,

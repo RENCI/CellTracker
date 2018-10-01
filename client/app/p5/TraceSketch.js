@@ -47,8 +47,13 @@ module.exports = function (sketch) {
     onMouseWheel = props.onMouseWheel;
     onUpdateLoading = props.onUpdateLoading;
     onUpdateTrace = props.onUpdateTrace;
+
+    images = props.experiment.images;
     segmentationData = props.experiment.segmentationData;
 
+    // XXX: Need to check for new experiment
+    // XXX: Maybe just store pixel data in WebAPIUtils, then copy to images here when new experiment?
+/*
     // Check for new experiment
     if (experimentId !== props.experiment.id) {
       experimentId = props.experiment.id;
@@ -83,7 +88,8 @@ module.exports = function (sketch) {
         sketch.loadImage("/display-image/" + experimentId + "/" + imageType + "/" + (i + 1), makeLoader(i));
       }
     }
-
+*/
+    resizeImages();
     sketch.redraw();
   }
 

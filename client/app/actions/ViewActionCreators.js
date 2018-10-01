@@ -10,17 +10,6 @@ module.exports = {
   selectExperiment: function (id) {
     WebAPIUtils.getExperimentInfo(id);
   },
-  getSegmentationData: function (id, frames) {
-    WebAPIUtils.getSegmentationData(id, frames);
-  },
-
-  updateLoading: function (frame, numFrames) {
-    AppDispatcher.dispatch({
-      actionType: Constants.UPDATE_LOADING,
-      frame: frame,
-      numFrames: numFrames
-    });
-  },
 
   stopPlay: function () {
     AppDispatcher.dispatch({

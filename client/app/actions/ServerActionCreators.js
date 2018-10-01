@@ -14,10 +14,18 @@ module.exports = {
       experiment: experiment
     });
   },
-  receiveSegmentationData: function (data) {
+  receiveFrame: function (frame, image) {
     AppDispatcher.dispatch({
-      actionType: Constants.RECEIVE_SEGMENTATION_DATA,
-      data: data
+      actionType: Constants.RECEIVE_FRAME,
+      frame: frame,
+      image: image
+    });
+  },
+  receiveSegmentationFrame: function (frame, segmentation) {
+    AppDispatcher.dispatch({
+      actionType: Constants.RECEIVE_SEGMENTATION_FRAME,
+      frame: frame,
+      segmentation: segmentation
     });
   }
 };
