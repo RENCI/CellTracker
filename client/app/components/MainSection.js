@@ -29,12 +29,12 @@ function handleMouseWheel(delta) {
   ViewActionCreators.frameDelta(delta);
 }
 
-function handleUpdateLoading(frame, numFrames) {
-  ViewActionCreators.updateLoading(frame, numFrames);
-}
-
 function handleUpdateFrame(frame) {
   ViewActionCreators.updateFrame(frame);
+}
+
+function handleSelectRegion(region) {
+  ViewActionCreators.selectRegion(region);
 }
 
 function handleUpdateTrace(points) {
@@ -43,10 +43,9 @@ function handleUpdateTrace(points) {
 
 function MainSection(props) {
   // Put in DataStore?
-  var experimentName = props.experiment ?
-    props.experimentList.filter(function (experiment) {
-      return props.experiment.id === experiment.id;
-    })[0].name : null;
+  var experimentName = props.experiment ? props.experiment.name : null;
+
+  //var regionSelected = props.experiment ?
 
   return (
     <div className="row">
@@ -69,8 +68,7 @@ function MainSection(props) {
                 {...props}
                 onKeyPress={handleKeyPress}
                 onMouseWheel={handleMouseWheel}
-                onUpdateLoading={handleUpdateLoading}
-                onUpdateFrame={handleUpdateFrame}
+                onSelectRegion={handleSelectRegion}
                 onUpdateTrace={handleUpdateTrace} />
               <MediaControls {...props} />
             </div>

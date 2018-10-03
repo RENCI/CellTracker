@@ -45,6 +45,13 @@ module.exports = {
     });
   },
 
+  selectRegion: function (region) {
+    AppDispatcher.dispatch({
+      actionType: Constants.SELECT_REGION,
+      region: region
+    });
+  },
+
   addTrace: function () {
     AppDispatcher.dispatch({
       actionType: Constants.ADD_TRACE

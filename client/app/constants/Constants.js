@@ -13,6 +13,8 @@ module.exports = keyMirror({
   FAST_FORWARD: null,
   SELECT_FRAME_RATE: null,
 
+  SELECT_REGION: null,
+
   ADD_TRACE: null,
   UPDATE_TRACE: null,
   SELECT_TRACE: null

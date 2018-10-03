@@ -36,6 +36,9 @@ function setExperiment(newExperiment) {
   resetTraces();
 
   if (experiment) {
+    experiment.name = experimentList.filter(function (e) {
+      return e.id === experiment.id;
+    })[0].name;
     experiment.images = [];
     experiment.segmentationData = experiment.hasSegmentation ? [] : null;
 
@@ -69,13 +72,14 @@ function receiveSegmentationFrame(i, frame) {
 }
 
 function updateLoading() {
-  var total = experiment.hasSegmentation ? experiment.frames * 2 : experiment.frames;
+  var numSegFrames = experiment.hasSegmentation ? experiment.frames : 0;
+  var total = experiment.frames + numSegFrames;
 
   loading = framesLoaded + segFramesLoaded < total ? {
-    image: framesLoaded,
+    image: Math.max(experiment.frames, framesLoaded + 1),
     numImages: experiment.frames,
-    segmentation: segFramesLoaded,
-    numSegmentation: experiment.hasSegmentation ? experiment.frames : 0
+    segmentation: Math.max(numSegFrames, segFramesLoaded + 1),
+    numSegmentation: numSegFrames
   } : null;
 }
 
@@ -131,6 +135,16 @@ function setFrameRate(newFrameRate) {
     removeTimer();
     createTimer();
   }
+}
+
+function selectRegion(region) {
+  experiment.segmentationData.forEach(function (frame) {
+    frame.forEach(function (region) {
+      region.selected = false;
+    });
+  });
+
+  region.selected = true;
 }
 
 function addTrace() {
@@ -246,6 +260,11 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.SELECT_FRAME_RATE:
       setFrameRate(action.frameRate);
+      DataStore.emitChange();
+      break;
+
+    case Constants.SELECT_REGION:
+      selectRegion(action.region);
       DataStore.emitChange();
       break;
 

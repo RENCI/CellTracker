@@ -28,7 +28,7 @@ module.exports = function (sketch) {
 
   // Segmentation
   var segmentationData = null,
-      selected = null;
+      onSelectRegion = null;
 
   sketch.setup = function() {
     // Create canvas with default size
@@ -45,7 +45,7 @@ module.exports = function (sketch) {
     traces = props.traces;
     onKeyPress = props.onKeyPress;
     onMouseWheel = props.onMouseWheel;
-    onUpdateLoading = props.onUpdateLoading;
+    onSelectRegion = props.onSelectRegion;
     onUpdateTrace = props.onUpdateTrace;
 
     // Check for new experiment
@@ -123,17 +123,17 @@ module.exports = function (sketch) {
 
     // Draw segmentation data
     if (segmentationData) {
-      segmentationData[frame].forEach(function(cell) {
-        if (cell.selected) sketch.stroke(203,24,29);
+      segmentationData[frame].forEach(function(region) {
+        if (region.selected) sketch.stroke(203,24,29);
         else sketch.stroke(127, 127, 127);
 
         var weight = 1;
-        if (cell.selected) weight++;
-        if (cell.highlight) weight++;
+        if (region.selected) weight++;
+        if (region.highlight) weight++;
 
         sketch.strokeWeight(weight);
 
-        cell.vertices.forEach(function(p0, i, a) {
+        region.vertices.forEach(function(p0, i, a) {
           var p1 = i < a.length - 1 ? a[i + 1] : a[0];
 
           sketch.line(p0[0] * maxX, p0[1] * maxY, p1[0] * maxX, p1[1] * maxY);
@@ -163,21 +163,13 @@ module.exports = function (sketch) {
   function mouseClicked() {
     // Draw segmentation data
     if (segmentationData) {
-      if (selected) {
-        selected.selected = false;
-      }
-
-      selected = segmentationData[frame].filter(function(cell) {
-        return cell.highlight;
+      var selected = segmentationData[frame].filter(function(region) {
+        return region.highlight;
       });
 
-      selected = selected.length > 0 ? selected[0] : null;
-
-      if (selected) {
-        selected.selected = true;
+      if (selected.length > 0) {
+        onSelectRegion(selected[0]);
       }
-
-      sketch.redraw();
     }
 
     // XXX: Below for tracing
@@ -288,8 +280,8 @@ module.exports = function (sketch) {
     // Clear highlighting
     var seg = segmentationData[frame];
 
-    seg.forEach(function(cell) {
-      cell.highlight = false;
+    seg.forEach(function(region) {
+      region.highlight = false;
     });
 
     for (var i = 0; i < seg.length; i++) {

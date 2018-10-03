@@ -75,7 +75,7 @@ function getExperimentInfo(id) {
       data.hasSegmentation = data.hasSegmentation === "true";
 
       // Get frames from random location
-      var n = Math.min(data.frames, 20);
+      var n = Math.min(data.frames, 5);
       var start = Math.round(Math.random() * (data.frames - n));
       data.frames = n;
 
