@@ -1,7 +1,7 @@
 var ServerActionCreators = require("../actions/ServerActionCreators");
-var LoadingSketch = require("../p5/LoadingSketch");
 
-var loadingSketch = new p5(LoadingSketch);
+// Create p5 instance for loading images
+var loadingSketch = new p5(function (sketch) {});
 
 // Get a cookie for cross site request forgery (CSRF) protection
 function getCookie(name) {
@@ -85,7 +85,7 @@ function getExperimentInfo(id) {
       ServerActionCreators.receiveExperiment(data);
 
       for (var i = 0; i < n; i++) {
-        var frame = start + 1;
+        var frame = start + i;
 
         // Load image frame
         loadingSketch.loadImage("/display-image/" + id + "/" + imageType + "/" + frame, imageCallback(i));

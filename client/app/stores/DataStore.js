@@ -71,16 +71,12 @@ function receiveSegmentationFrame(i, frame) {
 function updateLoading() {
   var total = experiment.hasSegmentation ? experiment.frames * 2 : experiment.frames;
 
-  console.log(framesLoaded, segFramesLoaded, total);
-
   loading = framesLoaded + segFramesLoaded < total ? {
     image: framesLoaded,
     numImages: experiment.frames,
     segmentation: segFramesLoaded,
     numSegmentation: experiment.hasSegmentation ? experiment.frames : 0
   } : null;
-
-  console.log(loading);
 }
 
 function stopPlay() {

@@ -48,48 +48,25 @@ module.exports = function (sketch) {
     onUpdateLoading = props.onUpdateLoading;
     onUpdateTrace = props.onUpdateTrace;
 
-    images = props.experiment.images;
-    segmentationData = props.experiment.segmentationData;
-
-    // XXX: Need to check for new experiment
-    // XXX: Maybe just store pixel data in WebAPIUtils, then copy to images here when new experiment?
-/*
     // Check for new experiment
     if (experimentId !== props.experiment.id) {
       experimentId = props.experiment.id;
-      var numFrames = props.experiment.frames;
 
-      // Clear current data
-      images = [];
+      images = props.experiment.images.map(function(d) {
+        var w = d.width,
+            h = d.height,
+            im = sketch.createImage(w, h);
 
-      // Load images
-      var tempImages = [];
-      var loaded = 0;
+        im.copy(d, 0, 0, w, h, 0, 0, w, h);
 
-      function makeLoader(n) {
-        return function(im) {
-          tempImages[n] = im;
-          loaded++;
+        return im;
+      });
 
-          if (loaded === numFrames) {
-            onUpdateLoading(null);
+      segmentationData = props.experiment.segmentationData;
 
-            images = tempImages.slice();
-
-            resizeImages();
-          }
-          else {
-            onUpdateLoading(loaded + 1, numFrames);
-          }
-        }
-      }
-
-      for (var i = 0; i < numFrames; i++) {
-        sketch.loadImage("/display-image/" + experimentId + "/" + imageType + "/" + (i + 1), makeLoader(i));
-      }
+      resizeImages();
     }
-*/
-    resizeImages();
+
     sketch.redraw();
   }
 
@@ -265,43 +242,6 @@ module.exports = function (sketch) {
     images.forEach(function(im) {
       im.resize(w, h);
     });
-/*
-    var r = 20,
-        r2 = r * r;
-
-    contrastImages = images.map(function(im) {
-      var contrastIm = [];
-
-      // XXX: Move after im.resize?
-      im.loadPixels();
-
-      for (var x = 0; x < im.width; x++) {
-        for (var y = 0; y < im.height; y++ ) {
-          var min = 255,
-              max = 0;
-
-          for (var i = Math.max(0, x - r); i <= Math.min(x + r, im.width - 1); i++) {
-            for (var j = Math.max(0, y - r); j <= Math.min(y + r, im.height - 1); j++) {
-              var k = (i + j * im.width) * 4,
-                  v = im.pixels[k],
-                  dx = i - x,
-                  dy = j - y,
-                  d2 = dx * dx + dy * dy;
-
-              if (d2 <= r2) {
-                if (v < min) min = v;
-                if (v > max) max = v;
-              }
-            }
-          }
-
-          contrastIm.push([min, max]);
-        }
-      }
-
-      return contrastIm;
-    });
-*/
 
     colorImages = images.map(function(im) {
       var colorIm = sketch.createImage(im.width, im.height);
