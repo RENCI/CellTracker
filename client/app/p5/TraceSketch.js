@@ -170,6 +170,9 @@ module.exports = function (sketch) {
       if (selected.length > 0) {
         onSelectRegion(selected[0]);
       }
+      else {
+        onSelectRegion(null);
+      }
     }
 
     // XXX: Below for tracing
@@ -222,12 +225,8 @@ module.exports = function (sketch) {
 
     // Size canvas to image aspect ratio
     var im = images[0],
-        aspect = im.width / im.height;
-
-    // Get parent div
-    // XXX: Pass through props?
-    var div = sketch.select("#sketchDiv"),
-        w = innerWidth(div.elt),
+        aspect = im.width / im.height,
+        w = innerWidth(sketch._userNode),
         h = w / aspect;
 
     // Resize images

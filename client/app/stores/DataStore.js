@@ -144,7 +144,13 @@ function selectRegion(region) {
     });
   });
 
-  region.selected = true;
+  if (region) {
+    region.selected = true;
+    experiment.selectedRegion = region;
+  }
+  else {
+    experiment.selectedRegion = null;
+  }
 }
 
 function addTrace() {
