@@ -168,26 +168,28 @@ def display_image(request, exp_id, type, frame_no):
     if fno > flistlen:
         return HttpResponseBadRequest('Requested frame_no does not exist')
 
-    if len(file_list) == 1:
-        if fno == 1:
-            img_name = file_list[0]
+    img_name = 'frame' + str(frame_no) + '.jpg'
+    if not img_name in file_list:
+        if len(file_list) == 1:
+            if fno == 1:
+                img_name = file_list[0]
+            else:
+                return HttpResponseBadRequest('Requested frame_no does not exist')
         else:
-            return HttpResponseBadRequest('Requested frame_no does not exist')
-    else:
-        img1_name = file_list[0]
-        start_idx = len('frame')
-        seq_len = len(img1_name[start_idx:-4])
-        if len(frame_no) == seq_len:
-            img_name = 'frame' + frame_no + '.' + type
-        elif len(frame_no) > seq_len:
-            return HttpResponseBadRequest('Requested frame_no does not exist')
-        else:
-            # len(frame_no) < seq_len
-            zero_cnt = seq_len - len(frame_no)
-            packstr = ''
-            for i in range(0, zero_cnt):
-                packstr += '0'
-            img_name = 'frame' + packstr + frame_no + '.' + type
+            img1_name = file_list[0]
+            start_idx = len('frame')
+            seq_len = len(img1_name[start_idx:-4])
+            if len(frame_no) == seq_len:
+                img_name = 'frame' + frame_no + '.' + type
+            elif len(frame_no) > seq_len:
+                return HttpResponseBadRequest('Requested frame_no does not exist')
+            else:
+                # len(frame_no) < seq_len
+                zero_cnt = seq_len - len(frame_no)
+                packstr = ''
+                for i in range(0, zero_cnt):
+                    packstr += '0'
+                img_name = 'frame' + packstr + frame_no + '.' + type
 
     ifile = os.path.join(image_path, img_name)
     if os.path.isfile(ifile):

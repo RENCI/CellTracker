@@ -2,8 +2,9 @@ import logging
 import cv2
 import os
 
+from wand.image import Image
+
 from django.core.management.base import BaseCommand
-from django.conf import settings
 
 from django_irods.storage import IrodsStorage
 
@@ -29,9 +30,33 @@ class Command(BaseCommand):
         parser.add_argument('exp_id', help='experiment id')
 
         # csv filename with full path to split from
-        parser.add_argument('input_file', help='input avi file name with full path to be processed')
+        parser.add_argument('input_file', help='input avi or tif file name with full path to be '
+                                               'processed')
 
     def handle(self, *args, **options):
+        outf_path = '/tmp/'
+        if options['input_file'].endswith('.avi'):
+            cap = cv2.VideoCapture(options['input_file'])
+            success, frame = cap.read()
+            count = 0
+            while success:
+                ofile = outf_path + "frame{}.jpg".format(count)
+                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                cv2.imwrite(ofile, gray)
+                success, frame = cap.read()
+                count += 1
+        elif options['input_file'].endswith('.tif'):
+            with Image(filename=options['input_file']) as img:
+                count = len(img.sequence)
+                for i in range(0, count):
+                    ofile = outf_path + "frame{}.jpg".format(i)
+                    img_out = Image(image=img.sequence[i])
+                    img_out.format = 'jpeg'
+                    img_out.save(filename=ofile)
+        else:
+            logger.info("Input video file must be in avi or tif format")
+            return
+
         istorage = IrodsStorage()
         video_filename = os.path.basename(options['input_file'])
         irods_path = options['exp_id'] + '/data/video/' + video_filename
@@ -43,17 +68,6 @@ class Command(BaseCommand):
 
         # create image collection first
         istorage.saveFile('', irods_path, create_directory=True)
-
-        outf_path = '/tmp/'
-        cap = cv2.VideoCapture(options['input_file'])
-        success, frame = cap.read()
-        count = 0
-        while success:
-            ofile = outf_path + "frame{}.jpg".format(count)
-            gray = cv2. cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            cv2.imwrite(ofile, gray)
-            success, frame = cap.read()
-            count += 1
 
         # write to iRODS
         for i in range(count):

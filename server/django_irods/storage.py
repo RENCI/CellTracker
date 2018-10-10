@@ -70,9 +70,9 @@ class IrodsStorage(Storage):
         """
         if create_directory:
             splitstrs = to_name.rsplit('/', 1)
-            self.session.run("imkdir", None, '-p', splitstrs[0])
             if len(splitstrs) <= 1:
                 return
+            self.session.run("imkdir", None, '-p', splitstrs[0])
 
         if from_name:
             try:
@@ -88,7 +88,6 @@ class IrodsStorage(Storage):
                     # A second try seems to fix it.
                     self.session.run("iput", None, '-f', from_name, to_name)
         return
-
 
     def _open(self, name, mode='rb'):
         tmp = NamedTemporaryFile()
