@@ -97,6 +97,31 @@ module.exports = function (sketch) {
       points.push([x, y, frame - 1]);
     }
 
+    // XXX: Probably want to just pass in the whole experiment...
+    if (segmentationData) {
+      var selectedRegion = segmentationData[frame].filter(function(region) {
+        return region.selected;
+      });
+
+      if (selectedRegion.length > 0) {
+        selectedRegion = selectedRegion[0];
+
+        var cx = selectedRegion.center[0] * maxX;
+        var cy = selectedRegion.center[1] * maxY;
+
+        var w = selectedRegion.max[0] - selectedRegion.min[0];
+        var h = selectedRegion.max[1] - selectedRegion.min[1];
+
+        var s = Math.max(w, h) * 1.5;
+        s = 1 / s;
+
+        sketch.translate(cx, cy);
+        sketch.scale(s);
+        sketch.translate(-cx, -cy);
+        sketch.translate((sketch.width / 2 - cx) / s, (sketch.height / 2 - cy) / s);
+      }
+    }
+
     // Draw the image
     sketch.image(im, 0, 0);
 

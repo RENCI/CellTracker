@@ -63,6 +63,25 @@ function receiveSegmentationFrame(i, frame) {
       vertex[0] = +vertex[0];
       vertex[1] = +vertex[1];
     });
+
+    // Get extent
+    var x = region.vertices.map(function (vertex) { return vertex[0]; });
+    var y = region.vertices.map(function (vertex) { return vertex[1]; });
+
+    region.min = [
+      x.reduce(function(p, c) { return Math.min(p, c); }),
+      y.reduce(function(p, c) { return Math.min(p, c); })
+    ];
+
+    region.max = [
+      x.reduce(function(p, c) { return Math.max(p, c); }),
+      y.reduce(function(p, c) { return Math.max(p, c); })
+    ];
+
+    region.center = [
+      (region.min[0] + region.max[0]) / 2,
+      (region.min[1] + region.max[1]) / 2
+    ];
   });
 
   experiment.segmentationData[i] = frame;
