@@ -170,8 +170,8 @@ def display_image(request, exp_id, type, frame_no):
     
     # check whether image frame data in iRODS backend starts with 1 or 0
     if "frame0.jpg" in file_list and frame_no > 0:
-        frame_no -= 1
-    img_name = 'frame' + str(frame_no) + '.jpg'
+        fno -= 1
+    img_name = 'frame' + str(fno) + '.jpg'
     if not img_name in file_list:
         if len(file_list) == 1:
             if fno == 1:
