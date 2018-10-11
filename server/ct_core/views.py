@@ -167,7 +167,10 @@ def display_image(request, exp_id, type, frame_no):
         return HttpResponseServerError("Requested experiment does not contain any image")
     if fno > flistlen:
         return HttpResponseBadRequest('Requested frame_no does not exist')
-
+    
+    # check whether image frame data in iRODS backend starts with 1 or 0
+    if "frame0.jpg" in file_list and frame_no > 0:
+        frame_no -= 1
     img_name = 'frame' + str(frame_no) + '.jpg'
     if not img_name in file_list:
         if len(file_list) == 1:
