@@ -6,8 +6,6 @@ var PlaybackView = require("./PlaybackView");
 var EditView = require("./EditView");
 
 function MainSection(props) {
-  var experimentName = props.experiment ? props.experiment.name : null;
-
   return (
     <div className="row">
       <div className="col-md-2">
@@ -17,7 +15,7 @@ function MainSection(props) {
         <div className="col-md-10 text-center">
           {props.loading !== null ?
             <LoadingProgress
-              label={"Loading " + experimentName}
+              label={"Loading " + props.experiment.name}
               value1={props.loading.image}
               maxValue1={props.loading.numImages}
               value2={props.loading.segmentation}

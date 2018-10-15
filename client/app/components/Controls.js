@@ -31,6 +31,7 @@ function Controls(props) {
           id="experimentSelect"
           className="form-control"
           value={props.experiment ? props.experiment.id : ""}
+          disabled={options.length <= 1}
           onChange={onExperimentSelectChange}>
             {options}
         </select>

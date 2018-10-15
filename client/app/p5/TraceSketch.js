@@ -3,7 +3,7 @@ var d3ScaleChromatic = require("d3-scale-chromatic");
 
 module.exports = function (sketch) {
   // Current experiment
-  var experimentId = null;
+  var experiment = null;
 
   // PNG or JPG
   var imageType = "jpg";
@@ -49,10 +49,10 @@ module.exports = function (sketch) {
     onUpdateTrace = props.onUpdateTrace;
 
     // Check for new experiment
-    if (experimentId !== props.experiment.id) {
-      experimentId = props.experiment.id;
+    if (!experiment || experiment.id !== props.experiment.id) {
+      experiment = props.experiment;
 
-      images = props.experiment.images.map(function(d) {
+      images = experiment.images.map(function(d) {
         var w = d.width,
             h = d.height,
             im = sketch.createImage(w, h);
@@ -62,7 +62,7 @@ module.exports = function (sketch) {
         return im;
       });
 
-      segmentationData = props.experiment.segmentationData;
+      segmentationData = experiment.segmentationData;
 
       resizeImages();
     }
@@ -97,20 +97,15 @@ module.exports = function (sketch) {
       points.push([x, y, frame - 1]);
     }
 
-    // XXX: Probably want to just pass in the whole experiment...
     if (segmentationData) {
-      var selectedRegion = segmentationData[frame].filter(function(region) {
-        return region.selected;
-      });
+      if (experiment.selectedRegion) {
+        var region = experiment.selectedRegion;
 
-      if (selectedRegion.length > 0) {
-        selectedRegion = selectedRegion[0];
+        var cx = region.center[0] * maxX;
+        var cy = region.center[1] * maxY;
 
-        var cx = selectedRegion.center[0] * maxX;
-        var cy = selectedRegion.center[1] * maxY;
-
-        var w = selectedRegion.max[0] - selectedRegion.min[0];
-        var h = selectedRegion.max[1] - selectedRegion.min[1];
+        var w = region.max[0] - region.min[0];
+        var h = region.max[1] - region.min[1];
 
         var s = Math.max(w, h) * 1.5;
         s = 1 / s;
