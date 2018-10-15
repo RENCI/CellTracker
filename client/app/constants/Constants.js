@@ -6,8 +6,10 @@ module.exports = keyMirror({
   RECEIVE_FRAME: null,
   RECEIVE_SEGMENTATION_FRAME: null,
 
-  STOP_PLAY: null,
+  CYCLE_LOOP: null,
   TOGGLE_PLAY: null,
+  SKIP_BACKWARD: null,
+  SKIP_FORWARD: null,
   SET_FRAME: null,
   FRAME_DELTA: null,
   FAST_FORWARD: null,

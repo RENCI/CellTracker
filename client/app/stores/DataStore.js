@@ -17,9 +17,13 @@ var segFramesLoaded = 0;
 var loading = null;
 
 // Playback
-var play = false;
-var frame = 0;
-var frameRate = 4;
+var playback = {
+  play: false,
+  loop: "none",
+  frame: 0,
+  frameRate: 4,
+  direction: 1
+};
 var timer = null;
 
 // Traces for this experiment
@@ -102,32 +106,46 @@ function updateLoading() {
   } : null;
 }
 
-function stopPlay() {
+function skipBackward() {
   setFrame(0);
 }
 
-function togglePlay() {
-  setPlay(!play);
+function skipForward() {
+  setFrame(experiment.frames - 1);
 }
 
-function setFrame(newFrame) {
-  frame = Math.max(0, Math.min(newFrame, experiment.frames - 1));
+function togglePlay() {
+  setPlay(!playback.play);
+}
+
+function cycleLoop() {
+  switch (playback.loop) {
+    case "loop": playback.loop = "rock"; break;
+    case "rock": playback.loop = "none"; break;
+    default: playback.loop = "loop";
+  }
+
+  playback.direction = 1;
+}
+
+function setFrame(frame) {
+  playback.frame = Math.max(0, Math.min(frame, experiment.frames - 1));
 
   setPlay(false);
 }
 
 function frameDelta(delta) {
-  setFrame(frame + delta);
+  setFrame(playback.frame + delta);
 }
 
 function fastForward() {
   setFrame(experiment.frames - 1);
 }
 
-function setPlay(newPlay) {
-  play = newPlay;
+function setPlay(play) {
+  playback.play = play;
 
-  if (play && !timer) {
+  if (playback.play && !timer) {
     createTimer();
   }
   else if (timer) {
@@ -137,9 +155,29 @@ function setPlay(newPlay) {
 
 function createTimer() {
   timer = setInterval(function () {
-    frame = Math.min(frame + 1, experiment.frames - 1);
+    playback.frame += playback.direction;
+
+    if (playback.frame >= experiment.frames) {
+      if (playback.loop === "loop") {
+        playback.frame = 0;
+      }
+      else if (playback.loop === "rock") {
+        playback.frame = experiment.frames - 1;
+        playback.direction = -1;
+      }
+      else {
+        playback.frame = experiment.frames - 1;
+        setPlay(false);
+      }
+    }
+    else if (playback.frame < 0) {
+      // Should only happen if rocking
+      playback.frame = 0;
+      playback.direction = 1;
+    }
+
     DataStore.emitChange();
-  }, 1 / frameRate * 1000);
+  }, 1 / playback.frameRate * 1000);
 }
 
 function removeTimer() {
@@ -147,8 +185,8 @@ function removeTimer() {
   timer = null;
 }
 
-function setFrameRate(newFrameRate) {
-  frameRate = newFrameRate;
+function setFrameRate(frameRate) {
+  playback.frameRate = frameRate;
 
   if (timer) {
     removeTimer();
@@ -221,14 +259,8 @@ var DataStore = assign({}, EventEmitter.prototype, {
   getLoading: function () {
     return loading;
   },
-  getPlay: function () {
-    return play;
-  },
-  getFrame: function () {
-    return frame;
-  },
-  getFrameRate: function () {
-    return frameRate;
+  getPlayback: function () {
+    return playback;
   },
   getTraces: function () {
     return traces;
@@ -244,7 +276,7 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.RECEIVE_EXPERIMENT:
       setExperiment(action.experiment);
-      stopPlay();
+      skipBackward();
       DataStore.emitChange();
       break;
 
@@ -258,13 +290,23 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
       DataStore.emitChange();
       break;
 
-    case Constants.STOP_PLAY:
-      stopPlay();
+    case Constants.SKIP_BACKWARD:
+      skipBackward();
+      DataStore.emitChange();
+      break;
+
+    case Constants.SKIP_FORWARD:
+      skipForward();
       DataStore.emitChange();
       break;
 
     case Constants.TOGGLE_PLAY:
       togglePlay();
+      DataStore.emitChange();
+      break;
+
+    case Constants.CYCLE_LOOP:
+      cycleLoop();
       DataStore.emitChange();
       break;
 

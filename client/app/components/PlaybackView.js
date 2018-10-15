@@ -44,7 +44,9 @@ function PlaybackView(props) {
     <div>
       <MediaControls {...props} />
       <TraceSketchWrapper
-        {...props}
+        experiment={props.experiment}
+        traces={props.traces}
+        frame={props.playback.frame}
         onKeyPress={handleKeyPress}
         onMouseWheel={handleMouseWheel}
         onSelectRegion={handleSelectRegion}
@@ -55,6 +57,7 @@ function PlaybackView(props) {
 
 PlaybackView.propTypes = {
   experiment: PropTypes.object,
+  playback: PropTypes.object,
   traces: PropTypes.arrayOf(PropTypes.object).isRequired
 };
 

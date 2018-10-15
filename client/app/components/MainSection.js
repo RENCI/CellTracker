@@ -36,6 +36,7 @@ MainSection.propTypes = {
   experimentList: PropTypes.arrayOf(PropTypes.object).isRequired,
   experiment: PropTypes.object,
   loading: PropTypes.object,
+  playback: PropTypes.object,
   traces: PropTypes.arrayOf(PropTypes.object).isRequired
 };
 

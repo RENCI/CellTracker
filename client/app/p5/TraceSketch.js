@@ -48,6 +48,10 @@ module.exports = function (sketch) {
     onSelectRegion = props.onSelectRegion;
     onUpdateTrace = props.onUpdateTrace;
 
+    if (props.rock) {
+
+    }
+
     // Check for new experiment
     if (!experiment || experiment.id !== props.experiment.id) {
       experiment = props.experiment;

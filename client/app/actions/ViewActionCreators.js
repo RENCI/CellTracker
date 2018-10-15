@@ -11,14 +11,24 @@ module.exports = {
     WebAPIUtils.getExperimentInfo(id);
   },
 
-  stopPlay: function () {
+  cycleLoop: function () {
     AppDispatcher.dispatch({
-      actionType: Constants.STOP_PLAY
+      actionType: Constants.CYCLE_LOOP
+    });
+  },
+  skipBackward: function () {
+    AppDispatcher.dispatch({
+      actionType: Constants.SKIP_BACKWARD
     });
   },
   togglePlay: function () {
     AppDispatcher.dispatch({
       actionType: Constants.TOGGLE_PLAY
+    });
+  },
+  skipForward: function () {
+    AppDispatcher.dispatch({
+      actionType: Constants.SKIP_FORWARD
     });
   },
   setFrame: function (frame) {

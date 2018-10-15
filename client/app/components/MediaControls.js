@@ -2,24 +2,28 @@ var React = require("react");
 var PropTypes = require("prop-types");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
-function onStopClick() {
-  ViewActionCreators.stopPlay();
+function onLoopClick() {
+  ViewActionCreators.cycleLoop();
 }
 
-function onPlayClick() {
-  ViewActionCreators.togglePlay();
+function onSkipBackwardClick() {
+  ViewActionCreators.skipBackward();
 }
 
 function onStepBackwardClick() {
   ViewActionCreators.frameDelta(-1);
 }
 
+function onPlayClick() {
+  ViewActionCreators.togglePlay();
+}
+
 function onStepForwardClick() {
   ViewActionCreators.frameDelta(1);
 }
 
-function onFastForwardClick() {
-  ViewActionCreators.fastForward();
+function onSkipForwardClick() {
+  ViewActionCreators.skipForward();
 }
 
 function onFrameRateChange(e) {
@@ -42,11 +46,14 @@ var rangeStyle = {
   marginLeft: 5
 };
 
-function button(iconName, callback) {
+function button(iconName, callback, active) {
+  var classes = "btn btn-outline-secondary";
+  if (active) classes += " active";
+
   return (
     <button
       type="button"
-      className="btn btn-outline-secondary"
+      className={classes}
       onClick={callback}>
         <span className={"oi " + iconName}></span>
     </button>
@@ -54,19 +61,25 @@ function button(iconName, callback) {
 }
 
 function MediaControls(props) {
-  var playIcon = props.play ? "oi-media-pause" : "oi-media-play";
+  var playIcon = props.playback.play ? "oi-media-pause" : "oi-media-play";
+  var loopIcon = props.playback.loop === "rock" ? "oi-resize-width" : "oi-loop";
+  var looping = props.playback.loop === "loop" || props.playback.loop === "rock";
+
+  var numFrames = props.experiment.frames;
+  var frame = props.playback.frame;
 
   // Use maximum digits with 'em' as a conservative estimate of label length
-  var maxDigits = ("" + props.experiment.frames).length * 2 + 1;
+  var maxDigits = ("" + numFrames).length * 2 + 1;
 
   return (
     <div className="input-group input-group-sm">
       <div className="input-group-prepend">
-        {button(playIcon, onPlayClick)}
-        {button("oi-media-stop", onStopClick)}
+        {button(loopIcon, onLoopClick, looping)}
+        {button("oi-media-skip-backward", onSkipBackwardClick)}
         {button("oi-media-step-backward", onStepBackwardClick)}
+        {button(playIcon, onPlayClick)}
         {button("oi-media-step-forward", onStepForwardClick)}
-        {button("oi-media-skip-forward", onFastForwardClick)}
+        {button("oi-media-skip-forward", onSkipForwardClick)}
         <select
           value={props.frameRate}
           onChange={onFrameRateChange}>
@@ -77,12 +90,12 @@ function MediaControls(props) {
         className="form-control form-control-range custom-range"
         type="range"
         min={0}
-        max={props.experiment.frames - 1}
-        value={props.frame}
+        max={numFrames - 1}
+        value={frame}
         onChange={onRangeChange} />
       <div className="input-group-append">
         <span className="input-group-text" style={{width: maxDigits + "em"}}>
-          {(props.frame + 1) + "/" + props.experiment.frames}
+          {(frame + 1) + "/" + numFrames}
         </span>
       </div>
     </div>
@@ -91,9 +104,7 @@ function MediaControls(props) {
 
 MediaControls.propTypes = {
   experiment: PropTypes.object.isRequired,
-  play: PropTypes.bool.isRequired,
-  frame: PropTypes.number.isRequired,
-  frameRate: PropTypes.number.isRequired
+  playback: PropTypes.object.isRequired
 };
 
 module.exports = MediaControls;

@@ -11,9 +11,7 @@ function getStateFromStore() {
     experimentList: DataStore.getExperimentList(),
     experiment: DataStore.getExperiment(),
     loading: DataStore.getLoading(),
-    play: DataStore.getPlay(),
-    frame: DataStore.getFrame(),
-    frameRate: DataStore.getFrameRate(),
+    playback: DataStore.getPlayback(),
     traces: DataStore.getTraces()
   };
 }
@@ -37,13 +35,6 @@ class AppContainer extends React.Component {
 
   componentWillUnmount() {
     DataStore.removeChangeListener(this.onDataChange);
-  }
-
-  componentDidUpdate() {
-    if (this.state.experimentList.length > 0 && !this.state.experiment) {
-      // Get the first experiment
-//      ViewActionCreators.selectExperiment(this.state.experimentList[0].id);
-    }
   }
 
   onDataChange() {
