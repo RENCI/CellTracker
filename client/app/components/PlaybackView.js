@@ -42,7 +42,6 @@ function handleUpdateTrace(points) {
 function PlaybackView(props) {
   return (
     <div>
-      <MediaControls {...props} />
       <TraceSketchWrapper
         experiment={props.experiment}
         traces={props.traces}
@@ -51,6 +50,7 @@ function PlaybackView(props) {
         onMouseWheel={handleMouseWheel}
         onSelectRegion={handleSelectRegion}
         onUpdateTrace={handleUpdateTrace} />
+      <MediaControls {...props} />
     </div>
   );
 }

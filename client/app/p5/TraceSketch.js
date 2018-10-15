@@ -30,6 +30,9 @@ module.exports = function (sketch) {
   var segmentationData = null,
       onSelectRegion = null;
 
+  // Editing
+  var edit = false;
+
   sketch.setup = function() {
     // Create canvas with default size
     var canvas = sketch.createCanvas(100, 100);
@@ -42,15 +45,12 @@ module.exports = function (sketch) {
   sketch.updateProps = function(props) {
     // Set props
     frame = props.frame;
+    edit = props.edit;
     traces = props.traces;
     onKeyPress = props.onKeyPress;
     onMouseWheel = props.onMouseWheel;
     onSelectRegion = props.onSelectRegion;
     onUpdateTrace = props.onUpdateTrace;
-
-    if (props.rock) {
-
-    }
 
     // Check for new experiment
     if (!experiment || experiment.id !== props.experiment.id) {
@@ -103,7 +103,7 @@ module.exports = function (sketch) {
 
     if (segmentationData) {
       if (experiment.selectedRegion) {
-        var region = experiment.selectedRegion;
+        var region = experiment.selectedRegion.region;
 
         var cx = region.center[0] * maxX;
         var cy = region.center[1] * maxY;
@@ -148,20 +148,34 @@ module.exports = function (sketch) {
     // Draw segmentation data
     if (segmentationData) {
       segmentationData[frame].forEach(function(region) {
-        if (region.selected) sketch.stroke(203,24,29);
-        else sketch.stroke(127, 127, 127);
+//        if (region.selected) sketch.stroke(203,24,29);
+//        else sketch.stroke(127, 127, 127);
+        sketch.stroke(127, 127, 127);
 
         var weight = 1;
-        if (region.selected) weight++;
+//        if (region.selected) weight++;
         if (region.highlight) weight++;
 
         sketch.strokeWeight(weight);
 
-        region.vertices.forEach(function(p0, i, a) {
-          var p1 = i < a.length - 1 ? a[i + 1] : a[0];
+        sketch.strokeJoin(sketch.ROUND);
+        sketch.noFill();
 
-          sketch.line(p0[0] * maxX, p0[1] * maxY, p1[0] * maxX, p1[1] * maxY);
+        sketch.beginShape();
+        region.vertices.forEach(function(p, i, a) {
+          sketch.vertex(p[0] * maxX, p[1] * maxY);
         });
+        sketch.endShape();
+
+        if (edit && region.selected) {
+          sketch.ellipseMode(sketch.RADIUS)
+          sketch.fill(255, 255, 255);
+          sketch.noStroke();
+
+          region.vertices.forEach(function(p) {
+            sketch.ellipse(p[0] * maxX, p[1] * maxY, 1);
+          });
+        }
       });
     }
 

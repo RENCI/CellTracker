@@ -203,7 +203,10 @@ function selectRegion(region) {
 
   if (region) {
     region.selected = true;
-    experiment.selectedRegion = region;
+    experiment.selectedRegion = {
+      region: region,
+      frame: playback.frame
+    };
   }
   else {
     experiment.selectedRegion = null;

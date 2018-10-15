@@ -44,11 +44,11 @@ function EditView(props) {
     <div>
       <div className="row">
         <div className="offset-md-3 col-md-6 text-center">
-          <MediaControls {...props} />
           <TraceSketchWrapper
             experiment={props.experiment}
             traces={props.traces}
-            frame={props.playback.frame}
+            frame={props.experiment.selectedRegion.frame}
+            edit={true}
             onKeyPress={handleKeyPress}
             onMouseWheel={handleMouseWheel}
             onSelectRegion={handleSelectRegion}
@@ -65,6 +65,7 @@ function EditView(props) {
             onMouseWheel={handleMouseWheel}
             onSelectRegion={handleSelectRegion}
             onUpdateTrace={handleUpdateTrace} />
+          <MediaControls {...props} />
         </div>
       </div>
     </div>
