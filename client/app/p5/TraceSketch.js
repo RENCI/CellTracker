@@ -317,18 +317,20 @@ module.exports = function (sketch) {
     var x = sketch.mouseX,
         y = sketch.mouseY;
 
-        console.log(x, y);
-
     if (x < 0 || x >= sketch.width ||
         y < 0 || y >= sketch.height ||
         !segmentationData) return;
 
     // Normalize mouse position
+    // XXX: Make this a function
     var maxX = sketch.width;
     var maxY = sketch.height;
 
-    x = sketch.map(x, 0, maxX, 0, 1, true),
-    y = sketch.map(y, 0, maxY, 0, 1, true);
+    x -= translation[0] * scale;
+    x /= scale * maxX;
+
+    y -= translation[1] * scale;
+    y /= scale * maxY;
 
     // Clear highlighting
     var seg = segmentationData[frame];
