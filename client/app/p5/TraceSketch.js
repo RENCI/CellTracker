@@ -32,17 +32,23 @@ module.exports = function (sketch) {
 
   // Editing
   var edit = false;
+  var handle = null;
+  var moveHandle = false;
 
   // Transform
   var scale = 1;
   var translation = [0, 0];
 
+  // Appearance
+  var handleRadius = 5;
+
   sketch.setup = function() {
     // Create canvas with default size
     var canvas = sketch.createCanvas(100, 100);
-    canvas.mouseClicked(mouseClicked);
-    canvas.mouseWheel(mouseWheel);
+    canvas.mousePressed(mousePressed);
+    canvas.mouseReleased(mouseReleased);
     canvas.mouseMoved(mouseMoved);
+    canvas.mouseWheel(mouseWheel);
     sketch.noLoop();
   }
 
@@ -88,7 +94,7 @@ module.exports = function (sketch) {
       return;
     }
 
-    highlight();
+    if (!moveHandle) highlight();
 
     // Get image
     var im = colorImages[frame];
@@ -168,6 +174,8 @@ module.exports = function (sketch) {
         sketch.strokeJoin(sketch.ROUND);
         sketch.noFill();
 
+        console.log(region);
+
         // Draw outline
         sketch.beginShape();
         region.vertices.forEach(function(vertex) {
@@ -178,15 +186,23 @@ module.exports = function (sketch) {
 
         if (edit && region.selected) {
           // Draw points
-          sketch.ellipseMode(sketch.RADIUS)
+          sketch.ellipseMode(sketch.RADIUS);
           sketch.fill(127, 127, 127);
           sketch.noStroke();
 
-          var r = 1 / scale * 4;
+          var r = handleRadius / scale;
 
           region.vertices.forEach(function(vertex) {
             var v = scalePoint(vertex);
-            sketch.ellipse(v[0], v[1], r);
+
+            if (vertex === handle) {
+              sketch.fill(255, 255, 255);
+              sketch.ellipse(v[0], v[1], r);
+              sketch.fill(127, 127, 127);
+            }
+            else {
+              sketch.ellipse(v[0], v[1], r);
+            }
           });
         }
       });
@@ -212,32 +228,53 @@ module.exports = function (sketch) {
     onKeyPress(sketch.keyCode);
   }
 
-  function mouseClicked() {
-    // Draw segmentation data
-    if (segmentationData) {
-      var selected = segmentationData[frame].filter(function(region) {
-        return region.highlight;
-      });
+  function mousePressed() {
+    if (handle) moveHandle = true;
+  }
 
-      if (selected.length > 0) {
-        onSelectRegion(selected[0]);
+  function mouseReleased() {
+    if (!moveHandle) {
+      // Draw segmentation data
+      if (segmentationData) {
+        var selected = segmentationData[frame].filter(function(region) {
+          return region.highlight;
+        });
+
+        if (selected.length > 0) {
+          onSelectRegion(selected[0]);
+        }
+        else {
+          onSelectRegion(null);
+        }
       }
-      else {
-        onSelectRegion(null);
-      }
+
+      // XXX: Below for tracing
+  /*
+      trace = !trace;
+
+      sketch.cursor(trace ? sketch.CROSS : sketch.ARROW);
+
+      if (trace) points = [];
+      else onUpdateTrace(getTrace());
+
+      return false;
+  */
     }
 
-    // XXX: Below for tracing
-/*
-    trace = !trace;
+    moveHandle = false;
+  }
 
-    sketch.cursor(trace ? sketch.CROSS : sketch.ARROW);
+  function mouseMoved() {
+    if (moveHandle) {
+      var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+      handle[0] = m[0];
+      handle[1] = m[1];
+    }
+    else {
+      highlight();
+    }
 
-    if (trace) points = [];
-    else onUpdateTrace(getTrace());
-
-    return false;
-*/
+    sketch.redraw();
   }
 
   function mouseWheel(e) {
@@ -248,11 +285,6 @@ module.exports = function (sketch) {
 
   function getTrace() {
     return points.slice();
-  }
-
-  function mouseMoved() {
-    highlight();
-    sketch.redraw();
   }
 
   function createLut(colors) {
@@ -321,21 +353,43 @@ module.exports = function (sketch) {
         y < 0 || y >= sketch.height ||
         !segmentationData) return;
 
-    // Normalize mouse position
-    var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+    // Mouse position
+    var m = applyZoom([sketch.mouseX, sketch.mouseY]);
 
     // Clear highlighting
+    handle = null;
+
     var seg = segmentationData[frame];
 
     seg.forEach(function(region) {
       region.highlight = false;
     });
 
-    for (var i = 0; i < seg.length; i++) {
-      if (insidePolygon([m[0], m[1]], seg[i].vertices)) {
-        seg[i].highlight = true;
+    if (edit) {
+      // Test vertices
+      var region = experiment.selectedRegion.region;
 
-        break;
+      // Radius
+      var r = handleRadius / scale;
+
+      for (var i = 0; i < region.vertices.length; i++) {
+        var p = scalePoint(region.vertices[i]);
+        var d = sketch.dist(m[0], m[1], p[0], p[1]);
+
+        if (d <= r) {
+          handle = region.vertices[i];
+        }
+      }
+    }
+
+    if (!handle) {
+      // Test regions
+      for (var i = 0; i < seg.length; i++) {
+        if (insidePolygon(normalizePoint(m), seg[i].vertices)) {
+          seg[i].highlight = true;
+
+          break;
+        }
       }
     }
 
