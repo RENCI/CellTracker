@@ -190,7 +190,7 @@ module.exports = function (sketch) {
           sketch.fill(127, 127, 127);
           sketch.noStroke();
 
-          var r = handleRadius / scale;
+          var r = 1.5 / scale;
 
           region.vertices.forEach(function(vertex) {
             var v = scalePoint(vertex);
@@ -198,7 +198,7 @@ module.exports = function (sketch) {
             if (vertex === handle) {
               if (!moveHandle) {
                 sketch.fill(255, 255, 255);
-                sketch.ellipse(v[0], v[1], r);
+                sketch.ellipse(v[0], v[1], r * handleRadius);
                 sketch.fill(127, 127, 127);
               }
             }
@@ -231,7 +231,12 @@ module.exports = function (sketch) {
   }
 
   function mousePressed() {
-    if (handle) moveHandle = true;
+    if (handle) {
+      moveHandle = true;
+      sketch.noCursor();
+    }
+
+    sketch.redraw();
   }
 
   function mouseReleased() {
@@ -264,6 +269,7 @@ module.exports = function (sketch) {
     }
 
     moveHandle = false;
+    sketch.cursor(sketch.ARROW);
   }
 
   function mouseMoved() {
@@ -380,11 +386,14 @@ module.exports = function (sketch) {
 
         if (d <= r) {
           handle = region.vertices[i];
+          sketch.cursor(sketch.HAND);
         }
       }
     }
 
     if (!handle) {
+      sketch.cursor(sketch.ARROW);
+
       // Test regions
       for (var i = 0; i < seg.length; i++) {
         if (insidePolygon(normalizePoint(m), seg[i].vertices)) {
