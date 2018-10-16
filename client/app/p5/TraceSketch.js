@@ -88,23 +88,20 @@ module.exports = function (sketch) {
       return;
     }
 
-    highlight(sketch.mouseX, sketch.mouseY);
+    highlight();
 
     // Get image
     var im = colorImages[frame];
-
-    // Dimensions
-    var maxX = sketch.width;
-    var maxY = sketch.height;
-
+/*
     if (trace && frame > 0) {
       // Get normalized mouse position at end of last frame
-      var x = sketch.map(sketch.mouseX, 0, maxX, 0, 1, true),
-          y = sketch.map(sketch.mouseY, 0, maxY, 0, 1, true);
+      var p = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
-      points.push([x, y, frame - 1]);
+      points.push([p[0], p[1], frame - 1]);
     }
+*/
 
+    // Reset scale and translation
     scale = 1;
     translation = [0, 0];
 
@@ -112,8 +109,7 @@ module.exports = function (sketch) {
       if (experiment.selectedRegion) {
         var region = experiment.selectedRegion.region;
 
-        var cx = region.center[0] * maxX;
-        var cy = region.center[1] * maxY;
+        var c = scalePoint(region.center);
 
         var w = region.max[0] - region.min[0];
         var h = region.max[1] - region.min[1];
@@ -121,7 +117,7 @@ module.exports = function (sketch) {
         var s = Math.max(w, h) * 1.5;
 
         scale = 1 / s;
-        translation = [sketch.width / 2 / scale - cx, sketch.height / 2 / scale - cy];
+        translation = [sketch.width / 2 / scale - c[0], sketch.height / 2 / scale - c[1]];
 
         sketch.scale(scale);
         sketch.translate(translation[0], translation[1]);
@@ -152,7 +148,9 @@ module.exports = function (sketch) {
       if (p === null) return;
 
       var s = 10;
-      sketch.ellipse(p[0] * maxX, p[1] * maxY, s, s);
+      var p2 = scalePoint(p);
+
+      sketch.ellipse(p2[0], p2[1], s, s);
     });
 
     // Draw segmentation data
@@ -163,7 +161,6 @@ module.exports = function (sketch) {
         sketch.stroke(127, 127, 127);
 
         var weight = 1 / scale;
-//        if (region.selected) weight++;
         if (region.highlight) weight *= 2;
 
         sketch.strokeWeight(weight);
@@ -173,8 +170,9 @@ module.exports = function (sketch) {
 
         // Draw outline
         sketch.beginShape();
-        region.vertices.forEach(function(p, i, a) {
-          sketch.vertex(p[0] * maxX, p[1] * maxY);
+        region.vertices.forEach(function(vertex) {
+          var v = scalePoint(vertex);
+          sketch.vertex(v[0], v[1]);
         });
         sketch.endShape();
 
@@ -186,13 +184,14 @@ module.exports = function (sketch) {
 
           var r = 1 / scale * 4;
 
-          region.vertices.forEach(function(p) {
-            sketch.ellipse(p[0] * maxX, p[1] * maxY, r);
+          region.vertices.forEach(function(vertex) {
+            var v = scalePoint(vertex);
+            sketch.ellipse(v[0], v[1], r);
           });
         }
       });
     }
-
+/*
     // Draw path for current trace
     sketch.strokeWeight(4);
     sketch.noFill();
@@ -205,6 +204,7 @@ module.exports = function (sketch) {
 
       sketch.line(p0[0] * maxX, p0[1] * maxY, p1[0] * maxX, p1[1] * maxY);
     }
+*/
   }
 
   // XXX: Limit to events on the canvas?
@@ -251,7 +251,7 @@ module.exports = function (sketch) {
   }
 
   function mouseMoved() {
-    highlight(sketch.mouseX, sketch.mouseY);
+    highlight();
     sketch.redraw();
   }
 
@@ -312,7 +312,7 @@ module.exports = function (sketch) {
     sketch.resizeCanvas(w, h);
   }
 
-  function highlight(x, y) {
+  function highlight() {
     // Get mouse position
     var x = sketch.mouseX,
         y = sketch.mouseY;
@@ -322,15 +322,7 @@ module.exports = function (sketch) {
         !segmentationData) return;
 
     // Normalize mouse position
-    // XXX: Make this a function
-    var maxX = sketch.width;
-    var maxY = sketch.height;
-
-    x -= translation[0] * scale;
-    x /= scale * maxX;
-
-    y -= translation[1] * scale;
-    y /= scale * maxY;
+    var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
     // Clear highlighting
     var seg = segmentationData[frame];
@@ -340,7 +332,7 @@ module.exports = function (sketch) {
     });
 
     for (var i = 0; i < seg.length; i++) {
-      if (insidePolygon([x, y], seg[i].vertices)) {
+      if (insidePolygon([m[0], m[1]], seg[i].vertices)) {
         seg[i].highlight = true;
 
         break;
@@ -384,5 +376,23 @@ module.exports = function (sketch) {
         border = parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
 
     return element.offsetWidth - padding - border;
+  }
+
+  function applyZoom(p) {
+    var x = p[0] - translation[0] * scale;
+    x /= scale;
+
+    var y = p[1] - translation[1] * scale;
+    y /= scale;
+
+    return [x, y];
+  }
+
+  function normalizePoint(p) {
+    return [p[0] / sketch.width, p[1] / sketch.height];
+  }
+
+  function scalePoint(p) {
+    return [p[0] * sketch.width, p[1] * sketch.height];
   }
 }
