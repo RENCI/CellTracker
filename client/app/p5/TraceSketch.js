@@ -34,8 +34,8 @@ module.exports = function (sketch) {
   var edit = false;
 
   // Transform
-  var scale = 1.0;
-  var translation = [0.0, 0.0];
+  var scale = 1;
+  var translation = [0, 0];
 
   sketch.setup = function() {
     // Create canvas with default size
@@ -94,8 +94,8 @@ module.exports = function (sketch) {
     var im = colorImages[frame];
 
     // Dimensions
-    var maxX = sketch.width - 1;
-    var maxY = sketch.height - 1;
+    var maxX = sketch.width;
+    var maxY = sketch.height;
 
     if (trace && frame > 0) {
       // Get normalized mouse position at end of last frame
@@ -104,6 +104,9 @@ module.exports = function (sketch) {
 
       points.push([x, y, frame - 1]);
     }
+
+    scale = 1;
+    translation = [0, 0];
 
     if (segmentationData) {
       if (experiment.selectedRegion) {
@@ -116,14 +119,17 @@ module.exports = function (sketch) {
         var h = region.max[1] - region.min[1];
 
         var s = Math.max(w, h) * 1.5;
-        scale = 1 / s;
 
-        sketch.translate(cx, cy);
+        scale = 1 / s;
+        translation = [sketch.width / 2 / scale - cx, sketch.height / 2 / scale - cy];
+
         sketch.scale(scale);
-        sketch.translate(-cx, -cy);
-        sketch.translate((sketch.width / 2 - cx) / scale, (sketch.height / 2 - cy) / scale);
+        sketch.translate(translation[0], translation[1]);
       }
     }
+
+    // Clear the background
+    sketch.background(127, 127, 127);
 
     // Draw the image
     sketch.image(im, 0, 0);
@@ -311,13 +317,15 @@ module.exports = function (sketch) {
     var x = sketch.mouseX,
         y = sketch.mouseY;
 
+        console.log(x, y);
+
     if (x < 0 || x >= sketch.width ||
         y < 0 || y >= sketch.height ||
         !segmentationData) return;
 
     // Normalize mouse position
-    var maxX = sketch.width - 1;
-    var maxY = sketch.height - 1;
+    var maxX = sketch.width;
+    var maxY = sketch.height;
 
     x = sketch.map(x, 0, maxX, 0, 1, true),
     y = sketch.map(y, 0, maxY, 0, 1, true);
