@@ -174,14 +174,14 @@ module.exports = function (sketch) {
         sketch.strokeJoin(sketch.ROUND);
         sketch.noFill();
 
-        console.log(region);
-
         // Draw outline
         sketch.beginShape();
         region.vertices.forEach(function(vertex) {
           var v = scalePoint(vertex);
           sketch.vertex(v[0], v[1]);
         });
+        var v = scalePoint(region.vertices[0]);
+        sketch.vertex(v[0], v[1]);
         sketch.endShape();
 
         if (edit && region.selected) {
@@ -196,9 +196,11 @@ module.exports = function (sketch) {
             var v = scalePoint(vertex);
 
             if (vertex === handle) {
-              sketch.fill(255, 255, 255);
-              sketch.ellipse(v[0], v[1], r);
-              sketch.fill(127, 127, 127);
+              if (!moveHandle) {
+                sketch.fill(255, 255, 255);
+                sketch.ellipse(v[0], v[1], r);
+                sketch.fill(127, 127, 127);
+              }
             }
             else {
               sketch.ellipse(v[0], v[1], r);
