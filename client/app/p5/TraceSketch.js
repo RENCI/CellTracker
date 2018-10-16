@@ -33,6 +33,10 @@ module.exports = function (sketch) {
   // Editing
   var edit = false;
 
+  // Transform
+  var scale = 1.0;
+  var translation = [0.0, 0.0];
+
   sketch.setup = function() {
     // Create canvas with default size
     var canvas = sketch.createCanvas(100, 100);
@@ -112,12 +116,12 @@ module.exports = function (sketch) {
         var h = region.max[1] - region.min[1];
 
         var s = Math.max(w, h) * 1.5;
-        s = 1 / s;
+        scale = 1 / s;
 
         sketch.translate(cx, cy);
-        sketch.scale(s);
+        sketch.scale(scale);
         sketch.translate(-cx, -cy);
-        sketch.translate((sketch.width / 2 - cx) / s, (sketch.height / 2 - cy) / s);
+        sketch.translate((sketch.width / 2 - cx) / scale, (sketch.height / 2 - cy) / scale);
       }
     }
 

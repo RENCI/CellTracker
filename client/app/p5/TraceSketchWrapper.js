@@ -20,6 +20,11 @@ class TraceSketchWrapper extends React.Component {
     return false;
   }
 
+  componentWillUnmount() {
+    this.sketch.remove();
+    this.sketch = null;
+  }
+
   render() {
     return <div ref={div => this.div = div} />
   }
