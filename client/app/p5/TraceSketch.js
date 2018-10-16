@@ -156,15 +156,16 @@ module.exports = function (sketch) {
 //        else sketch.stroke(127, 127, 127);
         sketch.stroke(127, 127, 127);
 
-        var weight = 1;
+        var weight = 1 / scale;
 //        if (region.selected) weight++;
-        if (region.highlight) weight++;
+        if (region.highlight) weight *= 2;
 
         sketch.strokeWeight(weight);
 
         sketch.strokeJoin(sketch.ROUND);
         sketch.noFill();
 
+        // Draw outline
         sketch.beginShape();
         region.vertices.forEach(function(p, i, a) {
           sketch.vertex(p[0] * maxX, p[1] * maxY);
@@ -172,12 +173,15 @@ module.exports = function (sketch) {
         sketch.endShape();
 
         if (edit && region.selected) {
+          // Draw points
           sketch.ellipseMode(sketch.RADIUS)
-          sketch.fill(255, 255, 255);
+          sketch.fill(127, 127, 127);
           sketch.noStroke();
 
+          var r = 1 / scale * 4;
+
           region.vertices.forEach(function(p) {
-            sketch.ellipse(p[0] * maxX, p[1] * maxY, 1);
+            sketch.ellipse(p[0] * maxX, p[1] * maxY, r);
           });
         }
       });
