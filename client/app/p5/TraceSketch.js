@@ -31,7 +31,7 @@ module.exports = function (sketch) {
       onSelectRegion = null;
 
   // Editing
-  var edit = false;
+  var editMode = false;
   var handle = null;
   var moveHandle = false;
 
@@ -40,7 +40,10 @@ module.exports = function (sketch) {
   var translation = [0, 0];
 
   // Appearance
-  var handleRadius = 5;
+  var lineWeight = 1;
+  var lineHighlightWeight = 2;
+  var handleRadius = 2;
+  var handleHighlightRadius = 5;
 
   sketch.setup = function() {
     // Create canvas with default size
@@ -55,7 +58,7 @@ module.exports = function (sketch) {
   sketch.updateProps = function(props) {
     // Set props
     frame = props.frame;
-    edit = props.edit;
+    editMode = props.editMode;
     traces = props.traces;
     onKeyPress = props.onKeyPress;
     onMouseWheel = props.onMouseWheel;
@@ -136,6 +139,7 @@ module.exports = function (sketch) {
     // Draw the image
     sketch.image(im, 0, 0);
 
+/*
     // Draw points for all traces
     sketch.stroke(0, 0, 0, 127);
     sketch.strokeWeight(1);
@@ -158,19 +162,19 @@ module.exports = function (sketch) {
 
       sketch.ellipse(p2[0], p2[1], s, s);
     });
+*/
 
     // Draw segmentation data
     if (segmentationData) {
       segmentationData[frame].forEach(function(region) {
 //        if (region.selected) sketch.stroke(203,24,29);
 //        else sketch.stroke(127, 127, 127);
-        sketch.stroke(127, 127, 127);
+        sketch.stroke(255, 255, 255, 127);
 
-        var weight = 1 / scale;
-        if (region.highlight) weight *= 2;
+        var weight = region.highlight ? lineHighlightWeight : lineWeight;
+        weight /= scale;
 
         sketch.strokeWeight(weight);
-
         sketch.strokeJoin(sketch.ROUND);
         sketch.noFill();
 
@@ -180,26 +184,26 @@ module.exports = function (sketch) {
           var v = scalePoint(vertex);
           sketch.vertex(v[0], v[1]);
         });
-        var v = scalePoint(region.vertices[0]);
-        sketch.vertex(v[0], v[1]);
+        if (region.vertices.length > 0) {
+          var v = scalePoint(region.vertices[0]);
+          sketch.vertex(v[0], v[1]);
+        }
         sketch.endShape();
 
-        if (edit && region.selected) {
+        if (editMode && region.selected) {
           // Draw points
           sketch.ellipseMode(sketch.RADIUS);
           sketch.fill(127, 127, 127);
           sketch.noStroke();
 
-          var r = 1.5 / scale;
+          var r = handleRadius / scale;
 
           region.vertices.forEach(function(vertex) {
             var v = scalePoint(vertex);
 
             if (vertex === handle) {
               if (!moveHandle) {
-                sketch.fill(255, 255, 255);
-                sketch.ellipse(v[0], v[1], r * handleRadius);
-                sketch.fill(127, 127, 127);
+                sketch.ellipse(v[0], v[1], handleHighlightRadius / scale);
               }
             }
             else {
@@ -231,17 +235,53 @@ module.exports = function (sketch) {
   }
 
   function mousePressed() {
-    if (handle) {
-      moveHandle = true;
-      sketch.noCursor();
-    }
-
-    sketch.redraw();
   }
 
   function mouseReleased() {
-    if (!moveHandle) {
-      // Draw segmentation data
+    if (editMode) {
+      if (!moveHandle) {
+        var vertices = experiment.selectedRegion.region.vertices;
+
+        if (handle) {
+          // Remove handle
+          var i = vertices.indexOf(handle);
+
+          vertices.splice(i, 1);
+
+          // XXX: Check for empty vertices? Remove region if so?
+        }
+        else {
+          // Add handle at mouse position
+          var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+
+          // Find closest point
+          // XXX: Should probably do this in image space instead of normalized space...
+          var p = vertices.reduce(function(p, c, i) {
+            var d = sketch.dist(m[0], m[1], c[0], c[1]);
+            return d < p.d ? { d: d, i: i} : p;
+          }, { d: 1.0, i: -1 });
+
+          // Find closest neighbor
+          var i0 = p.i === 0 ? vertices.length - 1 : p.i - 1;
+          var i1 = p.i === vertices.length - 1 ? 0 : p.i + 1;
+          var v0 = vertices[i0];
+          var v1 = vertices[i1];
+
+          var i = sketch.dist(m[0], m[1], v0[0], v0[1]) <
+                  sketch.dist(m[0], m[1], v1[0], v1[1]) ?
+                  p.i : i1;
+
+          vertices.splice(i, 0, m);
+        }
+      }
+
+      moveHandle = false;
+      sketch.cursor(sketch.ARROW);
+
+      sketch.redraw();
+    }
+    else {
+      // Select segmentation region
       if (segmentationData) {
         var selected = segmentationData[frame].filter(function(region) {
           return region.highlight;
@@ -254,6 +294,7 @@ module.exports = function (sketch) {
           onSelectRegion(null);
         }
       }
+    }
 
       // XXX: Below for tracing
   /*
@@ -266,23 +307,33 @@ module.exports = function (sketch) {
 
       return false;
   */
-    }
-
-    moveHandle = false;
-    sketch.cursor(sketch.ARROW);
   }
 
   function mouseMoved() {
-    if (moveHandle) {
-      var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
-      handle[0] = m[0];
-      handle[1] = m[1];
+    if (editMode) {
+      if (sketch.mouseIsPressed && handle) {
+        moveHandle = true;
+        sketch.noCursor();
+      }
+
+      if (moveHandle) {
+        var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+        handle[0] = m[0];
+        handle[1] = m[1];
+
+        sketch.redraw();
+      }
+      else if (!sketch.mouseIsPressed) {
+        highlight();
+
+        sketch.redraw();
+      }
     }
     else {
       highlight();
-    }
 
-    sketch.redraw();
+      sketch.redraw();
+    }
   }
 
   function mouseWheel(e) {
@@ -373,12 +424,12 @@ module.exports = function (sketch) {
       region.highlight = false;
     });
 
-    if (edit) {
+    if (editMode) {
       // Test vertices
       var region = experiment.selectedRegion.region;
 
       // Radius
-      var r = handleRadius / scale;
+      var r = handleHighlightRadius / scale;
 
       for (var i = 0; i < region.vertices.length; i++) {
         var p = scalePoint(region.vertices[i]);

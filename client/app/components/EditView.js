@@ -48,7 +48,7 @@ function EditView(props) {
             experiment={props.experiment}
             traces={props.traces}
             frame={props.experiment.selectedRegion.frame}
-            edit={true}
+            editMode={true}
             onKeyPress={handleKeyPress}
             onMouseWheel={handleMouseWheel}
             onSelectRegion={handleSelectRegion}

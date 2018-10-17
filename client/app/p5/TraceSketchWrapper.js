@@ -34,7 +34,7 @@ TraceSketchWrapper.propTypes = {
   experiment: PropTypes.object.isRequired,
   traces: PropTypes.arrayOf(PropTypes.object).isRequired,
   frame: PropTypes.number.isRequired,
-  edit: PropTypes.bool,
+  editMode: PropTypes.bool,
   onKeyPress: PropTypes.func.isRequired,
   onMouseWheel: PropTypes.func.isRequired,
   onSelectRegion: PropTypes.func.isRequired,
@@ -42,7 +42,7 @@ TraceSketchWrapper.propTypes = {
 };
 
 TraceSketchWrapper.defaultProps = {
-  edit: false
+  editMode: false
 };
 
 module.exports = TraceSketchWrapper;
