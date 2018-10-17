@@ -34,6 +34,9 @@ module.exports = function (sketch) {
   var editMode = false;
   var handle = null;
   var moveHandle = false;
+  var moveMouse = false;
+  // XXX: Need to keep the previous mouse position because mouse moved is firing on mouse pressed
+  var oldMouseX = -1, oldMouseY = -1;
 
   // Transform
   var scale = 1;
@@ -84,6 +87,7 @@ module.exports = function (sketch) {
       resizeImages();
     }
 
+    highlight();
     sketch.redraw();
   }
 
@@ -97,7 +101,7 @@ module.exports = function (sketch) {
       return;
     }
 
-    if (!moveHandle) highlight();
+//    if (!moveHandle) highlight();
 
     // Get image
     var im = colorImages[frame];
@@ -236,21 +240,23 @@ module.exports = function (sketch) {
     onKeyPress(sketch.keyCode);
   }
 
-  // XXX: Need to keep the previous mouse position because mouse moved is firing on mouse pressed
-  var oldX = -1, oldY = -1;
   function mousePressed(e) {
     e.preventDefault();
 
-    oldX = sketch.mouseX;
-    oldY = sketch.mouseY;
+    // Save mouse position
+    oldMouseX = sketch.mouseX;
+    oldMouseY = sketch.mouseY;
+    moveMouse = false;
   }
 
   function mouseMoved(e) {
     e.preventDefault();
 
-    if (sketch.mouseX === oldX && sketch.mouseY === oldY) return;
-    oldX = sketch.mouseX;
-    oldY = sketch.mouseY;
+    // Check mouse position
+    if (sketch.mouseX === oldMouseX && sketch.mouseY === oldMouseY) return;
+    oldMouseX = sketch.mouseX;
+    oldMouseY = sketch.mouseY;
+    moveMouse = true;
 
     if (editMode) {
       if (sketch.mouseIsPressed && sketch.mouseButton === sketch.LEFT && handle) {
@@ -284,7 +290,7 @@ module.exports = function (sketch) {
     if (sketch.mouseButton !== sketch.LEFT) return;
 
     if (editMode) {
-      if (!moveHandle) {
+      if (!moveMouse) {
         var vertices = experiment.selectedRegion.region.vertices;
 
         if (handle) {
@@ -421,6 +427,8 @@ module.exports = function (sketch) {
   }
 
   function highlight() {
+    if (sketch.mouseIsPressed) return;
+
     // Get mouse position
     var x = sketch.mouseX,
         y = sketch.mouseY;
