@@ -230,18 +230,24 @@ module.exports = function (sketch) {
   }
 
   // XXX: Limit to events on the canvas?
-  sketch.keyPressed = function() {
+  sketch.keyPressed = function(e) {
+    e.preventDefault();
+
     onKeyPress(sketch.keyCode);
   }
 
   // XXX: Need to keep the previous mouse position because mouse moved is firing on mouse pressed
   var oldX = -1, oldY = -1;
-  function mousePressed() {
+  function mousePressed(e) {
+    e.preventDefault();
+
     oldX = sketch.mouseX;
     oldY = sketch.mouseY;
   }
 
-  function mouseMoved() {
+  function mouseMoved(e) {
+    e.preventDefault();
+
     if (sketch.mouseX === oldX && sketch.mouseY === oldY) return;
     oldX = sketch.mouseX;
     oldY = sketch.mouseY;
@@ -272,7 +278,9 @@ module.exports = function (sketch) {
     }
   }
 
-  function mouseReleased() {
+  function mouseReleased(e) {
+    e.preventDefault();
+
     if (sketch.mouseButton !== sketch.LEFT) return;
 
     if (editMode) {
@@ -344,6 +352,8 @@ module.exports = function (sketch) {
   }
 
   function mouseWheel(e) {
+    e.preventDefault();
+
     onMouseWheel(Math.round(-e.deltaY / 100));
 
     return false;
