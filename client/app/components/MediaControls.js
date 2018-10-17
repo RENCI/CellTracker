@@ -81,7 +81,7 @@ function MediaControls(props) {
         {button("oi-media-step-forward", onStepForwardClick)}
         {button("oi-media-skip-forward", onSkipForwardClick)}
         <select
-          value={props.frameRate}
+          value={props.playback.frameRate}
           onChange={onFrameRateChange}>
             {frameRateOptions}
         </select>
