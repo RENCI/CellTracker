@@ -115,6 +115,16 @@ function updateLoading() {
     segmentation: Math.max(numSegFrames, segFramesLoaded + 1),
     numSegmentation: numSegFrames
   } : null;
+
+  if (!loading) resetPlayback();
+}
+
+function resetPlayback() {
+  playback.loop = "rock";
+  playback.frame = 0;
+  playback.direction = 1;
+
+  setPlay(true);
 }
 
 function skipBackward() {

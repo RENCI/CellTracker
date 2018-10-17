@@ -234,10 +234,47 @@ module.exports = function (sketch) {
     onKeyPress(sketch.keyCode);
   }
 
+  // XXX: Need to keep the previous mouse position because mouse moved is firing on mouse pressed
+  var oldX = -1, oldY = -1;
   function mousePressed() {
+    oldX = sketch.mouseX;
+    oldY = sketch.mouseY;
+  }
+
+  function mouseMoved() {
+    if (sketch.mouseX === oldX && sketch.mouseY === oldY) return;
+    oldX = sketch.mouseX;
+    oldY = sketch.mouseY;
+
+    if (editMode) {
+      if (sketch.mouseIsPressed && sketch.mouseButton === sketch.LEFT && handle) {
+        moveHandle = true;
+        sketch.noCursor();
+      }
+
+      if (moveHandle) {
+        var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+        handle[0] = m[0];
+        handle[1] = m[1];
+
+        sketch.redraw();
+      }
+      else if (!sketch.mouseIsPressed) {
+        highlight();
+
+        sketch.redraw();
+      }
+    }
+    else {
+      highlight();
+
+      sketch.redraw();
+    }
   }
 
   function mouseReleased() {
+    if (sketch.mouseButton !== sketch.LEFT) return;
+
     if (editMode) {
       if (!moveHandle) {
         var vertices = experiment.selectedRegion.region.vertices;
@@ -254,24 +291,21 @@ module.exports = function (sketch) {
           // Add handle at mouse position
           var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
-          // Find closest point
-          // XXX: Should probably do this in image space instead of normalized space...
-          var p = vertices.reduce(function(p, c, i) {
-            var d = sketch.dist(m[0], m[1], c[0], c[1]);
-            return d < p.d ? { d: d, i: i} : p;
+          // Get indeces for pairs of vertices
+          var segments = vertices.reduce(function(p, c, i, a) {
+            if (i === a.length - 1) p.push([i, 0]);
+            else p.push([i, i + 1]);
+            return p;
+          }, []);
+
+          // Find closest line segment to this point
+          var segment = segments.reduce(function(p, c, i) {
+            var d = pointLineSegmentDistance(m, vertices[c[0]], vertices[c[1]]);
+            return d < p.d ? { d: d, i: i } : p;
           }, { d: 1.0, i: -1 });
 
-          // Find closest neighbor
-          var i0 = p.i === 0 ? vertices.length - 1 : p.i - 1;
-          var i1 = p.i === vertices.length - 1 ? 0 : p.i + 1;
-          var v0 = vertices[i0];
-          var v1 = vertices[i1];
-
-          var i = sketch.dist(m[0], m[1], v0[0], v0[1]) <
-                  sketch.dist(m[0], m[1], v1[0], v1[1]) ?
-                  p.i : i1;
-
-          vertices.splice(i, 0, m);
+          // Insert new point
+          vertices.splice(segments[segment.i][1], 0, m);
         }
       }
 
@@ -307,33 +341,6 @@ module.exports = function (sketch) {
 
       return false;
   */
-  }
-
-  function mouseMoved() {
-    if (editMode) {
-      if (sketch.mouseIsPressed && handle) {
-        moveHandle = true;
-        sketch.noCursor();
-      }
-
-      if (moveHandle) {
-        var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
-        handle[0] = m[0];
-        handle[1] = m[1];
-
-        sketch.redraw();
-      }
-      else if (!sketch.mouseIsPressed) {
-        highlight();
-
-        sketch.redraw();
-      }
-    }
-    else {
-      highlight();
-
-      sketch.redraw();
-    }
   }
 
   function mouseWheel(e) {
@@ -482,6 +489,33 @@ module.exports = function (sketch) {
 
       if (counter % 2 === 0) return false;
       else return true;
+    }
+  }
+
+  // Return the distance between a point p and a line segment p1p2
+  // Based on technique described here: http://paulbourke.net/geometry/pointlineplane/
+  function pointLineSegmentDistance(p, p1, p2) {
+    // Check for coincident p1 and p2
+    if (p1[0] === p2[0] && p1[1] === p2[1]) {
+      // Return distance to one of the points
+      return sketch.dist(p[0], p[1], p1[0], p1[1]);
+    }
+
+    // Compute u
+    var u = ( (p[0] - p1[0]) * (p2[0] - p1[0]) + (p[1] - p1[1]) * (p2[1] - p1[1]) ) /
+            ( Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2) );
+
+    // Test u
+    if (u >= 0 && u <= 1) {
+      // In line segement, return closest point on line
+      var p3 = [ p1[0] + u * (p2[0] - p1[0]),
+                 p1[1] + u * (p2[1] - p1[1]) ];
+
+      return sketch.dist(p[0], p[1], p3[0], p3[1]);
+    }
+    else {
+      // Return closest line segment end point
+      return Math.min(sketch.dist(p[0], p[1], p1[0], p1[1]), sketch.dist(p[0], p[1], p2[0], p2[1]));
     }
   }
 
