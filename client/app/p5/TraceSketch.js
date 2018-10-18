@@ -326,6 +326,7 @@ module.exports = function (sketch) {
           moveHandle = false;
           sketch.cursor(sketch.ARROW);
 
+          highlight();
           sketch.redraw();
         }
         else {
@@ -426,6 +427,7 @@ module.exports = function (sketch) {
           }
         }
 
+        highlight();
         sketch.redraw();
     }
 
