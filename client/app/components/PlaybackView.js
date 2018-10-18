@@ -31,8 +31,8 @@ function handleUpdateFrame(frame) {
   ViewActionCreators.updateFrame(frame);
 }
 
-function handleSelectRegion(region) {
-  ViewActionCreators.selectRegion(region);
+function handleSelectRegion(frame, region) {
+  ViewActionCreators.selectRegion(frame, region);
 }
 
 function handleUpdateTrace(points) {

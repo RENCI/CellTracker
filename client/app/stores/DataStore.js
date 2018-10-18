@@ -215,18 +215,20 @@ function setFrameRate(frameRate) {
   }
 }
 
-function selectRegion(region) {
+function selectRegion(frame, region) {
   experiment.segmentationData.forEach(function (frame) {
     frame.forEach(function (region) {
       region.selected = false;
     });
   });
 
+  console.log(frame, region);
+
   if (region) {
     region.selected = true;
     experiment.selectedRegion = {
       region: region,
-      frame: playback.frame
+      frame: frame
     };
   }
   else {
@@ -355,7 +357,7 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
       break;
 
     case Constants.SELECT_REGION:
-      selectRegion(action.region);
+      selectRegion(action.frame, action.region);
       DataStore.emitChange();
       break;
 

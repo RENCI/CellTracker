@@ -55,9 +55,11 @@ module.exports = {
     });
   },
 
-  selectRegion: function (region) {
+  selectRegion: function (frame, region) {
+    console.log(frame, region);
     AppDispatcher.dispatch({
       actionType: Constants.SELECT_REGION,
+      frame: frame,
       region: region
     });
   },

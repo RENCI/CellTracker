@@ -31,19 +31,58 @@ function handleUpdateFrame(frame) {
   ViewActionCreators.updateFrame(frame);
 }
 
-function handleSelectRegion(region) {
-  ViewActionCreators.selectRegion(region);
+function handleSelectRegion(frame, region) {
+  ViewActionCreators.selectRegion(frame, region);
 }
 
 function handleUpdateTrace(points) {
   ViewActionCreators.updateTrace(points);
 }
 
+var frameDivStyle = {
+  display: "flex",
+  marginBottom: "5px"
+};
+
 function EditView(props) {
+  var frame = props.experiment.selectedRegion.frame;
+  var frames = [];
+
+  for (var i = frame - 2; i <= frame + 2; i++) {
+    var frameStyle = {
+      flex: "1, 1, 100%",
+      width: "100%",
+      marginLeft: "2px",
+      marginRight: "2px",
+      background: i === props.playback.frame ? "#ccc" : "none"
+    };
+
+    if (i < 0 || i >= props.experiment.frames) {
+      frames.push(
+        <div style={frameStyle} key={i}>
+        </div>
+      );
+    }
+    else {
+      frames.push(
+        <div style={frameStyle} key={i}>
+          <TraceSketchWrapper
+            experiment={props.experiment}
+            traces={props.traces}
+            frame={i}
+            onKeyPress={handleKeyPress}
+            onMouseWheel={handleMouseWheel}
+            onSelectRegion={handleSelectRegion}
+            onUpdateTrace={handleUpdateTrace} />
+        </div>
+      );
+    }
+  }
+
   return (
     <div>
       <div className="row">
-        <div className="offset-md-3 col-md-6 text-center">
+        <div className="offset-md-3 col-md-6">
           <TraceSketchWrapper
             experiment={props.experiment}
             traces={props.traces}
@@ -53,10 +92,6 @@ function EditView(props) {
             onMouseWheel={handleMouseWheel}
             onSelectRegion={handleSelectRegion}
             onUpdateTrace={handleUpdateTrace} />
-        </div>
-      </div>
-      <div className="row">
-        <div className="offset-md-3 col-md-6 text-center">
           <TraceSketchWrapper
             experiment={props.experiment}
             traces={props.traces}
@@ -65,6 +100,9 @@ function EditView(props) {
             onMouseWheel={handleMouseWheel}
             onSelectRegion={handleSelectRegion}
             onUpdateTrace={handleUpdateTrace} />
+          <div style={frameDivStyle}>
+            {frames}
+          </div>
           <MediaControls {...props} />
         </div>
       </div>

@@ -337,11 +337,11 @@ module.exports = function (sketch) {
                 return region.highlight;
               });
 
-              if (selected.length > 0) {
-                onSelectRegion(selected[0]);
+              if (selected.length > 0) {            
+                onSelectRegion(frame, selected[0]);
               }
               else {
-                onSelectRegion(null);
+                onSelectRegion();
               }
             }
           }
@@ -391,7 +391,7 @@ module.exports = function (sketch) {
 
             regions.push(region);
 
-            onSelectRegion(region);
+            onSelectRegion(frame, region);
           }
         }
         else {
