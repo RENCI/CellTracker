@@ -287,62 +287,150 @@ module.exports = function (sketch) {
   function mouseReleased(e) {
     e.preventDefault();
 
-    if (sketch.mouseButton !== sketch.LEFT) return;
+    switch (sketch.mouseButton) {
+      case sketch.LEFT:
+        if (editMode) {
+          if (!moveMouse) {
+            var vertices = experiment.selectedRegion.region.vertices;
 
-    if (editMode) {
-      if (!moveMouse) {
-        var vertices = experiment.selectedRegion.region.vertices;
+            if (handle) {
+              // Remove handle
+              var i = vertices.indexOf(handle);
 
-        if (handle) {
-          // Remove handle
-          var i = vertices.indexOf(handle);
+              vertices.splice(i, 1);
 
-          vertices.splice(i, 1);
+              // XXX: Check for empty vertices? Remove region if so?
+            }
+            else {
+              // Add handle at mouse position
+              var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
-          // XXX: Check for empty vertices? Remove region if so?
+              // Get indeces for pairs of vertices
+              var segments = vertices.reduce(function(p, c, i, a) {
+                if (i === a.length - 1) p.push([i, 0]);
+                else p.push([i, i + 1]);
+                return p;
+              }, []);
+
+              // Find closest line segment to this point
+              var segment = segments.reduce(function(p, c, i) {
+                var d = pointLineSegmentDistance(m, vertices[c[0]], vertices[c[1]]);
+                return d < p.d ? { d: d, i: i } : p;
+              }, { d: 1.0, i: -1 });
+
+              // Insert new point
+              vertices.splice(segments[segment.i][1], 0, m);
+            }
+          }
+
+          moveHandle = false;
+          sketch.cursor(sketch.ARROW);
+
+          sketch.redraw();
         }
         else {
-          // Add handle at mouse position
-          var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+          if (!moveMouse) {
+            // Select segmentation region
+            if (segmentationData) {
+              var selected = segmentationData[frame].filter(function(region) {
+                return region.highlight;
+              });
 
-          // Get indeces for pairs of vertices
-          var segments = vertices.reduce(function(p, c, i, a) {
-            if (i === a.length - 1) p.push([i, 0]);
-            else p.push([i, i + 1]);
-            return p;
-          }, []);
-
-          // Find closest line segment to this point
-          var segment = segments.reduce(function(p, c, i) {
-            var d = pointLineSegmentDistance(m, vertices[c[0]], vertices[c[1]]);
-            return d < p.d ? { d: d, i: i } : p;
-          }, { d: 1.0, i: -1 });
-
-          // Insert new point
-          vertices.splice(segments[segment.i][1], 0, m);
+              if (selected.length > 0) {
+                onSelectRegion(selected[0]);
+              }
+              else {
+                onSelectRegion(null);
+              }
+            }
+          }
         }
-      }
 
-      moveHandle = false;
-      sketch.cursor(sketch.ARROW);
+        break;
 
-      sketch.redraw();
-    }
-    else {
-      // Select segmentation region
-      if (segmentationData) {
+      case sketch.CENTER:
+        if (moveMouse) return;
+
+        // Select segmentation region
+        // XXX: Redundant with code above
         var selected = segmentationData[frame].filter(function(region) {
           return region.highlight;
         });
 
-        if (selected.length > 0) {
-          onSelectRegion(selected[0]);
+        selected = selected.length > 0 ? selected[0] : null;
+
+        if (editMode) {
+          if (selected) {
+            // Delete region
+            var regions = segmentationData[frame];
+            var i = regions.indexOf(selected);
+            regions.splice(i, 1);
+          }
+          else {
+            // Add region
+            var regions = segmentationData[frame];
+
+            var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+
+            var w = 1 / (scale * 1.5 * 2);
+
+            var region = {
+              center: m,
+              id: "object" + regions.length,
+              min: [m[0] - w, m[1] - w],
+              max: [m[0] + w, m[1] + w],
+              selected: false,
+              vertices: [
+                [m[0] - w, m[1] - w],
+                [m[0] - w, m[1] + w],
+                [m[0] + w, m[1] + w],
+                [m[0] + w, m[1] - w]
+              ]
+            };
+
+            regions.push(region);
+
+            onSelectRegion(region);
+          }
         }
         else {
-          onSelectRegion(null);
+          if (selected) {
+            // Delete region
+            var regions = segmentationData[frame];
+            var i = regions.indexOf(selected);
+            regions.splice(i, 1);
+          }
+          else {
+            // Add region
+            var regions = segmentationData[frame];
+
+            var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+
+            var w = 0.02;
+
+            var region = {
+              center: m,
+              id: "object" + regions.length,
+              min: [m[0] - w, m[1] - w],
+              max: [m[0] + w, m[1] + w],
+              selected: false,
+              vertices: [
+                [m[0] - w, m[1] - w],
+                [m[0] - w, m[1] + w],
+                [m[0] + w, m[1] + w],
+                [m[0] + w, m[1] - w]
+              ]
+            };
+
+            regions.push(region);
+          }
         }
-      }
+
+        sketch.redraw();
     }
+
+
+
 
       // XXX: Below for tracing
   /*
