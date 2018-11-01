@@ -6,13 +6,17 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>TRacking and Analysis of CEll Cycle (TRACE)</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/ct_core/css/open-iconic-bootstrap.min.css" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="/static/ct_core/css/open-iconic-bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" type="text/css" href="{% static "ct_core/css/ct_core.css" %}"/>
+    {% block extra_css %}{% endblock %}
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/addons/p5.dom.js"></script>
+    {% block extra_js %}{% endblock %}
+{% block extra_head %}{% endblock %}
 </head>
 <body>
   <div class="container-fluid">
@@ -26,6 +30,10 @@
         <h2>
           <strong>TRacking and Analysis of CEll Cycle (TRACE)</strong>
         </h2>
+        {% if user.is_authenticated %}
+          <h3>Welcome to TRACE, {{ user.firstname }} {{ user.lastname }}</h3>
+          <h3>Have fun and when you are done, remember to <a href="{% url 'logout' %}">logout</a></h3>
+        {% endif %}
       </div>
       <div class="col-sm-3 text-center">
         <div>

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% load staticfiles %}
+
+{% block content %}
+     <div class="container">
+         <div class="row home-page-block">
+             <div class="col-xs-12 text-center">
+                <strong><h3 class="home-page-block-title">
+                Welcome to TRACE - an interactive web tool for tracking and segmenting cells from live-cell
+                microscopy images.</h3></strong>
+             </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="home-page-block row">
+            <div class="col-xs-12">
+             <table id="table-features">
+                 <tbody>
+                    <tr>
+                        <td>If you are new and don't have an account yet, click
+                            <a href="{% url 'signup' %}">new Student sign up</a> to get a user
+                            account first.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>If you already have a user account, that is awesome. Click on
+                            <a href="{% url 'login' %}">Sign in</a> to
+                            log in. Have fun!
+                        </td>
+                    </tr>
+                 </tbody>
+             </table>
+            </div>
+        </div>
+    </div>
+{% endblock %}
