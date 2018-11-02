@@ -31,8 +31,8 @@
           <strong>TRacking and Analysis of CEll Cycle (TRACE)</strong>
         </h2>
         {% if user.is_authenticated %}
-          <h3>Welcome to TRACE, {{ user.firstname }} {{ user.lastname }}</h3>
-          <h3>Have fun and when you are done, remember to <a href="{% url 'logout' %}">logout</a></h3>
+          <h4>Welcome to TRACE, {{ user.first_name }}. Your username is {{ user.username }}</h4>
+          <h4>Have fun and when you are done, you can <a href="{% url 'logout' %}">logout</a></h4>
         {% endif %}
       </div>
       <div class="col-sm-3 text-center">

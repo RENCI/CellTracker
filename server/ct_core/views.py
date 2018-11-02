@@ -35,7 +35,11 @@ def index(request):
     #pydevd.settrace('172.17.0.1', port=21000, suspend=False)
     if request.user.is_authenticated():
         template = loader.get_template('ct_core/index.html')
-        context = {}
+        if 'just_signed_up' in request.session:
+            context = {'just_signed_up': True}
+            del request.session['just_signed_up']
+        else:
+            context = {}
         return HttpResponse(template.render(context, request))
     else:
         template = loader.get_template('ct_core/home.html')
@@ -48,12 +52,12 @@ def signup(request):
 
         form = SignUpForm(request.POST)
         if form.is_valid():
-            form.save()
+            form.save(commit=False)
             # concatenate first_name and last_name to create username and append a number if
             # that username already exists to create a unique username
             firstname = form.cleaned_data.get('first_name')
             lastname = form.cleaned_data.get('last_name')
-            username = '{}{}'.format(firstname, lastname)
+            username = '{}{}'.format(firstname, lastname).lower()
             raw_pwd = form.cleaned_data.get('password1')
             id = 2
             new_username = ''
@@ -76,6 +80,7 @@ def signup(request):
 
             user = authenticate(username=username, password=raw_pwd)
             login(request, user)
+            request.session['just_signed_up'] = 'true'
             return redirect('index')
     else:
         form = SignUpForm()
