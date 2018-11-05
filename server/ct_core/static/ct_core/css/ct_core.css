@@ -197,3 +197,7 @@ float the buttons inside it. This prevents collapsing. */
 #table-features td {
     padding: 8px 0;
 }
+
+.btn-save-profile {
+    margin-left: 10px;
+}

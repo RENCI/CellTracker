@@ -30,9 +30,13 @@
         <h2>
           <strong>TRacking and Analysis of CEll Cycle (TRACE)</strong>
         </h2>
-        {% if user.is_authenticated %}
-          <h4>Welcome to TRACE, {{ user.first_name }}. Your username is {{ user.username }}</h4>
+        {% if user.is_authenticated and initial_login %}
+          <h4>Welcome to TRACE, {{ user.first_name }}. Your username is
+            <strong>{{ user.username }}</strong>. Checkout your profile
+              <a href="{% url 'account_update' user.id %}">here</a></h4>
           <h4>Have fun and when you are done, you can <a href="{% url 'logout' %}">logout</a></h4>
+        {% elif user_profile %}
+            <h4>Your user profile</h4>
         {% endif %}
       </div>
       <div class="col-sm-3 text-center">
