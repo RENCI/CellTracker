@@ -224,9 +224,9 @@ loaddb_cc() {
     docker exec celltracker psql -U postgres -h db -f ${CC_DATABASE} --quiet
     docker exec celltracker python manage.py collectstatic --no-input
     echo "  - docker exec celltracker python manage.py migrate sites"
-    docker exec celltracker python manage.py migrate sites
+    docker exec celltracker python manage.py migrate sites --noinput
     echo "  - docker exec celltracker python manage.py migrate"
-    docker exec celltracker python manage.py migrate
+    docker exec celltracker python manage.py migrate --fake-initial --noinput
 }
 
 loadmedia_cc() {
@@ -243,9 +243,9 @@ loadmedia_cc() {
 migrate_cc() {
     echo "MIGRATE:"
     echo "  - docker exec celltracker python manage.py migrate sites"
-    docker exec celltracker python manage.py migrate sites
+    docker exec celltracker python manage.py migrate sites --noinput
     echo "  - docker exec celltracker python manage.py migrate"
-    docker exec celltracker python manage.py migrate
+    docker exec celltracker python manage.py migrate --fake-initial --noinput
 }
 
 deploy_dev_cc_nodb() {

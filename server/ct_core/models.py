@@ -9,7 +9,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 class UserProfile(models.Model):
     user = models.OneToOneField(User, related_name='user')
     grade = models.PositiveSmallIntegerField(blank=True,
-                                             default='',
                                              validators=[MaxValueValidator(12),
                                                          MinValueValidator(1)])
     school = models.CharField(max_length=100, blank=True, default='')
