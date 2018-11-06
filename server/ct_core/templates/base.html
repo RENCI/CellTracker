@@ -32,7 +32,7 @@
         </h2>
         {% if user.is_authenticated and initial_login %}
           <h4>Welcome to TRACE, {{ user.first_name }}. Your username is
-            <strong>{{ user.username }}</strong>. Checkout your profile
+            <strong>{{ user.username }}</strong>. Update your profile
               <a href="{% url 'account_update' user.id %}">here</a></h4>
           <h4>Have fun and when you are done, you can <a href="{% url 'logout' %}">logout</a></h4>
         {% elif user_profile %}

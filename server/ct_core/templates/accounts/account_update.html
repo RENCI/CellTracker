@@ -5,6 +5,14 @@
 {% block content %}
 <div class="col s12 m8 offset-m2">
     <h2 class="flow-text">Update your profile information</h2>
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-success alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <strong>{{ message }}</strong>
+        </div>
+      {% endfor %}
+    {% endif %}
     <div class="card">
         <div class="card-body">
         <form action="." method="POST" class="padding">
@@ -17,7 +25,7 @@
                 {{ formset.as_table }}
             </div>
             <button type="submit" class="btn btn-primary btn-save-profile">Save changes</button>
-            <button onclick="window.history.back(); return false;" title="Cancel" class="btn btn-default">Cancel</button>
+            <button onclick="window.history.back(); return false;" title="Cancel" class="btn btn-default">Go back</button>
         </form>
         </div>
     </div>
