@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userprofile',
             name='grade',
-            field=models.PositiveSmallIntegerField(blank=True, default=None, validators=[django.core.validators.MaxValueValidator(12), django.core.validators.MinValueValidator(1)]),
+            field=models.PositiveSmallIntegerField(blank=True, validators=[django.core.validators.MaxValueValidator(12), django.core.validators.MinValueValidator(1)]),
         ),
         migrations.AlterField(
             model_name='userprofile',
