@@ -7,12 +7,17 @@ import shutil
 import json
 from uuid import uuid4
 
+from django.contrib.auth.models import User
 from django.template import loader
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseServerError, StreamingHttpResponse, \
-    HttpResponseBadRequest, JsonResponse
-
+    HttpResponseBadRequest, JsonResponse, HttpResponseForbidden, HttpResponseRedirect
 from django.views.decorators import gzip
+from django.contrib.auth import login, authenticate
+from django.shortcuts import render, redirect
+from django.forms.models import inlineformset_factory
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
 from rest_framework import status
 
@@ -21,6 +26,8 @@ from irods.exception import CollectionDoesNotExist, DataObjectDoesNotExist
 
 from ct_core.utils import read_video, extract_images_from_video, read_image_frame, \
     convert_csv_to_json, get_exp_frame_no, get_seg_collection
+from ct_core.forms import SignUpForm, UserProfileForm
+from ct_core.models import UserProfile
 from django_irods.storage import IrodsStorage
 
 
@@ -30,10 +37,91 @@ def index(request):
     #sys.path.append("/home/docker/pycharm-debug")
     #import pydevd
     #pydevd.settrace('172.17.0.1', port=21000, suspend=False)
+    if request.user.is_authenticated():
+        template = loader.get_template('ct_core/index.html')
+        if 'just_signed_up' in request.session:
+            context = {'just_signed_up': True,
+                       'initial_login': True}
+            del request.session['just_signed_up']
+        else:
+            context = {'initial_login': True}
+        return HttpResponse(template.render(context, request))
+    else:
+        template = loader.get_template('ct_core/home.html')
+        context = {}
+        return HttpResponse(template.render(context, request))
 
-    template = loader.get_template('ct_core/index.html')
-    context = {}
-    return HttpResponse(template.render(context, request))
+
+def signup(request):
+    if request.method == 'POST':
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            form.save(commit=False)
+            # concatenate first_name and last_name to create username and append a number if
+            # that username already exists to create a unique username
+            firstname = form.cleaned_data.get('first_name')
+            lastname = form.cleaned_data.get('last_name')
+            grade = form.cleaned_data.get('grade')
+            school = form.cleaned_data.get('school')
+            username = '{}{}'.format(firstname, lastname).lower()
+            raw_pwd = form.cleaned_data.get('password1')
+            id = 2
+            new_username = ''
+            ori_username = username
+            while new_username != username:
+                try:
+                    User.objects.get(username=username)
+                    # if user already exists, append a increasing number to username and check
+                    # again until the username is unique
+                    username = ori_username + str(id)
+                    id += 1
+                except User.DoesNotExist:
+                    new_username = username
+
+            User.objects.create_user(
+                new_username, first_name=firstname,
+                last_name=lastname,
+                password=raw_pwd,
+            )
+
+            user = authenticate(username=username, password=raw_pwd)
+            up = UserProfile(user=user, grade=grade, school=school)
+            up.save()
+            login(request, user)
+            request.session['just_signed_up'] = 'true'
+            return redirect('index')
+    else:
+        form = SignUpForm()
+    return render(request, 'registration/signup.html', {'form': form})
+
+
+@login_required
+def edit_user(request, pk):
+    user = User.objects.get(pk=pk)
+    user_form = UserProfileForm(instance=user)
+
+    if not user.is_authenticated() or request.user.id != user.id:
+        return HttpResponseForbidden('You are not authenticated to edit user profile')
+
+    ProfileInlineFormset = inlineformset_factory(User, UserProfile,
+                                                 fields=('grade', 'school'),
+                                                 can_delete=False)
+    formset = ProfileInlineFormset(instance=user)
+
+    if request.method == "POST":
+        user_form = UserProfileForm(request.POST, instance=user)
+        formset = ProfileInlineFormset(request.POST, instance=user)
+        if user_form.is_valid():
+            created_user = user_form.save(commit=False)
+            formset = ProfileInlineFormset(request.POST, instance=created_user)
+            if formset.is_valid():
+                created_user.save()
+                formset.save()
+                messages.info(request, "Your profile is updated successfully")
+                return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+    return render(request, 'accounts/account_update.html', {"profile_form": user_form,
+                                                     "formset": formset})
 
 
 def get_experiment_list(request):

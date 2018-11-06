@@ -1,24 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'base.html' %}
+
 {% load staticfiles %}
 
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block meta_title %}{% endblock %}{% if SITE_TITLE %} | {{ SITE_TITLE }}{% endif %}</title>
-  <link rel="shortcut icon" href="/static/ct_core/images/favicon.ico" type="image/x-icon">
-  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
-  <link href="/static/ct_core/css/open-iconic-bootstrap.min.css" rel="stylesheet">
-  <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/p5.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.6.1/addons/p5.dom.js"></script>
-</head>
-<body>
-  {% csrf_token %}
-  <div id="app"></div>
-  <script type="text/javascript" src="{% static 'ct_core/js/index_bundle.js' %}"></script>
-</body>
-</html>
+{% block content %}
+    {% csrf_token %}
+    <div class="modal fade" id="just_signed_up_modal" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Success</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            Congratulations, {{ user.first_name }}! You have just successfully signed up
+              and logged in. Your login username is <strong>{{ user.username }}</strong>.
+              Make sure you remember your username and password so that you can login next time
+              by entering your username and password. Close this dialog box and go have fun.
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="app"></div>
+    {% block extra_js %}
+      <script type="text/javascript" src="{% static 'ct_core/js/index_bundle.js' %}"></script>
+      <script>
+        $(document).ready(function() {
+           if ('{{ just_signed_up }}' === 'True')
+               $('#just_signed_up_modal').modal('show');
+        });
+      </script>
+    {% endblock %}
+{% endblock %}

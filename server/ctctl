@@ -43,6 +43,8 @@ display_usage() {
     echo "usage: $0 deploy_prod        # build and deploy from scratch while loading an existing database for production environment"
     echo "usage: $0 start              # attempts to start all containers"
     echo "usage: $0 stop               # stops all running containers"
+    echo "usage: $0 backup             # backup database, media files, and settings"
+    echo "usage: $0 loaddb             # load database into the server"
 }
 
 delete_celerybeat_scheduler() {
@@ -224,9 +226,9 @@ loaddb_cc() {
     docker exec celltracker psql -U postgres -h db -f ${CC_DATABASE} --quiet
     docker exec celltracker python manage.py collectstatic --no-input
     echo "  - docker exec celltracker python manage.py migrate sites"
-    docker exec celltracker python manage.py migrate sites
+    docker exec celltracker python manage.py migrate sites --noinput
     echo "  - docker exec celltracker python manage.py migrate"
-    docker exec celltracker python manage.py migrate
+    docker exec celltracker python manage.py migrate --fake-initial --noinput
 }
 
 loadmedia_cc() {
@@ -243,9 +245,9 @@ loadmedia_cc() {
 migrate_cc() {
     echo "MIGRATE:"
     echo "  - docker exec celltracker python manage.py migrate sites"
-    docker exec celltracker python manage.py migrate sites
+    docker exec celltracker python manage.py migrate sites --noinput
     echo "  - docker exec celltracker python manage.py migrate"
-    docker exec celltracker python manage.py migrate
+    docker exec celltracker python manage.py migrate --fake-initial --noinput
 }
 
 deploy_dev_cc_nodb() {

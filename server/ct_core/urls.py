@@ -1,9 +1,15 @@
 from django.conf.urls import url
+from django.contrib.auth import views as auth_views
 
 from . import views
 
 
 urlpatterns = [
+    url(r'^login/$', auth_views.login, name='login'),
+    url(r'^logout/$', auth_views.logout, {'next_page': '/'}, name='logout'),
+    url(r'^signup/$', views.signup, name='signup'),
+    url(r'^accounts/update/(?P<pk>[\-\w]+)/$', views.edit_user, name='account_update'),
+
     url(r'^$', views.index, name='index'),
     url(r'^get_experiment_list/$', views.get_experiment_list, name='get_experiment_list'),
     url(r'^get_experiment_info/(?P<exp_id>.*)$', views.get_experiment_info,

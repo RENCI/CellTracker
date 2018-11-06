@@ -1,7 +1,6 @@
 // Controller-view for the application that stores the current dataset
 
 var React = require("react");
-var HeaderSection = require("../components/HeaderSection");
 var MainSection = require("../components/MainSection");
 var DataStore = require("../stores/DataStore");
 var ViewActionCreators = require("../actions/ViewActionCreators");
@@ -44,7 +43,6 @@ class AppContainer extends React.Component {
   render() {
     return (
       <div className="container-fluid">
-        <HeaderSection />
         <MainSection {...this.state} />
       </div>
     );

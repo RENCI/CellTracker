@@ -35,6 +35,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 ALLOWED_HOSTS = []
 
+SITE_ID = 1
 
 # Application definition
 
@@ -48,6 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.postgres',
+    'widget_tweaks',
     'django_irods',
     'ct_core',
 ]
@@ -167,6 +169,10 @@ ROOT_URLCONF = "%s.urls" % PROJECT_DIRNAME
 CRISPY_TEMPLATE_PACK = 'bootstrap'
 
 VIDEO_FRAME_INTERVAL_SECOND = 1
+
+LOGIN_URL = 'login'
+LOGOUT_URL = 'logout'
+LOGIN_REDIRECT_URL = 'index'
 
 ####################
 # LOGGING SETTINGS #
