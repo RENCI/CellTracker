@@ -84,7 +84,6 @@ module.exports = {
   saveTraces: function (userName) {
     WebAPIUtils.saveTraces(
       DataStore.getExperiment().id,
-      userName,
       DataStore.getTraces()
     );
   }

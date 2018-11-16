@@ -333,9 +333,7 @@ def get_frame_seg_data(request, exp_id, frame_no):
 
 
 def save_tracking_data(request, exp_id):
-    uname = request.POST.get('userName', '')
-    if not uname:
-        return HttpResponseBadRequest("user name is empty")
+    uname = request.user.username
 
     traces = request.POST.get('traces', [])
     if not traces:

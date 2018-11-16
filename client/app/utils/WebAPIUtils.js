@@ -146,12 +146,11 @@ function getSegmentationData(id, frames) {
   }
 }
 
-function saveTraces(id, userName, traces) {
+function saveTraces(id, traces) {
   setupAjax();
 
   // Only keep fields we need to send
   var data = {
-    userName: userName,
     traces: JSON.stringify(traces.map(function (trace) {
       return {
         name: trace.name,
