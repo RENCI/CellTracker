@@ -127,7 +127,7 @@ module.exports = function (sketch) {
         var w = region.max[0] - region.min[0];
         var h = region.max[1] - region.min[1];
 
-        var s = Math.max(w, h) * 1.5;
+        var s = Math.max(w, h) * (editMode ? 1.5 : 3);
 
         scale = 1 / s;
         translation = [sketch.width / 2 / scale - c[0], sketch.height / 2 / scale - c[1]];
