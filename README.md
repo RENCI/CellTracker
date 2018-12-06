@@ -20,12 +20,12 @@ This section is aimed for developers interested in working on the code. It provi
 - ```docker-compose up``` --- bring up all containers
 - ```docker-compose stop``` --- shut down all containers
 - ```docker-compose ps``` --- check status of all containers
-- ```docker rm -fv $(docker ps -a -q``` --- remove all containers
+- ```docker rm -fv $(docker ps -a -q)``` --- remove all containers
 - ```docker rmi -f <image_id>``` where ```<image_id>``` is the image id output from ```docker images``` command which you want to remove. 
 
 ### Troubleshooting notes
 - You may need to run ```docker-compose stop``` followed by ```docker-compose up``` when you run into issues when bringing up containers the first time. 
-- To run ```./ctctl``` command again, you need to clean up existing containers and images by running ```docker rm -fv $(docker ps -a -q``` to remove all containers and ```docker rmi -f <image_id>``` to remove images that need to be rebuilt.
+- To run ```./ctctl``` command again, you need to clean up existing containers and images by running ```docker rm -fv $(docker ps -a -q)``` to remove all containers and ```docker rmi -f <image_id>``` to remove images that need to be rebuilt.
    
 ## License 
 
