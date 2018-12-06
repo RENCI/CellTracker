@@ -1,14 +1,12 @@
 var React = require("react");
 var PropTypes = require("prop-types");
-var TraceList = require("./TraceList");
-var SaveTracesContainer = require("../containers/SaveTracesContainer");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
 function onExperimentSelectChange(e) {
   ViewActionCreators.selectExperiment(e.target.value);
 }
 
-function Controls(props) {
+function DataControls(props) {
   var options = [
     <option key="-1" value="" disabled hidden>
       Select experiment
@@ -36,16 +34,13 @@ function Controls(props) {
             {options}
         </select>
       </div>
-      <TraceList traces={props.traces} />
-      <SaveTracesContainer />
     </div>
   );
 }
 
-Controls.propTypes = {
+DataControls.propTypes = {
   experimentList: PropTypes.arrayOf(PropTypes.object).isRequired,
-  experiment: PropTypes.object,
-  traces: PropTypes.arrayOf(PropTypes.object).isRequired
+  experiment: PropTypes.object
 };
 
-module.exports = Controls;
+module.exports = DataControls;

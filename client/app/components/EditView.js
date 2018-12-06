@@ -50,11 +50,12 @@ function EditView(props) {
 
   for (var i = frame - 2; i <= frame + 2; i++) {
     var frameStyle = {
-      flex: "1, 1, 100%",
-      width: "100%",
-      marginLeft: "2px",
-      marginRight: "2px",
-      background: i === props.playback.frame ? "#ccc" : "none"
+      flex: "1",
+      width: "0px",
+      marginRight: i === frame + 2 ? "0px" : "5px",
+      paddingTop: "5px",
+      borderRadius: "5px",
+      background: i === props.playback.frame ? "#007bff" : "none"
     };
 
     if (i < 0 || i >= props.experiment.frames) {
@@ -82,16 +83,7 @@ function EditView(props) {
   return (
     <div>
       <div className="row">
-        <div className="offset-md-3 col-md-6">
-          <TraceSketchWrapper
-            experiment={props.experiment}
-            traces={props.traces}
-            frame={props.experiment.selectedRegion.frame}
-            editMode={true}
-            onKeyPress={handleKeyPress}
-            onMouseWheel={handleMouseWheel}
-            onSelectRegion={handleSelectRegion}
-            onUpdateTrace={handleUpdateTrace} />
+        <div className="col-md-5">
           <TraceSketchWrapper
             experiment={props.experiment}
             traces={props.traces}
@@ -104,6 +96,17 @@ function EditView(props) {
             {frames}
           </div>
           <MediaControls {...props} />
+        </div>
+        <div className="col-md-7">
+          <TraceSketchWrapper
+            experiment={props.experiment}
+            traces={props.traces}
+            frame={props.experiment.selectedRegion.frame}
+            editMode={true}
+            onKeyPress={handleKeyPress}
+            onMouseWheel={handleMouseWheel}
+            onSelectRegion={handleSelectRegion}
+            onUpdateTrace={handleUpdateTrace} />
         </div>
       </div>
     </div>

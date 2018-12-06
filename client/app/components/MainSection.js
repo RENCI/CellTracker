@@ -1,33 +1,37 @@
 var React = require("react");
 var PropTypes = require("prop-types");
-var Controls = require("./Controls");
+var DataControls = require("./DataControls");
 var LoadingProgress = require("./LoadingProgress");
 var PlaybackView = require("./PlaybackView");
 var EditView = require("./EditView");
 
 function MainSection(props) {
   return (
-    <div className="row">
-      <div className="col-md-2">
-        <Controls {...props} />
-      </div>
-      {props.experiment ?
-        <div className="col-md-10 text-center">
-          {props.loading !== null ?
-            <LoadingProgress
-              label={"Loading " + props.experiment.name}
-              value1={props.loading.image}
-              maxValue1={props.loading.numImages}
-              value2={props.loading.segmentation}
-              maxValue2={props.loading.numSegmentation} />
-          : null}
-          {props.loading === null ?
-            props.experiment.selectedRegion ?
-              <EditView {...props} /> :
-              <PlaybackView {...props} />
-          : null}
+    <div>
+      <div className="row">
+        <div className="offset-md-3 col-md-6">
+          <DataControls {...props} />
         </div>
-    : null}
+      </div>
+      <div className="row">
+        {props.experiment ?
+          <div className="col-md-12 text-center">
+            {props.loading !== null ?
+              <LoadingProgress
+                label={"Loading " + props.experiment.name}
+                value1={props.loading.image}
+                maxValue1={props.loading.numImages}
+                value2={props.loading.segmentation}
+                maxValue2={props.loading.numSegmentation} />
+            : null}
+            {props.loading === null ?
+              props.experiment.selectedRegion ?
+                <EditView {...props} /> :
+                <PlaybackView {...props} />
+            : null}
+          </div>
+      : null}
+      </div>
     </div>
   );
 }
