@@ -337,7 +337,7 @@ module.exports = function (sketch) {
                 return region.highlight;
               });
 
-              if (selected.length > 0) {            
+              if (selected.length > 0) {
                 onSelectRegion(frame, selected[0]);
               }
               else {
@@ -558,12 +558,25 @@ module.exports = function (sketch) {
     }
 
     if (!handle) {
-      sketch.cursor(sketch.ARROW);
+      // Default arrows
+      if (editMode) {
+        sketch.cursor(sketch.CROSS);
+      }
+      else if (scale !== 1) {
+        sketch.cursor(sketch.MOVE);
+      }
+      else {
+        sketch.cursor(sketch.ARROW);
+      }
 
       // Test regions
       for (var i = 0; i < seg.length; i++) {
         if (insidePolygon(normalizePoint(m), seg[i].vertices)) {
           seg[i].highlight = true;
+
+          if (!editMode) {
+            sketch.cursor(sketch.HAND);
+          }
 
           break;
         }
