@@ -27,7 +27,6 @@
     </div>
     <div id="app"></div>
     {% block extra_js %}
-      <script type="text/javascript" src="{% static 'ct_core/js/index_bundle.js' %}"></script>
       <script>
         $(document).ready(function() {
            if ('{{ just_signed_up }}' === 'True')

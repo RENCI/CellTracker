@@ -56,4 +56,7 @@
     {% block content %}{% endblock content %}
   </div>
 </body>
+{% block react_js %}
+  <script type="text/javascript" src="{% static 'ct_core/js/index_bundle.js' %}"></script>
+{% endblock %}
 </html>
