@@ -15,7 +15,7 @@ function MainSection(props) {
       </div>
       <div className="row">
         {props.experiment ?
-          <div className="col-md-12 text-center">
+          <div className="offset-md-1 col-md-10 text-center">
             {props.loading !== null ?
               <LoadingProgress
                 label={"Loading " + props.experiment.name}

@@ -84,6 +84,7 @@ function EditView(props) {
     <div>
       <div className="row">
         <div className="col-md-5">
+          <h4>Playback</h4>
           <TraceSketchWrapper
             experiment={props.experiment}
             traces={props.traces}
@@ -98,6 +99,7 @@ function EditView(props) {
           <MediaControls {...props} />
         </div>
         <div className="col-md-7">
+          <h4>Edit</h4>
           <TraceSketchWrapper
             experiment={props.experiment}
             traces={props.traces}
