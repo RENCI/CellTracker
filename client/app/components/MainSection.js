@@ -6,6 +6,10 @@ var PlaybackView = require("./PlaybackView");
 var EditView = require("./EditView");
 
 function MainSection(props) {
+  var divClass = props.experiment && props.experiment.selectedRegion ?
+      "col-md-12 text-center" :
+      "offset-md-1 col-md-10 text-center";
+
   return (
     <div>
       <div className="row">
@@ -15,7 +19,7 @@ function MainSection(props) {
       </div>
       <div className="row">
         {props.experiment ?
-          <div className="offset-md-1 col-md-10 text-center">
+          <div className={divClass}>
             {props.loading !== null ?
               <LoadingProgress
                 label={"Loading " + props.experiment.name}
