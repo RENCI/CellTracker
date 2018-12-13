@@ -11,6 +11,10 @@ module.exports = {
     WebAPIUtils.getExperimentInfo(id);
   },
 
+  saveSegmentationData: function (id, segmentationData) {
+    WebAPIUtils.saveSegmentationData(id, segmentationData);
+  },
+
   cycleLoop: function () {
     AppDispatcher.dispatch({
       actionType: Constants.CYCLE_LOOP
@@ -56,7 +60,6 @@ module.exports = {
   },
 
   selectRegion: function (frame, region) {
-    console.log(frame, region);
     AppDispatcher.dispatch({
       actionType: Constants.SELECT_REGION,
       frame: frame,

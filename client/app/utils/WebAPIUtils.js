@@ -146,6 +146,24 @@ function getSegmentationData(id, frames) {
   }
 }
 
+function saveSegmentationData(id, data) {
+  setupAjax();
+
+  console.log(id, data);
+
+  $.ajax({
+    type: "POST",
+    url: "/save_segmentation_data/" + id,
+    data: data,
+    success: function (data) {
+      // Segmentation saved action?
+    },
+    error: function (xhr, textStatus, errorThrown) {
+      console.log(textStatus + ": " + errorThrown);
+    }
+  });
+}
+
 function saveTraces(id, traces) {
   setupAjax();
 
@@ -176,5 +194,6 @@ module.exports = {
   getExperimentList: getExperimentList,
   getExperimentInfo: getExperimentInfo,
   getSegmentationData: getSegmentationData,
+  saveSegmentationData: saveSegmentationData,
   saveTraces: saveTraces
 };

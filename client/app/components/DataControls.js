@@ -7,6 +7,13 @@ function onExperimentSelectChange(e) {
 }
 
 function DataControls(props) {
+  function onSaveClick() {
+    ViewActionCreators.saveSegmentationData(
+      props.experiment.id,
+      props.experiment.segmentationData
+    );
+  }
+
   var options = [
     <option key="-1" value="" disabled hidden>
       Select experiment
@@ -22,9 +29,8 @@ function DataControls(props) {
   }));
 
   return (
-    <div>
-      <div className="form-group">
-        <label htmlFor="experimentSelect">Experiment</label>
+    <div className="form-row mb-3">
+      <div className="col-10">
         <select
           id="experimentSelect"
           className="form-control"
@@ -34,13 +40,23 @@ function DataControls(props) {
             {options}
         </select>
       </div>
+      <div className="col-2">
+        <button
+          type="button"
+          className="btn btn-primary btn-block"
+          disabled={!props.changesMade}
+          onClick={onSaveClick}>
+            Save
+        </button>
+      </div>
     </div>
   );
 }
 
 DataControls.propTypes = {
   experimentList: PropTypes.arrayOf(PropTypes.object).isRequired,
-  experiment: PropTypes.object
+  experiment: PropTypes.object,
+  changesMade: PropTypes.bool
 };
 
 module.exports = DataControls;

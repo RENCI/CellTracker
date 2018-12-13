@@ -16,6 +16,9 @@ var framesLoaded = 0;
 var segFramesLoaded = 0;
 var loading = null;
 
+// Has the user made any edits?
+var changesMade = false;
+
 // Playback
 var playback = {
   play: false,
@@ -37,6 +40,10 @@ function setExperimentList(newList) {
 
 function setExperiment(newExperiment) {
   experiment = newExperiment;
+
+  // XXX: Currently not routing edits through the data store, so leaving as true for now.
+  // Should be false until an edit has been made in the future.
+  changesMade = true;
   resetTraces();
 
   if (experiment) {
@@ -222,8 +229,6 @@ function selectRegion(frame, region) {
     });
   });
 
-  console.log(frame, region);
-
   if (region) {
     region.selected = true;
     experiment.selectedRegion = {
@@ -284,6 +289,9 @@ var DataStore = assign({}, EventEmitter.prototype, {
   },
   getLoading: function () {
     return loading;
+  },
+  getChangesMade: function () {
+    return changesMade;
   },
   getPlayback: function () {
     return playback;
