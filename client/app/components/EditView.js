@@ -2,6 +2,7 @@ var React = require("react");
 var PropTypes = require("prop-types");
 var TraceSketchWrapper = require("../p5/TraceSketchWrapper");
 var MediaControls = require("./MediaControls");
+var EditControls = require("./EditControls");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
 function handleKeyPress(keyCode) {
@@ -100,15 +101,22 @@ function EditView(props) {
         </div>
         <div className="col-md-7">
           <h4>Edit</h4>
-          <TraceSketchWrapper
-            experiment={props.experiment}
-            traces={props.traces}
-            frame={props.experiment.selectedRegion.frame}
-            editMode={true}
-            onKeyPress={handleKeyPress}
-            onMouseWheel={handleMouseWheel}
-            onSelectRegion={handleSelectRegion}
-            onUpdateTrace={handleUpdateTrace} />
+          <div style={{display: "flex"}}>
+            <div style={{flex: "1"}}>
+              <TraceSketchWrapper
+                experiment={props.experiment}
+                traces={props.traces}
+                frame={props.experiment.selectedRegion.frame}
+                editMode={true}
+                onKeyPress={handleKeyPress}
+                onMouseWheel={handleMouseWheel}
+                onSelectRegion={handleSelectRegion}
+                onUpdateTrace={handleUpdateTrace} />
+            </div>
+            <div style={{flex: "0 0 auto"}}>
+              <EditControls editMode="vertex" />
+            </div>
+          </div>
         </div>
       </div>
     </div>
