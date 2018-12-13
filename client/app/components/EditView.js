@@ -70,6 +70,7 @@ function EditView(props) {
         <div style={frameStyle} key={i}>
           <TraceSketchWrapper
             experiment={props.experiment}
+            zoom={props.settings.playbackZoom}
             traces={props.traces}
             frame={i}
             onKeyPress={handleKeyPress}
@@ -88,6 +89,7 @@ function EditView(props) {
           <h4>Playback</h4>
           <TraceSketchWrapper
             experiment={props.experiment}
+            zoom={props.settings.playbackZoom}
             traces={props.traces}
             frame={props.playback.frame}
             onKeyPress={handleKeyPress}
@@ -105,6 +107,7 @@ function EditView(props) {
             <div style={{flex: "1"}}>
               <TraceSketchWrapper
                 experiment={props.experiment}
+                zoom={props.settings.editZoom}
                 traces={props.traces}
                 frame={props.experiment.selectedRegion.frame}
                 editMode={true}
@@ -125,6 +128,7 @@ function EditView(props) {
 
 EditView.propTypes = {
   experiment: PropTypes.object,
+  settings: PropTypes.object,
   playback: PropTypes.object,
   traces: PropTypes.arrayOf(PropTypes.object).isRequired
 };

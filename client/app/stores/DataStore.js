@@ -16,9 +16,6 @@ var framesLoaded = 0;
 var segFramesLoaded = 0;
 var loading = null;
 
-// Has the user made any edits?
-var changesMade = false;
-
 // Playback
 var playback = {
   play: false,
@@ -28,6 +25,12 @@ var playback = {
   direction: 1
 };
 var timer = null;
+
+// Settings
+var settings = {
+  editZoom: 1,
+  playbackZoom: 1
+};
 
 // Traces for this experiment
 var traces = [];
@@ -41,9 +44,6 @@ function setExperimentList(newList) {
 function setExperiment(newExperiment) {
   experiment = newExperiment;
 
-  // XXX: Currently not routing edits through the data store, so leaving as true for now.
-  // Should be false until an edit has been made in the future.
-  changesMade = true;
   resetTraces();
 
   if (experiment) {
@@ -52,6 +52,10 @@ function setExperiment(newExperiment) {
     })[0].name;
     experiment.images = [];
     experiment.segmentationData = experiment.hasSegmentation ? [] : null;
+
+    // XXX: Currently not routing edits through the data store, so leaving as true for now.
+    // Should be false until an edit has been made in the future.
+    experiment.changesMade = true;
 
     framesLoaded = 0;
     segFramesLoaded = 0;
@@ -235,9 +239,44 @@ function selectRegion(frame, region) {
       region: region,
       frame: frame
     };
+
+    setZoomLevels(region);
   }
   else {
     experiment.selectedRegion = null;
+  }
+}
+
+function setZoomLevels(region) {
+  var w = region.max[0] - region.min[0];
+  var h = region.max[1] - region.min[1];
+
+  var s = Math.max(w, h);
+
+  settings.playbackZoom = 1 / (s * 3);
+  settings.editZoom = 1 / (s * 1.5);
+}
+
+function zoom(view, direction) {
+  var minZoom = 1;
+  var maxZoom = 50;
+
+  var s = 1.5;
+  if (direction === "out") s = 1 / s;
+
+  if (view === "playback") {
+    var newZoom = settings.playbackZoom * s;
+
+    if (newZoom >= minZoom && newZoom <= maxZoom) {
+      settings.playbackZoom = newZoom;
+    }
+  }
+  else {
+    var newZoom = settings.editZoom * s;
+
+    if (newZoom >= minZoom && newZoom <= maxZoom) {
+      settings.editZoom = newZoom;
+    }
   }
 }
 
@@ -287,11 +326,11 @@ var DataStore = assign({}, EventEmitter.prototype, {
   getExperiment: function () {
     return experiment;
   },
+  getSettings: function () {
+    return settings;
+  },
   getLoading: function () {
     return loading;
-  },
-  getChangesMade: function () {
-    return changesMade;
   },
   getPlayback: function () {
     return playback;
@@ -366,6 +405,11 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.SELECT_REGION:
       selectRegion(action.frame, action.region);
+      DataStore.emitChange();
+      break;
+
+    case Constants.ZOOM:
+      zoom(action.view, action.direction);
       DataStore.emitChange();
       break;
 

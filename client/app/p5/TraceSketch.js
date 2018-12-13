@@ -61,6 +61,7 @@ module.exports = function (sketch) {
   sketch.updateProps = function(props) {
     // Set props
     frame = props.frame;
+    scale = props.zoom;
     editMode = props.editMode;
     traces = props.traces;
     onKeyPress = props.onKeyPress;
@@ -114,28 +115,16 @@ module.exports = function (sketch) {
     }
 */
 
-    // Reset scale and translation
-    scale = 1;
+    // Set scale and translation
     translation = [0, 0];
+    if (segmentationData && experiment.selectedRegion) {
+      var c = scalePoint(experiment.selectedRegion.region.center);
 
-    if (segmentationData) {
-      if (experiment.selectedRegion) {
-        var region = experiment.selectedRegion.region;
-
-        var c = scalePoint(region.center);
-
-        var w = region.max[0] - region.min[0];
-        var h = region.max[1] - region.min[1];
-
-        var s = Math.max(w, h) * (editMode ? 1.5 : 3);
-
-        scale = 1 / s;
-        translation = [sketch.width / 2 / scale - c[0], sketch.height / 2 / scale - c[1]];
-
-        sketch.scale(scale);
-        sketch.translate(translation[0], translation[1]);
-      }
+      translation = [sketch.width / 2 / scale - c[0], sketch.height / 2 / scale - c[1]];
     }
+
+    sketch.scale(scale);
+    sketch.translate(translation[0], translation[1]);
 
     // Clear the background
     sketch.background(127, 127, 127);

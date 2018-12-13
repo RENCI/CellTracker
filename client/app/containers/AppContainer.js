@@ -9,8 +9,8 @@ function getStateFromStore() {
   return {
     experimentList: DataStore.getExperimentList(),
     experiment: DataStore.getExperiment(),
+    settings: DataStore.getSettings(),
     loading: DataStore.getLoading(),
-    changesMade: DataStore.getChangesMade(),
     playback: DataStore.getPlayback(),
     traces: DataStore.getTraces()
   };

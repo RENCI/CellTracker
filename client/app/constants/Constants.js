@@ -17,6 +17,8 @@ module.exports = keyMirror({
 
   SELECT_REGION: null,
 
+  ZOOM: null,
+
   ADD_TRACE: null,
   UPDATE_TRACE: null,
   SELECT_TRACE: null

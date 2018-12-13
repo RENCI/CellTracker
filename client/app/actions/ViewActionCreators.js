@@ -67,6 +67,14 @@ module.exports = {
     });
   },
 
+  zoom: function (view, direction) {
+    AppDispatcher.dispatch({
+      actionType: Constants.ZOOM,
+      view: view,
+      direction: direction
+    });
+  },
+
   addTrace: function () {
     AppDispatcher.dispatch({
       actionType: Constants.ADD_TRACE

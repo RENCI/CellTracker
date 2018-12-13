@@ -44,7 +44,7 @@ function DataControls(props) {
         <button
           type="button"
           className="btn btn-primary btn-block"
-          disabled={!props.changesMade}
+          disabled={!props.experiment || !props.experiment.changesMade}
           onClick={onSaveClick}>
             Save
         </button>
@@ -55,8 +55,7 @@ function DataControls(props) {
 
 DataControls.propTypes = {
   experimentList: PropTypes.arrayOf(PropTypes.object).isRequired,
-  experiment: PropTypes.object,
-  changesMade: PropTypes.bool
+  experiment: PropTypes.object
 };
 
 module.exports = DataControls;
