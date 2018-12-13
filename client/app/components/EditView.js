@@ -53,8 +53,9 @@ function EditView(props) {
     var frameStyle = {
       flex: "1",
       width: "0px",
-      marginRight: i === frame + 2 ? "0px" : "5px",
       paddingTop: "5px",
+      paddingLeft: "5px",
+      paddingRight: "5px",
       borderRadius: "5px",
       background: i === props.playback.frame ? "#007bff" : "none"
     };
