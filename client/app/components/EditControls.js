@@ -1,20 +1,7 @@
 var React = require("react");
 var PropTypes = require("prop-types");
+var IconButton = require("./IconButton");
 var ViewActionCreators = require("../actions/ViewActionCreators");
-
-function button(iconName, callback, active) {
-  var classes = "btn btn-outline-secondary btn-sm";
-  if (active) classes += " active";
-
-  return (
-    <button
-      type="button"
-      className={classes}
-      onClick={callback}>
-        <span className={"oi " + iconName}></span>
-    </button>
-  );
-}
 
 function onVertexEditClick() {
 
@@ -43,15 +30,15 @@ function onZoomOutClick() {
 function EditControls(props) {
   return (
     <div className="form-inline">
-      <div className="btn-group mr-2">
-        {button("oi-pencil", onVertexEditClick, props.editMode === "vertex")}
-        {button("oi-wrench", onRegionEditClick, props.editMode === "region")}
-        {button("oi-fullscreen-exit", onMergeClick, props.editMode === "merge")}
-        {button("oi-fullscreen-enter", onSplitClick, props.editMode === "split")}
+      <div className="btn-group-sm mr-2">
+        <IconButton iconName="oi-pencil" callback={onVertexEditClick} active={props.editMode === "vertex"} />
+        <IconButton iconName="oi-wrench" callback={onRegionEditClick} active={props.editMode === "region"} />
+        <IconButton iconName="oi-fullscreen-exit" callback={onMergeClick} active={props.editMode === "merge"} />
+        <IconButton iconName="oi-fullscreen-enter" callback={onSplitClick} active={props.editMode === "split"} />
       </div>
-      <div className="btn-group">
-        {button("oi-zoom-in", onZoomInClick)}
-        {button("oi-zoom-out", onZoomOutClick)}
+      <div className="btn-group-sm">
+        <IconButton iconName="oi-zoom-in" callback={onZoomInClick} />
+        <IconButton iconName="oi-zoom-out" callback={onZoomOutClick} />
       </div>
     </div>
   );

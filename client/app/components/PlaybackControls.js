@@ -1,8 +1,9 @@
 var React = require("react");
+var IconButton = require("./IconButton");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
 function button(iconName, callback, active) {
-  var classes = "btn btn-outline-secondary btn-sm";
+  var classes = "btn btn-outline-secondary";
   if (active) classes += " active";
 
   return (
@@ -26,9 +27,9 @@ function onZoomOutClick() {
 function PlaybackControls() {
   return (
     <div className="form-inline">
-      <div className="btn-group">
-        {button("oi-zoom-in", onZoomInClick)}
-        {button("oi-zoom-out", onZoomOutClick)}
+      <div className="btn-group-sm">
+        <IconButton iconName="oi-zoom-in" callback={onZoomInClick} />
+        <IconButton iconName="oi-zoom-out" callback={onZoomOutClick} />
       </div>
     </div>
   );

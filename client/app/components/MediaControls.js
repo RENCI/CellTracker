@@ -1,5 +1,6 @@
 var React = require("react");
 var PropTypes = require("prop-types");
+var IconButton = require("./IconButton");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
 function onLoopClick() {
@@ -46,20 +47,6 @@ var rangeStyle = {
   marginLeft: 5
 };
 
-function button(iconName, callback, active) {
-  var classes = "btn btn-outline-secondary";
-  if (active) classes += " active";
-
-  return (
-    <button
-      type="button"
-      className={classes}
-      onClick={callback}>
-        <span className={"oi " + iconName}></span>
-    </button>
-  );
-}
-
 function MediaControls(props) {
   var playIcon = props.playback.play ? "oi-media-pause" : "oi-media-play";
   var loopIcon = props.playback.loop === "rock" ? "oi-resize-width" : "oi-loop";
@@ -74,12 +61,12 @@ function MediaControls(props) {
   return (
     <div className="input-group input-group-sm">
       <div className="input-group-prepend">
-        {button(loopIcon, onLoopClick, looping)}
-        {button("oi-media-skip-backward", onSkipBackwardClick)}
-        {button("oi-media-step-backward", onStepBackwardClick)}
-        {button(playIcon, onPlayClick)}
-        {button("oi-media-step-forward", onStepForwardClick)}
-        {button("oi-media-skip-forward", onSkipForwardClick)}
+        <IconButton iconName={loopIcon} callback={onLoopClick} active={looping} />
+        <IconButton iconName="oi-media-skip-backward" callback={onSkipBackwardClick} />
+        <IconButton iconName="oi-media-step-backward" callback={onStepBackwardClick} />
+        <IconButton iconName={playIcon} callback={onPlayClick} />
+        <IconButton iconName="oi-media-step-forward" callback={onStepForwardClick} />
+        <IconButton iconName="oi-media-skip-forward" callback={onSkipForwardClick} />
         <select
           value={props.playback.frameRate}
           onChange={onFrameRateChange}>
