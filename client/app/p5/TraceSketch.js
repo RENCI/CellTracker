@@ -362,19 +362,22 @@ module.exports = function (sketch) {
 
             var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
-            var w = 1 / (scale * 1.5 * 2);
+            // Equilateral triangle
+            var r = 1 / (scale * 1.5 * 2);
+            var a = Math.PI / 6;
+            var x = Math.cos(a) * r;
+            var y = Math.sin(a) * r;
 
             var region = {
               center: m,
               id: "object" + regions.length,
-              min: [m[0] - w, m[1] - w],
-              max: [m[0] + w, m[1] + w],
+              min: [m[0] - r, m[1] - r],
+              max: [m[0] + r, m[1] + r],
               selected: false,
               vertices: [
-                [m[0] - w, m[1] - w],
-                [m[0] - w, m[1] + w],
-                [m[0] + w, m[1] + w],
-                [m[0] + w, m[1] - w]
+                [m[0] - x, m[1] + y],
+                [m[0] + x, m[1] + y],
+                [m[0], m[1] - r]
               ]
             };
 
