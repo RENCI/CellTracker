@@ -35,7 +35,7 @@ TraceSketchWrapper.propTypes = {
   zoom: PropTypes.number,
   traces: PropTypes.arrayOf(PropTypes.object).isRequired,
   frame: PropTypes.number.isRequired,
-  editMode: PropTypes.bool,
+  editMode: PropTypes.string,
   onKeyPress: PropTypes.func.isRequired,
   onMouseWheel: PropTypes.func.isRequired,
   onSelectRegion: PropTypes.func.isRequired,
@@ -44,7 +44,7 @@ TraceSketchWrapper.propTypes = {
 
 TraceSketchWrapper.defaultProps = {
   zoom: 1,
-  editMode: false
+  editMode: "playback"
 };
 
 module.exports = TraceSketchWrapper;

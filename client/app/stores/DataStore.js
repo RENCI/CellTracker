@@ -29,7 +29,8 @@ var timer = null;
 // Settings
 var settings = {
   editZoom: 1,
-  playbackZoom: 1
+  playbackZoom: 1,
+  editMode: "vertex"
 };
 
 // Traces for this experiment
@@ -278,6 +279,10 @@ function zoom(view, direction) {
   }
 }
 
+function setEditMode(mode) {
+  settings.editMode = mode;
+}
+
 function addTrace() {
   traces.forEach(function (trace) {
     trace.active = false;
@@ -408,6 +413,11 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.ZOOM:
       zoom(action.view, action.direction);
+      DataStore.emitChange();
+      break;
+
+    case Constants.SET_EDIT_MODE:
+      setEditMode(action.mode);
       DataStore.emitChange();
       break;
 

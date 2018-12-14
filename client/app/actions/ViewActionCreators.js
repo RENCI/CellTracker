@@ -75,6 +75,13 @@ module.exports = {
     });
   },
 
+  setEditMode: function (mode) {
+    AppDispatcher.dispatch({
+      actionType: Constants.SET_EDIT_MODE,
+      mode: mode
+    });
+  },
+
   addTrace: function () {
     AppDispatcher.dispatch({
       actionType: Constants.ADD_TRACE

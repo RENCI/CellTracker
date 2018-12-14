@@ -4,19 +4,19 @@ var IconButton = require("./IconButton");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
 function onVertexEditClick() {
-
+  ViewActionCreators.setEditMode("vertex");
 }
 
 function onRegionEditClick() {
-
+  ViewActionCreators.setEditMode("region");
 }
 
 function onMergeClick() {
-
+  ViewActionCreators.setEditMode("merge");
 }
 
 function onSplitClick() {
-
+  ViewActionCreators.setEditMode("split");
 }
 
 function onZoomInClick() {

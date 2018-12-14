@@ -105,13 +105,13 @@ function EditView(props) {
       </div>
       <div className="col-md-7">
         <h4>Edit</h4>
-        <EditControls editMode="vertex" />
+        <EditControls editMode={props.settings.editMode} />
         <TraceSketchWrapper
           experiment={props.experiment}
           zoom={props.settings.editZoom}
           traces={props.traces}
           frame={props.experiment.selectedRegion.frame}
-          editMode={true}
+          editMode={props.settings.editMode}
           onKeyPress={handleKeyPress}
           onMouseWheel={handleMouseWheel}
           onSelectRegion={handleSelectRegion}

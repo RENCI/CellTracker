@@ -31,12 +31,14 @@ module.exports = function (sketch) {
       onSelectRegion = null;
 
   // Editing
-  var editMode = false;
+  var editView = false;
+  var editMode = "playback";
   var handle = null;
   var moveHandle = false;
   var moveMouse = false;
   // XXX: Need to keep the previous mouse position because mouse moved is firing on mouse pressed
   var oldMouseX = -1, oldMouseY = -1;
+  var splitLine = null;
 
   // Transform
   var scale = 1;
@@ -68,6 +70,9 @@ module.exports = function (sketch) {
     onMouseWheel = props.onMouseWheel;
     onSelectRegion = props.onSelectRegion;
     onUpdateTrace = props.onUpdateTrace;
+
+    editView = editMode !== "playback";
+    if (editMode !== "split") splitLine = null;
 
     // Check for new experiment
     if (!experiment || experiment.id !== props.experiment.id) {
@@ -183,7 +188,7 @@ module.exports = function (sketch) {
         }
         sketch.endShape();
 
-        if (editMode && region.selected) {
+        if (editView && region.selected) {
           // Draw points
           sketch.ellipseMode(sketch.RADIUS);
           sketch.fill(127, 127, 127);
@@ -205,6 +210,18 @@ module.exports = function (sketch) {
           });
         }
       });
+    }
+
+    if (editMode === "split" && splitLine) {
+      sketch.stroke(255, 255, 255, 127);
+
+      var weight = lineWeight / scale;
+      sketch.strokeWeight(weight);
+
+      // Draw line
+      var p1 = scalePoint(splitLine[0]);
+      var p2 = scalePoint(splitLine[1]);
+      sketch.line(p1[0], p1[1], p2[0], p2[1]);
     }
 /*
     // Draw path for current trace
@@ -232,14 +249,27 @@ module.exports = function (sketch) {
   function mousePressed(e) {
     e.preventDefault();
 
+    if (sketch.mouseButton !== sketch.LEFT) return;
+
     // Save mouse position
     oldMouseX = sketch.mouseX;
     oldMouseY = sketch.mouseY;
     moveMouse = false;
+
+    if (editMode === "split") {
+      var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+
+      splitLine = [
+        [m[0], m[1]],
+        [m[0], m[1]]
+      ];
+    }
   }
 
   function mouseMoved(e) {
     e.preventDefault();
+
+    if (sketch.mouseButton !== sketch.LEFT) return;
 
     // Check mouse position
     if (sketch.mouseX === oldMouseX && sketch.mouseY === oldMouseY) return;
@@ -247,98 +277,109 @@ module.exports = function (sketch) {
     oldMouseY = sketch.mouseY;
     moveMouse = true;
 
-    if (editMode) {
-      if (sketch.mouseIsPressed && sketch.mouseButton === sketch.LEFT && handle) {
-        moveHandle = true;
-        sketch.noCursor();
-      }
+    switch (editMode) {
+      case "playback":
+      break;
 
-      if (moveHandle) {
-        var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
-        handle[0] = m[0];
-        handle[1] = m[1];
+      case "vertex":
+        if (sketch.mouseIsPressed && handle) {
+          moveHandle = true;
+          sketch.noCursor();
+        }
 
-        sketch.redraw();
-      }
-      else if (!sketch.mouseIsPressed) {
-        highlight();
+        if (moveHandle) {
+          var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+          handle[0] = m[0];
+          handle[1] = m[1];
+        }
 
-        sketch.redraw();
-      }
+        break;
+
+      case "region":
+        break;
+
+      case "merge":
+      break;
+
+      case "split":
+        if (sketch.mouseIsPressed) {
+          var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+
+          splitLine[1] = [m[0], m[1]];
+        }
+
+        break;
     }
-    else {
-      highlight();
 
-      sketch.redraw();
-    }
+    highlight();
+    sketch.redraw();
   }
 
   function mouseReleased(e) {
     e.preventDefault();
 
-    switch (sketch.mouseButton) {
-      case sketch.LEFT:
-        if (editMode) {
-          if (!moveMouse) {
-            var vertices = experiment.selectedRegion.region.vertices;
+    if (sketch.mouseButton !== sketch.LEFT) return;
 
-            if (handle) {
-              // Remove handle
-              var i = vertices.indexOf(handle);
+    switch (editMode) {
+      case "playback":
+        if (!moveMouse) {
+          // Select segmentation region
+          if (segmentationData) {
+            var selected = segmentationData[frame].filter(function(region) {
+              return region.highlight;
+            });
 
-              vertices.splice(i, 1);
-
-              // XXX: Check for empty vertices? Remove region if so?
+            if (selected.length > 0) {
+              onSelectRegion(frame, selected[0]);
             }
             else {
-              // Add handle at mouse position
-              var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
-
-              // Get indeces for pairs of vertices
-              var segments = vertices.reduce(function(p, c, i, a) {
-                if (i === a.length - 1) p.push([i, 0]);
-                else p.push([i, i + 1]);
-                return p;
-              }, []);
-
-              // Find closest line segment to this point
-              var segment = segments.reduce(function(p, c, i) {
-                var d = pointLineSegmentDistance(m, vertices[c[0]], vertices[c[1]]);
-                return d < p.d ? { d: d, i: i } : p;
-              }, { d: 1.0, i: -1 });
-
-              // Insert new point
-              vertices.splice(segments[segment.i][1], 0, m);
-            }
-          }
-
-          moveHandle = false;
-          sketch.cursor(sketch.ARROW);
-
-          highlight();
-          sketch.redraw();
-        }
-        else {
-          if (!moveMouse) {
-            // Select segmentation region
-            if (segmentationData) {
-              var selected = segmentationData[frame].filter(function(region) {
-                return region.highlight;
-              });
-
-              if (selected.length > 0) {
-                onSelectRegion(frame, selected[0]);
-              }
-              else {
-                onSelectRegion();
-              }
+              onSelectRegion();
             }
           }
         }
 
         break;
 
-      case sketch.CENTER:
+      case "vertex":
+        if (!moveMouse) {
+          var vertices = experiment.selectedRegion.region.vertices;
+
+          if (handle) {
+            // Remove handle
+            var i = vertices.indexOf(handle);
+
+            vertices.splice(i, 1);
+
+            // XXX: Check for empty vertices? Remove region if so?
+          }
+          else {
+            // Add handle at mouse position
+            var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+
+            // Get indeces for pairs of vertices
+            var segments = vertices.reduce(function(p, c, i, a) {
+              if (i === a.length - 1) p.push([i, 0]);
+              else p.push([i, i + 1]);
+              return p;
+            }, []);
+
+            // Find closest line segment to this point
+            var segment = segments.reduce(function(p, c, i) {
+              var d = pointLineSegmentDistance(m, vertices[c[0]], vertices[c[1]]);
+              return d < p.d ? { d: d, i: i } : p;
+            }, { d: 1.0, i: -1 });
+
+            // Insert new point
+            vertices.splice(segments[segment.i][1], 0, m);
+          }
+        }
+
+        moveHandle = false;
+        sketch.cursor(sketch.ARROW);
+
+        break;
+
+      case "region":
         if (moveMouse) return;
 
         // Select segmentation region
@@ -349,81 +390,142 @@ module.exports = function (sketch) {
 
         selected = selected.length > 0 ? selected[0] : null;
 
-        if (editMode) {
-          if (selected) {
-            // Delete region
-            var regions = segmentationData[frame];
-            var i = regions.indexOf(selected);
-            regions.splice(i, 1);
-          }
-          else {
-            // Add region
-            var regions = segmentationData[frame];
-
-            var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
-
-            // Equilateral triangle
-            var r = 1 / (scale * 1.5 * 2);
-            var a = Math.PI / 6;
-            var x = Math.cos(a) * r;
-            var y = Math.sin(a) * r;
-
-            var region = {
-              center: m,
-              id: "object" + regions.length,
-              min: [m[0] - r, m[1] - r],
-              max: [m[0] + r, m[1] + r],
-              selected: false,
-              vertices: [
-                [m[0] - x, m[1] + y],
-                [m[0] + x, m[1] + y],
-                [m[0], m[1] - r]
-              ]
-            };
-
-            regions.push(region);
-
-            onSelectRegion(frame, region);
-          }
+        if (selected) {
+          // Delete region
+          var regions = segmentationData[frame];
+          var i = regions.indexOf(selected);
+          regions.splice(i, 1);
         }
         else {
-          if (selected) {
-            // Delete region
-            var regions = segmentationData[frame];
-            var i = regions.indexOf(selected);
-            regions.splice(i, 1);
+          // Add region
+          var regions = segmentationData[frame];
+
+          var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+
+          // Equilateral triangle
+          var r = 1 / (scale * 1.5 * 2);
+          var a = Math.PI / 6;
+          var x = Math.cos(a) * r;
+          var y = Math.sin(a) * r;
+
+          var region = {
+            center: m,
+            id: "object" + regions.length,
+            min: [m[0] - r, m[1] - r],
+            max: [m[0] + r, m[1] + r],
+            selected: false,
+            vertices: [
+              [m[0] - x, m[1] + y],
+              [m[0] + x, m[1] + y],
+              [m[0], m[1] - r]
+            ]
+          };
+
+          regions.push(region);
+
+          onSelectRegion(frame, region);
+        }
+
+        break;
+
+    case "merge":
+      break;
+
+    case "split":
+        if (splitLine) {
+          // Find intersections with region line segments
+          var vertices = experiment.selectedRegion.region.vertices;
+          var intersections = [];
+
+          for (var i = 0; i < vertices.length; i++) {
+            var v1 = vertices[i],
+                v2 = vertices[i === vertices.length - 1 ? 0 : i + 1];
+
+            var p = lineSegmentIntersection(splitLine[0], splitLine[1], v1, v2);
+
+            if (p) {
+              intersections.push({
+                index: i,
+                point: p
+              });
+            }
           }
-          else {
-            // Add region
+
+          if (intersections.length === 2) {
+            // Split into two regions
+            var v1 = [];
+            var v2 = [];
+
+            for (var i = 0; i < vertices.length; i++) {
+              if (i === intersections[0].index) {
+                var p = intersections[0].point;
+
+                v1.push(vertices[i]);
+                v1.push(p);
+
+                v2.push(p);
+              }
+              else if (i === intersections[1].index) {
+                var p = intersections[1].point;
+
+                v2.push(vertices[i]);
+                v2.push(p);
+
+                v1.push(p);
+              }
+              else if (i > intersections[0].index && i < intersections[1].index) {
+                v2.push(vertices[i]);
+              }
+              else {
+                v1.push(vertices[i]);
+              }
+            }
+
             var regions = segmentationData[frame];
 
-            var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
-
-            var w = 0.02;
-
-            var region = {
-              center: m,
+            var r1 = experiment.selectedRegion.region;
+            var newRegion = {
               id: "object" + regions.length,
-              min: [m[0] - w, m[1] - w],
-              max: [m[0] + w, m[1] + w],
-              selected: false,
-              vertices: [
-                [m[0] - w, m[1] - w],
-                [m[0] - w, m[1] + w],
-                [m[0] + w, m[1] + w],
-                [m[0] + w, m[1] - w]
-              ]
+              selected: false
             };
 
-            regions.push(region);
+            setVertices(experiment.selectedRegion.region, v1);
+            setVertices(newRegion, v2);
+
+            regions.push(newRegion);
+
+            function setVertices(region, vertices) {
+              region.vertices = vertices;
+
+              // Get extent
+              var x = vertices.map(function (vertex) { return vertex[0]; });
+              var y = vertices.map(function (vertex) { return vertex[1]; });
+
+              region.min = [
+                x.reduce(function(p, c) { return Math.min(p, c); }),
+                y.reduce(function(p, c) { return Math.min(p, c); })
+              ];
+
+              region.max = [
+                x.reduce(function(p, c) { return Math.max(p, c); }),
+                y.reduce(function(p, c) { return Math.max(p, c); })
+              ];
+
+              region.center = [
+                (region.min[0] + region.max[0]) / 2,
+                (region.min[1] + region.max[1]) / 2
+              ];
+            }
           }
         }
 
-        highlight();
-        sketch.redraw();
+        splitLine = null;
+
+        break;
     }
 
-
+    highlight();
+    sketch.redraw();
 
 
       // XXX: Below for tracing
@@ -531,48 +633,52 @@ module.exports = function (sketch) {
       region.highlight = false;
     });
 
-    if (editMode) {
-      // Test vertices
-      var region = experiment.selectedRegion.region;
+    sketch.cursor(sketch.ARROW);
 
-      // Radius
-      var r = handleHighlightRadius / scale;
-
-      for (var i = 0; i < region.vertices.length; i++) {
-        var p = scalePoint(region.vertices[i]);
-        var d = sketch.dist(m[0], m[1], p[0], p[1]);
-
-        if (d <= r) {
-          handle = region.vertices[i];
-          sketch.cursor(sketch.HAND);
+    switch (editMode) {
+      case "playback":
+        if (scale !== 1) {
+          sketch.cursor(sketch.MOVE);
         }
-      }
-    }
 
-    if (!handle) {
-      // Default arrows
-      if (editMode) {
+      case "region":
+      case "merge":
+        // Test regions
+        for (var i = 0; i < seg.length; i++) {
+          if (insidePolygon(normalizePoint(m), seg[i].vertices)) {
+            seg[i].highlight = true;
+
+            sketch.cursor(sketch.HAND);
+
+            break;
+          }
+        }
+
+        break;
+
+      case "vertex":
         sketch.cursor(sketch.CROSS);
-      }
-      else if (scale !== 1) {
-        sketch.cursor(sketch.MOVE);
-      }
-      else {
-        sketch.cursor(sketch.ARROW);
-      }
 
-      // Test regions
-      for (var i = 0; i < seg.length; i++) {
-        if (insidePolygon(normalizePoint(m), seg[i].vertices)) {
-          seg[i].highlight = true;
+        // Test vertices
+        var region = experiment.selectedRegion.region;
 
-          if (!editMode) {
+        // Radius
+        var r = handleHighlightRadius / scale;
+
+        for (var i = 0; i < region.vertices.length; i++) {
+          var p = scalePoint(region.vertices[i]);
+          var d = sketch.dist(m[0], m[1], p[0], p[1]);
+
+          if (d <= r) {
+            handle = region.vertices[i];
             sketch.cursor(sketch.HAND);
           }
-
-          break;
         }
-      }
+
+        break;
+
+      case "split":
+        break;
     }
 
     // Adapted from: http://paulbourke.net/geometry/polygonmesh/
@@ -630,6 +736,36 @@ module.exports = function (sketch) {
       // Return closest line segment end point
       return Math.min(sketch.dist(p[0], p[1], p1[0], p1[1]), sketch.dist(p[0], p[1], p2[0], p2[1]));
     }
+  }
+
+  // Return intersection point of two line segments
+  // Based on technique described here: http://paulbourke.net/geometry/pointlineplane/
+  function lineSegmentIntersection(p1, p2, p3, p4) {
+    // Check that none of the lines are of length 0
+  	if ((p1[0] === p2[0] && p1[1] === p2[1]) || (p3[0] === p4[0] && p3[1] === p4[1])) {
+  		return false;
+  	}
+
+  	var denominator = ((p4[1] - p3[1]) * (p2[0] - p1[0]) - (p4[0] - p3[0]) * (p2[1] - p1[1]));
+
+    // Lines are parallel
+  	if (denominator === 0) {
+  		return null;
+  	}
+
+  	var ua = ((p4[0] - p3[0]) * (p1[1] - p3[1]) - (p4[1] - p3[1]) * (p1[0] - p3[0])) / denominator;
+  	var ub = ((p2[0] - p1[0]) * (p1[1] - p3[1]) - (p2[1] - p1[1]) * (p1[0] - p3[0])) / denominator;
+
+    // Is the intersection along the segments?
+  	if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
+  		return null;
+  	}
+
+    // Return the x and y coordinates of the intersection
+  	var x = p1[0] + ua * (p2[0] - p1[0]);
+  	var y = p1[1] + ua * (p2[1] - p1[1]);
+
+  	return [x, y];
   }
 
   function innerWidth(element) {
