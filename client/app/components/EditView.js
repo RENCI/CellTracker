@@ -1,6 +1,7 @@
 var React = require("react");
 var PropTypes = require("prop-types");
 var TraceSketchWrapper = require("../p5/TraceSketchWrapper");
+var PlaybackControls = require("./PlaybackControls");
 var MediaControls = require("./MediaControls");
 var EditControls = require("./EditControls");
 var ViewActionCreators = require("../actions/ViewActionCreators");
@@ -84,44 +85,37 @@ function EditView(props) {
   }
 
   return (
-    <div>
-      <div className="row">
-        <div className="col-md-5">
-          <h4>Playback</h4>
-          <TraceSketchWrapper
-            experiment={props.experiment}
-            zoom={props.settings.playbackZoom}
-            traces={props.traces}
-            frame={props.playback.frame}
-            onKeyPress={handleKeyPress}
-            onMouseWheel={handleMouseWheel}
-            onSelectRegion={handleSelectRegion}
-            onUpdateTrace={handleUpdateTrace} />
-          <div style={frameDivStyle}>
-            {frames}
-          </div>
-          <MediaControls {...props} />
+    <div className="row">
+      <div className="col-md-5">
+        <h4>Playback</h4>
+        <PlaybackControls />
+        <TraceSketchWrapper
+          experiment={props.experiment}
+          zoom={props.settings.playbackZoom}
+          traces={props.traces}
+          frame={props.playback.frame}
+          onKeyPress={handleKeyPress}
+          onMouseWheel={handleMouseWheel}
+          onSelectRegion={handleSelectRegion}
+          onUpdateTrace={handleUpdateTrace} />
+        <div style={frameDivStyle}>
+          {frames}
         </div>
-        <div className="col-md-7">
-          <h4>Edit</h4>
-          <div style={{display: "flex"}}>
-            <div style={{flex: "1"}}>
-              <TraceSketchWrapper
-                experiment={props.experiment}
-                zoom={props.settings.editZoom}
-                traces={props.traces}
-                frame={props.experiment.selectedRegion.frame}
-                editMode={true}
-                onKeyPress={handleKeyPress}
-                onMouseWheel={handleMouseWheel}
-                onSelectRegion={handleSelectRegion}
-                onUpdateTrace={handleUpdateTrace} />
-            </div>
-            <div style={{flex: "0 0 auto"}}>
-              <EditControls editMode="vertex" />
-            </div>
-          </div>
-        </div>
+        <MediaControls {...props} />
+      </div>
+      <div className="col-md-7">
+        <h4>Edit</h4>
+        <EditControls editMode="vertex" />
+        <TraceSketchWrapper
+          experiment={props.experiment}
+          zoom={props.settings.editZoom}
+          traces={props.traces}
+          frame={props.experiment.selectedRegion.frame}
+          editMode={true}
+          onKeyPress={handleKeyPress}
+          onMouseWheel={handleMouseWheel}
+          onSelectRegion={handleSelectRegion}
+          onUpdateTrace={handleUpdateTrace} />
       </div>
     </div>
   );

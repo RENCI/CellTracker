@@ -42,14 +42,17 @@ function onZoomOutClick() {
 
 function EditControls(props) {
   return (
-    <div className="btn-group-vertical ml-1">
-      {button("oi-pencil", onVertexEditClick, props.editMode === "vertex")}
-      {button("oi-wrench", onRegionEditClick, props.editMode === "region")}
-      {button("oi-fullscreen-exit", onMergeClick, props.editMode === "merge")}
-      {button("oi-fullscreen-enter", onSplitClick, props.editMode === "split")}
-      <div className="mb-1"/>
-      {button("oi-zoom-in", onZoomInClick)}
-      {button("oi-zoom-out", onZoomOutClick)}
+    <div className="form-inline">
+      <div className="btn-group mr-2">
+        {button("oi-pencil", onVertexEditClick, props.editMode === "vertex")}
+        {button("oi-wrench", onRegionEditClick, props.editMode === "region")}
+        {button("oi-fullscreen-exit", onMergeClick, props.editMode === "merge")}
+        {button("oi-fullscreen-enter", onSplitClick, props.editMode === "split")}
+      </div>
+      <div className="btn-group">
+        {button("oi-zoom-in", onZoomInClick)}
+        {button("oi-zoom-out", onZoomOutClick)}
+      </div>
     </div>
   );
 }

@@ -258,25 +258,23 @@ function setZoomLevels(region) {
 }
 
 function zoom(view, direction) {
+  // Min and max zoom values
   var minZoom = 1;
   var maxZoom = 50;
 
+  // Set the key for the parameter to adjust
+  var key = view === "playback" ? "playbackZoom" : "editZoom";
+
+  // Zoom in or out
   var s = 1.5;
   if (direction === "out") s = 1 / s;
 
-  if (view === "playback") {
-    var newZoom = settings.playbackZoom * s;
+  // Calculate the zoom
+  var newZoom = settings[key] * s;
 
-    if (newZoom >= minZoom && newZoom <= maxZoom) {
-      settings.playbackZoom = newZoom;
-    }
-  }
-  else {
-    var newZoom = settings.editZoom * s;
-
-    if (newZoom >= minZoom && newZoom <= maxZoom) {
-      settings.editZoom = newZoom;
-    }
+  // Check for valid zoom amount
+  if (newZoom >= minZoom && newZoom <= maxZoom) {
+    settings[key] = newZoom;
   }
 }
 
