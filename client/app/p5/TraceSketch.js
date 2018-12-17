@@ -72,7 +72,7 @@ module.exports = function (sketch) {
     onUpdateTrace = props.onUpdateTrace;
 
     editView = editMode !== "playback";
-    if (editMode !== "split") splitLine = null;
+    if (editMode !== "split" && editMode !== "trim") splitLine = null;
 
     // Check for new experiment
     if (!experiment || experiment.id !== props.experiment.id) {
@@ -212,7 +212,7 @@ module.exports = function (sketch) {
       });
     }
 
-    if (editMode === "split" && splitLine) {
+    if (splitLine) {
       sketch.stroke(255, 255, 255, 127);
 
       var weight = lineWeight / scale;
@@ -256,7 +256,7 @@ module.exports = function (sketch) {
     oldMouseY = sketch.mouseY;
     moveMouse = false;
 
-    if (editMode === "split") {
+    if (editMode === "split" || editMode === "trim") {
       var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
       splitLine = [
@@ -302,6 +302,7 @@ module.exports = function (sketch) {
       break;
 
       case "split":
+      case "trim":
         if (sketch.mouseIsPressed) {
           var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
@@ -428,10 +429,10 @@ module.exports = function (sketch) {
 
         break;
 
-    case "merge":
-      break;
+      case "merge":
+        break;
 
-    case "split":
+      case "split":
         if (splitLine) {
           // Find intersections with region line segments
           var vertices = experiment.selectedRegion.region.vertices;
@@ -512,28 +513,54 @@ module.exports = function (sketch) {
 
               return m === 0 ? v : [v[0] / m, v[1] / m];
             }
+          }
+        }
 
-            function setVertices(region, vertices) {
-              region.vertices = vertices;
+        splitLine = null;
 
-              // Get extent
-              var x = vertices.map(function (vertex) { return vertex[0]; });
-              var y = vertices.map(function (vertex) { return vertex[1]; });
+        break;
 
-              region.min = [
-                x.reduce(function(p, c) { return Math.min(p, c); }),
-                y.reduce(function(p, c) { return Math.min(p, c); })
-              ];
+      case "trim":
+        if (splitLine) {
+          // Find intersections with region line segments
+          var vertices = experiment.selectedRegion.region.vertices;
+          var intersections = [];
 
-              region.max = [
-                x.reduce(function(p, c) { return Math.max(p, c); }),
-                y.reduce(function(p, c) { return Math.max(p, c); })
-              ];
+          for (var i = 0; i < vertices.length; i++) {
+            var v1 = vertices[i],
+                v2 = vertices[i === vertices.length - 1 ? 0 : i + 1];
 
-              region.center = [
-                (region.min[0] + region.max[0]) / 2,
-                (region.min[1] + region.max[1]) / 2
-              ];
+            var p = lineSegmentIntersection(splitLine[0], splitLine[1], v1, v2);
+
+            if (p) {
+              intersections.push({
+                index: i,
+                point: p
+              });
+            }
+          }
+
+          if (intersections.length === 2) {
+            // Split into two regions
+            var v1 = [];
+            var v2 = [];
+
+            for (var i = 0; i < vertices.length; i++) {
+              var v = vertices[i];
+
+              if (i > intersections[0].index && i <= intersections[1].index) {
+                v2.push(v);
+              }
+              else {
+                v1.push(v);
+              }
+            }
+
+            if (v1.length > v2.length) {
+              setVertices(experiment.selectedRegion.region, v1);
+            }
+            else if (v2.length > v1.length) {
+              setVertices(experiment.selectedRegion.region, v2);
             }
           }
         }
@@ -546,6 +573,28 @@ module.exports = function (sketch) {
     highlight();
     sketch.redraw();
 
+    function setVertices(region, vertices) {
+      region.vertices = vertices;
+
+      // Get extent
+      var x = vertices.map(function (vertex) { return vertex[0]; });
+      var y = vertices.map(function (vertex) { return vertex[1]; });
+
+      region.min = [
+        x.reduce(function(p, c) { return Math.min(p, c); }),
+        y.reduce(function(p, c) { return Math.min(p, c); })
+      ];
+
+      region.max = [
+        x.reduce(function(p, c) { return Math.max(p, c); }),
+        y.reduce(function(p, c) { return Math.max(p, c); })
+      ];
+
+      region.center = [
+        (region.min[0] + region.max[0]) / 2,
+        (region.min[1] + region.max[1]) / 2
+      ];
+    }
 
       // XXX: Below for tracing
   /*
