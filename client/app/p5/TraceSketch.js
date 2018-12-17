@@ -452,32 +452,45 @@ module.exports = function (sketch) {
           }
 
           if (intersections.length === 2) {
+            // Offset amount
+            var offset = 0.5 / images[0].width;
+
             // Split into two regions
             var v1 = [];
             var v2 = [];
 
             for (var i = 0; i < vertices.length; i++) {
+              var v = vertices[i];
+
               if (i === intersections[0].index) {
                 var p = intersections[0].point;
 
-                v1.push(vertices[i]);
-                v1.push(p);
+                var x = normalize([p[0] - v[0], p[1] - v[1]]);
+                x[0] *= offset;
+                x[1] *= offset;
 
-                v2.push(p);
+                v1.push(v);
+                v1.push([p[0] - x[0], p[1] - x[1]]);
+
+                v2.push([p[0] + x[0], p[1] + x[1]]);
               }
               else if (i === intersections[1].index) {
                 var p = intersections[1].point;
 
-                v2.push(vertices[i]);
-                v2.push(p);
+                var x = normalize([p[0] - v[0], p[1] - v[1]]);
+                x[0] *= offset;
+                x[1] *= offset;
 
-                v1.push(p);
+                v2.push(v);
+                v2.push([p[0] - x[0], p[1] - x[1]]);
+
+                v1.push([p[0] + x[0], p[1] + x[1]]);
               }
               else if (i > intersections[0].index && i < intersections[1].index) {
-                v2.push(vertices[i]);
+                v2.push(v);
               }
               else {
-                v1.push(vertices[i]);
+                v1.push(v);
               }
             }
 
@@ -493,6 +506,12 @@ module.exports = function (sketch) {
             setVertices(newRegion, v2);
 
             regions.push(newRegion);
+
+            function normalize(v) {
+              var m = Math.sqrt(v[0] * v[0] + v[1] * v[1]);
+
+              return m === 0 ? v : [v[0] / m, v[1] / m];
+            }
 
             function setVertices(region, vertices) {
               region.vertices = vertices;
