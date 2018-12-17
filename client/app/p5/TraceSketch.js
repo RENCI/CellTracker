@@ -454,6 +454,7 @@ module.exports = function (sketch) {
 
               // Merge regions
               var merged = [];
+
               for (var i = 0; i < pair1.i; i++) {
                 merged.push(selectedValid[i]);
               }
@@ -462,7 +463,7 @@ module.exports = function (sketch) {
 
               // XXX: Refactor to reduce redundancy with above code
               for (var i = 0; i < mergeValid.length; i++) {
-                var j = (i + pair1.j) % mergeValid.length;
+                var j = (i + pair1.j + 1) % mergeValid.length;
 
                 if (j === pair2.j) break;
 
@@ -487,11 +488,12 @@ module.exports = function (sketch) {
               var mergeStart;
               for (var i = 0; i < selectedValid.length; i++) {
                 var v1 = selectedValid[i];
-                var v2 = i === selectedValid.length - 1 ? selectedValid[0] : selectedValid[i + 1];
 
                 if (v1) {
                   // Add this one
                   merged.push(v1);
+
+                  var v2 = selectedValid[(i + 1) % selectedValid.length];
 
                   if (!v2) {
                     // Find closest merge point
@@ -508,9 +510,13 @@ module.exports = function (sketch) {
 
                     mergeStart = closest.i;
 
+                    selectedValid[i] = null;
+
                     break;
                   }
                 }
+
+                selectedValid[i] = null;
               }
 
               // XXX: Refactor to reduce redundancy with above code
@@ -519,11 +525,12 @@ module.exports = function (sketch) {
                 var i1 = (i + mergeStart) % mergeValid.length;
 
                 var v1 = mergeValid[i1];
-                var v2 = i1 === mergeValid.length - 1 ? mergeValid[0] : mergeValid[i1 + 1];
 
                 if (v1) {
                   // Add this one
                   merged.push(v1);
+
+                  var v2 = mergeValid[(i1 + 1) % mergeValid.length];
 
                   if (!v2) {
                     // Find closest merge point
@@ -540,16 +547,20 @@ module.exports = function (sketch) {
 
                     selectedStart = closest.i;
 
+                    mergeValid[i1] = null;
+
                     break;
                   }
                 }
+
+                mergeValid[i1] = null;
               }
 
               for (var i = selectedStart; i < selectedValid.length; i++) {
                 var v = selectedValid[i];
 
                 if (v) merged.push(v);
-                else break;
+                //else break;
               }
 
               // Update the vertices
@@ -731,8 +742,8 @@ module.exports = function (sketch) {
             max: [m[0] + r, m[1] + r],
             selected: false,
             vertices: [
-              [m[0] - x, m[1] + y],
               [m[0] + x, m[1] + y],
+              [m[0] - x, m[1] + y],
               [m[0], m[1] - r]
             ]
           };
