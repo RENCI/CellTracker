@@ -382,6 +382,114 @@ module.exports = function (sketch) {
         break;
 
       case "merge":
+        if (!moveMouse) {
+          // Select segmentation region
+          // XXX: Redundant with code above
+          var merge = segmentationData[frame].filter(function(region) {
+            return region.highlight;
+          });
+
+          merge = merge.length > 0 ? merge[0] : null;
+
+          if (merge && merge !== experiment.selectedRegion.region) {
+            var dilation = 1 / images[0].width;
+
+            var selected = experiment.selectedRegion.region;
+
+            // Dilate the two regions
+            var selectedDilate = dilate(selected.vertices, dilation);
+            var mergeDilate = dilate(merge.vertices, dilation);
+
+            // Nullify points in the dilation intersection
+            var selectedValid = selected.vertices.map(function(v) {
+              return insidePolygon(v, mergeDilate) ? null : v;
+            });
+
+            var mergeValid = merge.vertices.map(function(v) {
+              return insidePolygon(v, selectedDilate) ? null : v;
+            });
+
+            // Merge points
+            var merged = [];
+            var mergeStart;
+            for (var i = 0; i < selectedValid.length; i++) {
+              var v1 = selectedValid[i];
+              var v2 = i === selectedValid.length - 1 ? selectedValid[0] : selectedValid[i + 1];
+
+              if (v1) {
+                // Add this one
+                merged.push(v1);
+
+                if (!v2) {
+                  // Find closest merge point
+                  var closest = mergeValid.reduce(function(p, c, i) {
+                    if (!c) return p;
+
+                    var x = v1[0] - c[0];
+                    var y = v1[1] - c[1];
+                    var d = x * x + y * y;
+
+                    return p === null || d < p.d ? {
+                      i: i,
+                      d: d
+                    } : p;
+                  }, null);
+
+                  mergeStart = closest.i;
+
+                  break;
+                }
+              }
+            }
+
+            // XXX: Refactor to reduce redundancy with above code
+            var selectedStart;
+            for (var i = 0; i < mergeValid.length; i++) {
+              var i1 = (i + mergeStart) % mergeValid.length;
+              var v1 = mergeValid[i1];
+              var v2 = i1 === mergeValid.length - 1 ? mergeValid[0] : mergeValid[i + 1];
+
+              if (v1) {
+                // Add this one
+                merged.push(v1);
+
+                if (!v2) {
+                  // Find closest merge point
+                  var closest = selectedValid.reduce(function(p, c, i) {
+                    if (!c) return p;
+
+                    var x = v1[0] - c[0];
+                    var y = v1[1] - c[1];
+                    var d = x * x + y * y;
+
+                    return p === null || d < p.d ? {
+                      i: i,
+                      d: d
+                    } : p;
+                  }, null);
+
+                  selectedStart = closest.i;
+
+                  break;
+                }
+              }
+            }
+
+            for (var i = selectedStart; i < selectedValid.length; i++) {
+              var v = selectedValid[i];
+
+              if (v) merged.push(v);
+              else break;
+            }
+
+            // Update the vertices
+            setVertices(selected, merged);
+
+            // Remove the other region
+            segmentationData[frame].splice(segmentationData[frame].indexOf(merge), 1);
+          }
+        }
+
         break;
 
       case "split":
@@ -459,12 +567,6 @@ module.exports = function (sketch) {
             setVertices(newRegion, v2);
 
             regions.push(newRegion);
-
-            function normalize(v) {
-              var m = Math.sqrt(v[0] * v[0] + v[1] * v[1]);
-
-              return m === 0 ? v : [v[0] / m, v[1] / m];
-            }
           }
         }
 
@@ -613,6 +715,28 @@ module.exports = function (sketch) {
         (region.min[0] + region.max[0]) / 2,
         (region.min[1] + region.max[1]) / 2
       ];
+    }
+
+    function normalize(v) {
+      var m = Math.sqrt(v[0] * v[0] + v[1] * v[1]);
+
+      return m === 0 ? v : [v[0] / m, v[1] / m];
+    }
+
+    function dilate(vertices, alpha) {
+      return vertices.map(function(v, i, a) {
+        // Get neighbors
+        var v1 = i === 0 ? a[a.length - 1] : a[i - 1];
+        var v2 = i === a.length - 1 ? a[0] : a[i + 1];
+
+        // Get normals
+        var n1 = normalize([v[1] - v1[1], -(v[0] - v1[0])]);
+        var n2 = normalize([v2[1] - v[1], -(v2[0] - v[0])]);
+        var n = [(n1[0] + n2[0]) / 2, (n1[1] + n2[1]) / 2];
+
+        // Dilate
+        return [v[0] + n[0] * alpha, v[1] + n[1] * alpha];
+      });
     }
 
       // XXX: Below for tracing
@@ -771,35 +895,35 @@ module.exports = function (sketch) {
       case "trim":
         break;
     }
+  }
 
-    // Adapted from: http://paulbourke.net/geometry/polygonmesh/
-    function insidePolygon(p, polygon) {
-      var n = polygon.length,
-          counter = 0;
+  // Adapted from: http://paulbourke.net/geometry/polygonmesh/
+  function insidePolygon(p, polygon) {
+    var n = polygon.length,
+        counter = 0;
 
-      var p0 = polygon[0];
+    var p0 = polygon[0];
 
-      for (var i = 1; i <= n; i++) {
-        var p1 = polygon[i % n];
+    for (var i = 1; i <= n; i++) {
+      var p1 = polygon[i % n];
 
-        if (p[1] > Math.min(p0[1], p1[1])) {
-          if (p[1] <= Math.max(p0[1], p1[1])) {
-            if (p[0] <= Math.max(p0[0], p1[0])) {
-              if (p0[1] !== p1[1]) {
-                var xInt = (p[1] - p0[1]) * (p1[0] - p0[0]) / (p1[1] - p0[1]) + p0[0];
+      if (p[1] > Math.min(p0[1], p1[1])) {
+        if (p[1] <= Math.max(p0[1], p1[1])) {
+          if (p[0] <= Math.max(p0[0], p1[0])) {
+            if (p0[1] !== p1[1]) {
+              var xInt = (p[1] - p0[1]) * (p1[0] - p0[0]) / (p1[1] - p0[1]) + p0[0];
 
-                if (p0[0] === p1[0] || p[0] <= xInt) counter++;
-              }
+              if (p0[0] === p1[0] || p[0] <= xInt) counter++;
             }
           }
         }
-
-        p0 = p1;
       }
 
-      if (counter % 2 === 0) return false;
-      else return true;
+      p0 = p1;
     }
+
+    if (counter % 2 === 0) return false;
+    else return true;
   }
 
   // Return the distance between a point p and a line segment p1p2
