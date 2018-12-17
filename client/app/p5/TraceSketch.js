@@ -295,9 +295,6 @@ module.exports = function (sketch) {
 
         break;
 
-      case "region":
-        break;
-
       case "merge":
       break;
 
@@ -309,6 +306,10 @@ module.exports = function (sketch) {
           splitLine[1] = [m[0], m[1]];
         }
 
+        break;
+
+      case "regionEdit":
+      case "regionSelect":
         break;
     }
 
@@ -377,55 +378,6 @@ module.exports = function (sketch) {
 
         moveHandle = false;
         sketch.cursor(sketch.ARROW);
-
-        break;
-
-      case "region":
-        if (moveMouse) return;
-
-        // Select segmentation region
-        // XXX: Redundant with code above
-        var selected = segmentationData[frame].filter(function(region) {
-          return region.highlight;
-        });
-
-        selected = selected.length > 0 ? selected[0] : null;
-
-        if (selected) {
-          // Delete region
-          var regions = segmentationData[frame];
-          var i = regions.indexOf(selected);
-          regions.splice(i, 1);
-        }
-        else {
-          // Add region
-          var regions = segmentationData[frame];
-
-          var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
-
-          // Equilateral triangle
-          var r = 1 / (scale * 1.5 * 2);
-          var a = Math.PI / 6;
-          var x = Math.cos(a) * r;
-          var y = Math.sin(a) * r;
-
-          var region = {
-            center: m,
-            id: "object" + regions.length,
-            min: [m[0] - r, m[1] - r],
-            max: [m[0] + r, m[1] + r],
-            selected: false,
-            vertices: [
-              [m[0] - x, m[1] + y],
-              [m[0] + x, m[1] + y],
-              [m[0], m[1] - r]
-            ]
-          };
-
-          regions.push(region);
-
-          onSelectRegion(frame, region);
-        }
 
         break;
 
@@ -556,6 +508,7 @@ module.exports = function (sketch) {
               }
             }
 
+            // Keep region with most vertices
             if (v1.length > v2.length) {
               setVertices(experiment.selectedRegion.region, v1);
             }
@@ -566,6 +519,72 @@ module.exports = function (sketch) {
         }
 
         splitLine = null;
+
+        break;
+
+      case "regionEdit":
+        if (moveMouse) return;
+
+        // Select segmentation region
+        // XXX: Redundant with code above
+        var selected = segmentationData[frame].filter(function(region) {
+          return region.highlight;
+        });
+
+        selected = selected.length > 0 ? selected[0] : null;
+
+        if (selected) {
+          // Delete region
+          var regions = segmentationData[frame];
+          var i = regions.indexOf(selected);
+          regions.splice(i, 1);
+        }
+        else {
+          // Add region
+          var regions = segmentationData[frame];
+
+          var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+
+          // Equilateral triangle
+          var r = 1 / (scale * 1.5 * 2);
+          var a = Math.PI / 6;
+          var x = Math.cos(a) * r;
+          var y = Math.sin(a) * r;
+
+          var region = {
+            center: m,
+            id: "object" + regions.length,
+            min: [m[0] - r, m[1] - r],
+            max: [m[0] + r, m[1] + r],
+            selected: false,
+            vertices: [
+              [m[0] - x, m[1] + y],
+              [m[0] + x, m[1] + y],
+              [m[0], m[1] - r]
+            ]
+          };
+
+          regions.push(region);
+
+          onSelectRegion(frame, region);
+        }
+
+        break;
+
+      case "regionSelect":
+        if (moveMouse) return;
+
+        // Select segmentation region
+        // XXX: Redundant with code above
+        var selected = segmentationData[frame].filter(function(region) {
+          return region.highlight;
+        });
+
+        selected = selected.length > 0 ? selected[0] : null;
+
+        if (selected) {
+          onSelectRegion(frame, selected);
+        }
 
         break;
     }
@@ -709,7 +728,8 @@ module.exports = function (sketch) {
           sketch.cursor(sketch.MOVE);
         }
 
-      case "region":
+      case "regionEdit":
+      case "regionSelect":
       case "merge":
         // Test regions
         for (var i = 0; i < seg.length; i++) {
@@ -746,6 +766,9 @@ module.exports = function (sketch) {
         break;
 
       case "split":
+        break;
+
+      case "trim":
         break;
     }
 
