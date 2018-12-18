@@ -24,8 +24,8 @@ from rest_framework import status
 from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist, DataObjectDoesNotExist
 
-from ct_core.utils import read_video, extract_images_from_video, read_image_frame, \
-    convert_csv_to_json, get_exp_frame_no, get_seg_collection
+from ct_core.utils import get_experiment_list, read_video, extract_images_from_video, \
+    read_image_frame, convert_csv_to_json, get_exp_frame_no, get_seg_collection
 from ct_core.forms import SignUpForm, UserProfileForm
 from ct_core.models import UserProfile
 from django_irods.storage import IrodsStorage
@@ -136,25 +136,11 @@ def get_experiment_list(request):
     :param request:
     :return:
     """
-    exp_list = []
-    with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
-                      password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
-        hpath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER
-        coll = session.collections.get(hpath)
-        for col in coll.subcollections:
-            exp_dict = {}
-            exp_dict['id'] = col.name
-            try:
-                # str() is needed by python irods client metadata method
-                key = str('experiment_name')
-                col_md = col.metadata.get_one(key)
-                exp_dict['name'] = col_md.value
-            except KeyError:
-                exp_dict['name'] = ''
-            exp_list.append(exp_dict)
+    exp_list, err_msg = get_experiment_list()
+    if exp_list:
         return HttpResponse(json.dumps(exp_list), content_type='application/json')
-
-    return HttpResponse(json.dumps({'error': 'Cannot connect to iRODS data server'}),
+    if err_msg:
+        return HttpResponse(json.dumps({'error': 'Cannot connect to iRODS data server'}),
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 

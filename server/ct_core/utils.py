@@ -15,6 +15,34 @@ from django_irods.storage import IrodsStorage
 frame_no_key = 'frame_no'
 
 
+def get_experiment_list():
+    """
+    Get all experiments from iRODS and return it as a list of dicts along with error message
+    if any
+    :return: experiment list and error message
+    """
+    exp_list = []
+    err_msg = ''
+    with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
+                      password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
+        hpath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER
+        coll = session.collections.get(hpath)
+        for col in coll.subcollections:
+            exp_dict = {}
+            exp_dict['id'] = col.name
+            try:
+                # str() is needed by python irods client metadata method
+                key = str('experiment_name')
+                col_md = col.metadata.get_one(key)
+                exp_dict['name'] = col_md.value
+            except KeyError:
+                exp_dict['name'] = ''
+            exp_list.append(exp_dict)
+        return exp_list, err_msg
+
+    return exp_list, 'Cannot connect to iRODS data server'
+
+
 def read_video(filename):
     cap = cv2.VideoCapture(filename)
     success, frame = cap.read()
@@ -149,7 +177,7 @@ def convert_csv_to_json(exp_id):
             if ext != '.csv':
                 continue
 
-            logical_file = session.data_objects.get(coll_path + '/' + obj.name)
+            logical_file = session.data_objects.get(obj.path)
             with logical_file.open('r') as f:
                 contents = csv.reader(f)
                 last_fno = -1

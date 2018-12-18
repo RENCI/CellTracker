@@ -21,7 +21,9 @@ class Migration(migrations.Migration):
             name='UserProfile',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('grade', models.PositiveSmallIntegerField(blank=True, validators=[django.core.validators.MaxValueValidator(12), django.core.validators.MinValueValidator(1)])),
+                ('grade', models.PositiveSmallIntegerField(blank=True, null=True,
+                                                           validators=[django.core.validators.MaxValueValidator(12),
+                                                                       django.core.validators.MinValueValidator(1)])),
                 ('school', models.CharField(blank=True, max_length=100)),
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='user', to=settings.AUTH_USER_MODEL)),
             ],
