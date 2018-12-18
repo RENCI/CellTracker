@@ -7,7 +7,7 @@ import json
 
 from django.db import migrations
 
-from ct_core.utils import get_experiment_list, get_seg_collection
+from ct_core.utils import get_experiment_list_util, get_seg_collection
 
 
 def add_segmentation_from_irods(apps, schema_editor):
@@ -15,7 +15,7 @@ def add_segmentation_from_irods(apps, schema_editor):
     We can't import the Segmentation model directly as it may be a newer
     version than this migration expects. We use the historical version.
     '''
-    exp_list, err_msg = get_experiment_list()
+    exp_list, err_msg = get_experiment_list_util()
     for exp in exp_list:
         exp_id = exp['id']
         session, coll, coll_path = get_seg_collection(exp_id)

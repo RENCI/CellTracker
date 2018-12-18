@@ -15,7 +15,7 @@ from django_irods.storage import IrodsStorage
 frame_no_key = 'frame_no'
 
 
-def get_experiment_list():
+def get_experiment_list_util():
     """
     Get all experiments from iRODS and return it as a list of dicts along with error message
     if any

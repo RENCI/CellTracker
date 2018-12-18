@@ -22,12 +22,12 @@ from django.contrib import messages
 from rest_framework import status
 
 from irods.session import iRODSSession
-from irods.exception import CollectionDoesNotExist, DataObjectDoesNotExist
+from irods.exception import CollectionDoesNotExist
 
-from ct_core.utils import get_experiment_list, read_video, extract_images_from_video, \
+from ct_core.utils import get_experiment_list_util, read_video, extract_images_from_video, \
     read_image_frame, convert_csv_to_json, get_exp_frame_no, get_seg_collection
 from ct_core.forms import SignUpForm, UserProfileForm
-from ct_core.models import UserProfile
+from ct_core.models import UserProfile, Segmentation
 from django_irods.storage import IrodsStorage
 
 
@@ -136,7 +136,7 @@ def get_experiment_list(request):
     :param request:
     :return:
     """
-    exp_list, err_msg = get_experiment_list()
+    exp_list, err_msg = get_experiment_list_util()
     if exp_list:
         return HttpResponse(json.dumps(exp_list), content_type='application/json')
     if err_msg:
@@ -305,17 +305,15 @@ def get_seg_data(request, exp_id):
 
 
 def get_frame_seg_data(request, exp_id, frame_no):
-    with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
-                      password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
-        dpath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id) + \
-                '/data/segmentation/frame' + str(frame_no) + '.json'
-        try:
-            fobj = session.data_objects.get(dpath)
-            with fobj.open('r') as f:
-                json_resp_data = json.load(f)
+    seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=int(frame_no))
+    if seg_obj:
+        json_resp_data = seg_obj.data
+        if json_resp_data:
             return HttpResponse(json.dumps(json_resp_data), content_type='application/json')
-        except DataObjectDoesNotExist:
+        else:
             return JsonResponse({})
+    else:
+        return JsonResponse({})
 
 
 def save_tracking_data(request, exp_id):
