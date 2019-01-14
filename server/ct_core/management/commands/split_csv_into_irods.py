@@ -60,7 +60,12 @@ class Command(BaseCommand):
                         if istr.startswith('frame'):
                             curr_fno = int(istr[len('frame'):])
                             if obj_dict:
-                                frame_ary.append(obj_dict)
+                                # filter out polygons with less than 3 vertices
+                                if len(obj_dict['vertices']) > 2:
+                                    frame_ary.append(obj_dict)
+                                else:
+                                    print('filtering out frame ' + str(last_fno) + ' object ' +
+                                          obj_dict['id'])
                                 obj_dict = {}
                             if frame_ary and last_fno < curr_fno:
                                 # starting a new frame - write out frame csv file and put it to
@@ -104,7 +109,12 @@ class Command(BaseCommand):
 
             # write the last frame
             if obj_dict:
-                frame_ary.append(obj_dict)
+                # filter out polygons with less than 3 vertices
+                if len(obj_dict['vertices']) > 2:
+                    frame_ary.append(obj_dict)
+                else:
+                    print('filtering out frame ' + str(curr_fno) + ' object ' +
+                          obj_dict['id'])
                 ofilename = 'frame' + str(last_fno + 1) + '.json'
                 outf_name = outf_path + ofilename
                 with open(outf_name, 'w') as outf:
