@@ -3,6 +3,7 @@ import time
 import os
 import shutil
 import csv
+import json
 
 from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist
@@ -10,6 +11,8 @@ from irods.exception import CollectionDoesNotExist
 from django.conf import settings
 
 from django_irods.storage import IrodsStorage
+
+from ct_core.models import Segmentation
 
 
 frame_no_key = 'frame_no'
@@ -219,3 +222,26 @@ def convert_csv_to_json(exp_id):
             break
 
     return resp_data
+
+
+def sync_seg_data_to_db(eid):
+    session, coll, coll_path = get_seg_collection(eid)
+    if coll:
+        for obj in coll.data_objects:
+            basename, ext = os.path.splitext(obj.name)
+            if ext != '.json':
+                continue
+            # logical_file = session.data_objects.get(obj.path)
+            # with logical_file.open('r') as json_f:
+            #     json_data = json.load(json_f)
+            #     frame_no = int(basename[len('frame'):])
+            #     idx = obj.path.find(eid)
+            #     rel_path = obj.path[idx:]
+            #     obj, created = Segmentation.objects.get_or_create(exp_id=eid,
+            #                                                       frame_no=frame_no,
+            #                                                       file=rel_path,
+            #                                                       defaults={'data': json_data})
+            #     if not created:
+            #         # Segmentation object already exists, update it with new json data
+            #         obj.data = json_data
+            #         obj.save()

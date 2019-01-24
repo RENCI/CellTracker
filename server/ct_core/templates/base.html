@@ -38,7 +38,7 @@
               Update your profile <a href="{% url 'account_update' user.id %}">here</a>
             </div>
             <div>Have fun and when you are done, you can <a href="{% url 'logout' %}">logout</a></div>
-          {% elif user_profile %}
+          {% elif user_profile is not None %}
               <div>Your user profile</div>
           {% endif %}
         </div>
