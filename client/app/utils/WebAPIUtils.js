@@ -78,8 +78,8 @@ function getExperimentInfo(id) {
       var n = Math.min(data.frames, 5);
       var start = Math.round(Math.random() * (data.frames - n));
       data.frames = n;
-
-      console.log(start + ", " + (start + n - 1));
+      data.start = start;
+      data.stop = start + n -1;
 
       // Create an action
       ServerActionCreators.receiveExperiment(data);
@@ -107,43 +107,6 @@ function getExperimentInfo(id) {
       console.log(textStatus + ": " + errorThrown);
     }
   });
-}
-
-function getSegmentationData(id, frames) {
-  setupAjax();
-
-  var segmentationData = [];
-  var loaded = 0;
-
-  function makeLoader(n) {
-    return function(data) {
-      segmentationData[n] = data;
-      loaded++;
-
-      if (loaded === frames) {
-        // XXX: Add UpdateSegmentationLoading
-        //onUpdateLoading(null);
-
-        // Receive the data
-        ServerActionCreators.receiveSegmentationData(segmentationData);
-      }
-      else {
-        // XXX: Add UpdateSegmentationLoading
-        //onUpdateLoading(loaded + 1, numFrames);
-      }
-    }
-  }
-
-  for (var i = 0; i < frames; i++) {
-    $.ajax({
-      type: "POST",
-      url: "/get_frame_seg_data/" + id + "/" + (i + 1),
-      success: makeLoader(i),
-      error: function (xhr, textStatus, errorThrown) {
-        console.log(textStatus + ": " + errorThrown);
-      }
-    });
-  }
 }
 
 function saveSegmentationData(id, data) {
@@ -193,7 +156,6 @@ function saveTraces(id, traces) {
 module.exports = {
   getExperimentList: getExperimentList,
   getExperimentInfo: getExperimentInfo,
-  getSegmentationData: getSegmentationData,
   saveSegmentationData: saveSegmentationData,
   saveTraces: saveTraces
 };

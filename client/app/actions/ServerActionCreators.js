@@ -21,11 +21,11 @@ module.exports = {
       image: image
     });
   },
-  receiveSegmentationFrame: function (frame, segmentation) {
+  receiveSegmentationFrame: function (frame, segmentations) {
     AppDispatcher.dispatch({
       actionType: Constants.RECEIVE_SEGMENTATION_FRAME,
       frame: frame,
-      segmentation: segmentation
+      segmentations: segmentations
     });
   }
 };

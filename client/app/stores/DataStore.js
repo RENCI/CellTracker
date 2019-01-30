@@ -54,10 +54,6 @@ function setExperiment(newExperiment) {
     experiment.images = [];
     experiment.segmentationData = experiment.hasSegmentation ? [] : null;
 
-    // XXX: Currently not routing edits through the data store, so leaving as true for now.
-    // Should be false until an edit has been made in the future.
-    experiment.changesMade = true;
-
     framesLoaded = 0;
     segFramesLoaded = 0;
 
@@ -65,16 +61,16 @@ function setExperiment(newExperiment) {
   }
 }
 
-function receiveFrame(i, frame) {
-  experiment.images[i] = frame;
+function receiveFrame(i, image) {
+  experiment.images[i] = image;
   framesLoaded++;
 
   updateLoading();
 }
 
-function receiveSegmentationFrame(i, frame) {
+function receiveSegmentationFrame(frame, segmentations) {
   // Process vertices
-  frame.forEach(function (region) {
+  segmentations.forEach(function (region) {
     var vertices = region.vertices;
 
     // Remove duplicate vertex at the end
@@ -111,7 +107,12 @@ function receiveSegmentationFrame(i, frame) {
     ];
   });
 
-  experiment.segmentationData[i] = frame;
+  experiment.segmentationData[frame] = {
+    frame: experiment.start + frame,
+    edited: false,
+    regions: segmentations
+  };
+
   segFramesLoaded++;
 
   updateLoading();
@@ -229,7 +230,7 @@ function setFrameRate(frameRate) {
 
 function selectRegion(frame, region) {
   experiment.segmentationData.forEach(function (frame) {
-    frame.forEach(function (region) {
+    frame.regions.forEach(function (region) {
       region.selected = false;
     });
   });
@@ -362,7 +363,7 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
       break;
 
     case Constants.RECEIVE_SEGMENTATION_FRAME:
-      receiveSegmentationFrame(action.frame, action.segmentation);
+      receiveSegmentationFrame(action.frame, action.segmentations);
       DataStore.emitChange();
       break;
 
