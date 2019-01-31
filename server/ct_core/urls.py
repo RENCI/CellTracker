@@ -26,4 +26,6 @@ urlpatterns = [
     url(r'^get_seg_data/(?P<exp_id>.*)$', views.get_seg_data, name='get_seg_data'),
     url(r'^get_frame_seg_data/(?P<exp_id>.*)/(?P<frame_no>[0-9]+)$', views.get_frame_seg_data,
         name='get_frame_seg_data'),
+    url(r'^save_segmentation_data/(?P<exp_id>.*)/(?P<frame_no>[0-9]+)$', views.save_frame_seg_data,
+        name='save_frame_seg_data'),
 ]

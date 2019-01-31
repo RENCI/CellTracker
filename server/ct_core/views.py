@@ -354,3 +354,12 @@ def save_tracking_data(request, exp_id):
         return HttpResponse("Trace has been saved correctly")
 
     return HttpResponseServerError('iRODS session error')
+
+
+def save_frame_seg_data(request, exp_id, frame_no):
+    uname = request.user.username
+    exp_id = exp_id
+    fno = frame_no
+    seg_data = request.POST
+
+    return JsonResponse(status=status.HTTP_200_OK)
