@@ -11,14 +11,6 @@ module.exports = {
     WebAPIUtils.getExperimentInfo(id);
   },
 
-  saveSegmentationData: function (id, segmentationData) {
-    WebAPIUtils.saveSegmentationData(id, segmentationData);
-
-    AppDispatcher.dispatch({
-      actionType: Constants.SAVE_SEGMENTATION_DATA
-    });
-  },
-
   cycleLoop: function () {
     AppDispatcher.dispatch({
       actionType: Constants.CYCLE_LOOP
@@ -75,6 +67,23 @@ module.exports = {
       actionType: Constants.EDIT_REGION,
       frame: frame,
       region: region
+    });
+  },
+  saveSegmentationData: function (id, segmentationData) {
+    WebAPIUtils.saveSegmentationData(id, segmentationData);
+
+    AppDispatcher.dispatch({
+      actionType: Constants.SAVE_SEGMENTATION_DATA
+    });
+  },
+  undoHistory: function () {
+    AppDispatcher.dispatch({
+      actionType: Constants.UNDO_HISTORY
+    });
+  },
+  redoHistory: function () {
+    AppDispatcher.dispatch({
+      actionType: Constants.REDO_HISTORY
     });
   },
 

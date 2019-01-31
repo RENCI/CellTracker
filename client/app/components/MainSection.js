@@ -43,6 +43,7 @@ function MainSection(props) {
 MainSection.propTypes = {
   experimentList: PropTypes.arrayOf(PropTypes.object).isRequired,
   experiment: PropTypes.object,
+  history: PropTypes.object,
   settings: PropTypes.object,
   loading: PropTypes.object,
   playback: PropTypes.object,

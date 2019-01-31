@@ -2,13 +2,14 @@ var React = require("react");
 var PropTypes = require("prop-types");
 
 function IconButton(props) {
-  var classes = "btn btn-outline-secondary";
+  let classes = props.classes;
   if (props.active) classes += " active";
 
   return (
     <button
       type="button"
       className={classes}
+      disabled={props.disabled}
       onClick={props.callback}>
         <span className={"oi " + props.iconName}></span>
     </button>
@@ -17,12 +18,16 @@ function IconButton(props) {
 
 IconButton.propTypes = {
   iconName: PropTypes.string.isRequired,
-  callback: PropTypes.func.isRequired,
-  active: PropTypes.bool
+  classes: PropTypes.string,
+  disabled: PropTypes.bool,
+  active: PropTypes.bool,
+  callback: PropTypes.func.isRequired
 };
 
 IconButton.defaultProps = {
-  active: false
+  disabled: false,
+  active: false,
+  classes: "btn btn-outline-secondary"
 };
 
 module.exports = IconButton;

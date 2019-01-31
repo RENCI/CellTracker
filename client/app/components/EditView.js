@@ -51,6 +51,8 @@ var frameDivStyle = {
 };
 
 function EditView(props) {
+  console.log(props);
+
   var frame = props.experiment.selectedRegion.frame;
   var frames = [];
 

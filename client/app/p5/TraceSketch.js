@@ -92,10 +92,10 @@ module.exports = function (sketch) {
         return im;
       });
 
-      segmentationData = experiment.segmentationData;
-
       resizeImages();
     }
+
+    if (experiment) segmentationData = experiment.segmentationData;
 
     highlight();
     sketch.redraw();

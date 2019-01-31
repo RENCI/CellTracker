@@ -11,6 +11,12 @@ var experimentList = [];
 // Active experiment
 var experiment = null;
 
+// User edit history
+var history = {
+  index: -1,
+  edits: []
+};
+
 // Loading information
 var framesLoaded = 0;
 var segFramesLoaded = 0;
@@ -53,6 +59,8 @@ function setExperiment(newExperiment) {
     })[0].name;
     experiment.images = [];
     experiment.segmentationData = experiment.hasSegmentation ? [] : null;
+
+    resetHistory();
 
     framesLoaded = 0;
     segFramesLoaded = 0;
@@ -114,6 +122,10 @@ function receiveSegmentationFrame(frame, segmentations) {
   };
 
   segFramesLoaded++;
+
+  if (segFramesLoaded === experiment.frames) {
+    pushHistory(experiment.segmentationData);
+  }
 
   updateLoading();
 }
@@ -251,6 +263,71 @@ function selectRegion(frame, region) {
 
 function editRegion(frame, region) {
   experiment.segmentationData[frame].edited = true;
+
+  pushHistory(experiment.segmentationData);
+}
+
+function resetHistory() {
+  history.edits = [];
+  history.index = -1;
+}
+
+function pushHistory(data) {
+  console.log("push");
+  console.log(history);
+
+  // Remove anything more recent
+  history.edits.splice(history.index + 1);
+
+  // Add to the end
+  history.index = history.edits.push(cloneData(data)) - 1;
+
+  // Remove first if too long
+  if (history.edits.length > 10) {
+    history.edits.shift();
+  }
+
+  console.log(history);
+}
+
+function undoHistory() {
+  if (history.index > 0) {
+    history.index--;
+    experiment.segmentationData = cloneData(history.edits[history.index]);
+
+    updateFromHistory();
+  }
+}
+
+function redoHistory() {
+  if (history.index < history.edits.length - 1) {
+    history.index++;
+    experiment.segmentationData = cloneData(history.edits[history.index]);
+
+    updateFromHistory();
+  }
+}
+
+function updateFromHistory() {
+  let frame = experiment.selectedRegion.frame;
+  let regions = experiment.segmentationData[frame].regions.filter(function (region) {
+    return region.selected;
+  });
+
+  if (regions.length > 0) {
+    experiment.selectedRegion = {
+      frame: frame,
+      region: regions[0]
+    };
+  }
+  else {
+    experiment.selectedRegion = null;
+  }
+}
+
+function cloneData(d) {
+  // XXX: Using to/from JSON to clone, maybe look at other approaches?
+  return JSON.parse(JSON.stringify(d));
 }
 
 function saveSegmentationData() {
@@ -341,6 +418,9 @@ var DataStore = assign({}, EventEmitter.prototype, {
   getExperiment: function () {
     return experiment;
   },
+  getHistory: function () {
+    return history;
+  },
   getSettings: function () {
     return settings;
   },
@@ -430,6 +510,16 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.SAVE_SEGMENTATION_DATA:
       saveSegmentationData();
+      DataStore.emitChange();
+      break;
+
+    case Constants.UNDO_HISTORY:
+      undoHistory();
+      DataStore.emitChange();
+      break;
+
+    case Constants.UNDO_HISTORY:
+      redoHistory();
       DataStore.emitChange();
       break;
 

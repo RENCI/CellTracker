@@ -18,6 +18,8 @@ module.exports = keyMirror({
   SELECT_REGION: null,
   EDIT_REGION: null,
   SAVE_SEGMENTATION_DATA: null,
+  UNDO_HISTORY: null,
+  REDO_HISTORY: null,
 
   ZOOM: null,
   SET_EDIT_MODE: null,
