@@ -249,6 +249,17 @@ function selectRegion(frame, region) {
   }
 }
 
+function editRegion(frame, region) {
+  experiment.segmentationData[frame].edited = true;
+}
+
+function saveSegmentationData() {
+  // Clear edited flag
+  experiment.segmentationData.forEach(function (frame) {
+    frame.edited = false;
+  });
+}
+
 function setZoomLevels(region) {
   var w = region.max[0] - region.min[0];
   var h = region.max[1] - region.min[1];
@@ -409,6 +420,16 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.SELECT_REGION:
       selectRegion(action.frame, action.region);
+      DataStore.emitChange();
+      break;
+
+    case Constants.EDIT_REGION:
+      editRegion(action.frame, action.region);
+      DataStore.emitChange();
+      break;
+
+    case Constants.SAVE_SEGMENTATION_DATA:
+      saveSegmentationData();
       DataStore.emitChange();
       break;
 

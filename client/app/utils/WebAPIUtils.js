@@ -112,18 +112,23 @@ function getExperimentInfo(id) {
 function saveSegmentationData(id, data) {
   setupAjax();
 
-  console.log(id, data);
+  // Send each edited frame
+  data.filter(function(d) {
+    return d.edited;
+  }).forEach(function(d) {
+    console.log("Saving frame " + d.frame);
 
-  $.ajax({
-    type: "POST",
-    url: "/save_segmentation_data/" + id,
-    data: data,
-    success: function (data) {
-      // Segmentation saved action?
-    },
-    error: function (xhr, textStatus, errorThrown) {
-      console.log(textStatus + ": " + errorThrown);
-    }
+    $.ajax({
+      type: "POST",
+      url: "/save_segmentation_data/" + id + "/" + d.frame,
+      data: data.regions,
+      success: function (data) {
+        // Segmentation saved action?
+      },
+      error: function (xhr, textStatus, errorThrown) {
+        console.log(textStatus + ": " + errorThrown);
+      }
+    });
   });
 }
 

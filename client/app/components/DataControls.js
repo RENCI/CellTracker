@@ -14,7 +14,7 @@ function DataControls(props) {
     );
   }
 
-  var options = [
+  let options = [
     <option key="-1" value="" disabled hidden>
       Select experiment
     </option>
@@ -27,6 +27,10 @@ function DataControls(props) {
       </option>
     );
   }));
+
+  let changesMade = props.experiment && props.experiment.segmentationData.reduce(function (p, c) {
+    return p || c.edited;
+  }, false);
 
   return (
     <div className="form-row mb-3">
@@ -44,7 +48,7 @@ function DataControls(props) {
         <button
           type="button"
           className="btn btn-primary btn-block"
-          disabled={!props.experiment || !props.experiment.changesMade}
+          disabled={!changesMade}
           onClick={onSaveClick}>
             Save
         </button>

@@ -37,6 +37,10 @@ function handleSelectRegion(frame, region) {
   ViewActionCreators.selectRegion(frame, region);
 }
 
+function handleEditRegion(frame, region) {
+  ViewActionCreators.editRegion(frame, region);
+}
+
 function handleUpdateTrace(points) {
   ViewActionCreators.updateTrace(points);
 }
@@ -115,6 +119,7 @@ function EditView(props) {
           onKeyPress={handleKeyPress}
           onMouseWheel={handleMouseWheel}
           onSelectRegion={handleSelectRegion}
+          onEditRegion={handleEditRegion}
           onUpdateTrace={handleUpdateTrace} />
       </div>
     </div>

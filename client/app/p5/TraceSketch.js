@@ -30,7 +30,8 @@ module.exports = function (sketch) {
 
   // Segmentation
   var segmentationData = null,
-      onSelectRegion = null;
+      onSelectRegion = null,
+      onEditRegion = null;
 
   // Editing
   var editView = false;
@@ -71,6 +72,7 @@ module.exports = function (sketch) {
     onKeyPress = props.onKeyPress;
     onMouseWheel = props.onMouseWheel;
     onSelectRegion = props.onSelectRegion;
+    onEditRegion = props.onEditRegion;
     onUpdateTrace = props.onUpdateTrace;
 
     editView = editMode !== "playback";
@@ -336,12 +338,8 @@ module.exports = function (sketch) {
         if (!moveMouse) {
           // Select segmentation region
           if (segmentationData) {
-            var selected = segmentationData[frame].regions.filter(function(region) {
-              return region.highlight;
-            });
-
-            if (selected.length > 0) {
-              onSelectRegion(frame, selected[0]);
+            if (highlightRegion) {
+              onSelectRegion(frame, highlightRegion);
             }
             else {
               onSelectRegion();
@@ -354,11 +352,19 @@ module.exports = function (sketch) {
       case "vertex":
         if (!moveMouse) {
           if (handle) {
-            RegionEditing.removeVertex(region, handle);
+            if (RegionEditing.removeVertex(region, handle)) {
+              onEditRegion(frame, region);
+            }
           }
           else {
             // Add handle at mouse position
             RegionEditing.addVertex(region, normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])));
+            onEditRegion(frame, region);
+          }
+        }
+        else {
+          if (handle) {
+            onEditRegion(frame, region);
           }
         }
 
@@ -371,6 +377,7 @@ module.exports = function (sketch) {
         if (!moveMouse) {
           if (highlightRegion && highlightRegion !== region) {
             RegionEditing.mergeRegions(region, highlightRegion, 1.1 / images[0].width, segmentationData[frame].regions);
+            onEditRegion(frame, region);
           }
         }
 
@@ -379,6 +386,7 @@ module.exports = function (sketch) {
       case "split":
         if (splitLine) {
           RegionEditing.splitRegion(region, splitLine, 0.5 / images[0].width, segmentationData[frame].regions);
+          onEditRegion(frame, region);
         }
 
         splitLine = null;
@@ -388,6 +396,7 @@ module.exports = function (sketch) {
       case "trim":
         if (splitLine) {
           RegionEditing.trimRegion(region, splitLine);
+          onEditRegion(frame, region);
         }
 
         splitLine = null;
@@ -399,6 +408,7 @@ module.exports = function (sketch) {
 
         if (highlightRegion) {
           RegionEditing.removeRegion(highlightRegion, segmentationData[frame].regions);
+          onEditRegion(frame, region);
         }
         else {
           RegionEditing.addRegion(
@@ -407,6 +417,7 @@ module.exports = function (sketch) {
             segmentationData[frame].regions
           );
 
+          onEditRegion(frame, region);
           onSelectRegion(frame, region);
         }
 
