@@ -113,15 +113,22 @@ function saveSegmentationData(id, data) {
   setupAjax();
 
   // Send each edited frame
-  data.filter(function(d) {
-    return d.edited;
-  }).forEach(function(d) {
-    console.log("Saving frame " + d.frame);
+  data.filter(function (frame) {
+    return frame.edited;
+  }).forEach(function (frame) {
+    console.log("Saving frame " + frame.frame);
+
+    let regions = JSON.stringify(frame.regions.map(function(region) {
+      return {
+        id: region.id,
+        vertices: region.vertices
+      };
+    }));
 
     $.ajax({
       type: "POST",
-      url: "/save_segmentation_data/" + id + "/" + d.frame,
-      data: data.regions,
+      url: "/save_segmentation_data/" + id + "/" + frame.frame,
+      data: regions,
       success: function (data) {
         // Segmentation saved action?
       },
