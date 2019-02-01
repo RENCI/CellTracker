@@ -259,6 +259,8 @@ function selectRegion(frame, region) {
   else {
     experiment.selectedRegion = null;
   }
+
+  pushHistory(experiment.segmentationData);
 }
 
 function editRegion(frame, region) {
@@ -273,9 +275,6 @@ function resetHistory() {
 }
 
 function pushHistory(data) {
-  console.log("push");
-  console.log(history);
-
   // Remove anything more recent
   history.edits.splice(history.index + 1);
 
@@ -286,8 +285,6 @@ function pushHistory(data) {
   if (history.edits.length > 10) {
     history.edits.shift();
   }
-
-  console.log(history);
 }
 
 function undoHistory() {
@@ -309,6 +306,8 @@ function redoHistory() {
 }
 
 function updateFromHistory() {
+  if (!experiment.selectedRegion) return;
+
   let frame = experiment.selectedRegion.frame;
   let regions = experiment.segmentationData[frame].regions.filter(function (region) {
     return region.selected;
@@ -518,7 +517,7 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
       DataStore.emitChange();
       break;
 
-    case Constants.UNDO_HISTORY:
+    case Constants.REDO_HISTORY:
       redoHistory();
       DataStore.emitChange();
       break;
