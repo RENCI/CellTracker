@@ -124,7 +124,7 @@ function receiveSegmentationFrame(frame, segmentations) {
   segFramesLoaded++;
 
   if (segFramesLoaded === experiment.frames) {
-    pushHistory(experiment.segmentationData);
+    pushHistory();
   }
 
   updateLoading();
@@ -260,13 +260,13 @@ function selectRegion(frame, region) {
     experiment.selectedRegion = null;
   }
 
-  pushHistory(experiment.segmentationData);
+  pushHistory();
 }
 
 function editRegion(frame, region) {
   experiment.segmentationData[frame].edited = true;
 
-  pushHistory(experiment.segmentationData);
+  pushHistory();
 }
 
 function resetHistory() {
@@ -274,12 +274,16 @@ function resetHistory() {
   history.index = -1;
 }
 
-function pushHistory(data) {
+function pushHistory() {
   // Remove anything more recent
   history.edits.splice(history.index + 1);
 
   // Add to the end
-  history.index = history.edits.push(cloneData(data)) - 1;
+  history.index = history.edits.push({
+    segmentationData: cloneData(experiment.segmentationData),
+    editZoom: settings.editZoom,
+    playbackZoom: settings.playbackZoom
+  }) - 1;
 
   // Remove first if too long
   if (history.edits.length > 10) {
@@ -290,33 +294,51 @@ function pushHistory(data) {
 function undoHistory() {
   if (history.index > 0) {
     history.index--;
-    experiment.segmentationData = cloneData(history.edits[history.index]);
 
-    updateFromHistory();
+    getHistory();
   }
 }
 
 function redoHistory() {
   if (history.index < history.edits.length - 1) {
     history.index++;
-    experiment.segmentationData = cloneData(history.edits[history.index]);
 
-    updateFromHistory();
+    getHistory();
   }
 }
 
-function updateFromHistory() {
-  if (!experiment.selectedRegion) return;
+function getHistory() {
+  let edit = history.edits[history.index];
 
-  let frame = experiment.selectedRegion.frame;
-  let regions = experiment.segmentationData[frame].regions.filter(function (region) {
-    return region.selected;
-  });
+  experiment.segmentationData = cloneData(edit.segmentationData);
+  settings.editZoom = edit.editZoom;
+  settings.playbackZoom = edit.playbackZoom;
 
-  if (regions.length > 0) {
+  updateSelectedRegionFromHistory();
+}
+
+function updateSelectedRegionFromHistory() {
+  // Get selected region, if any
+  let frame = -1;
+  let selectedRegion = null;
+
+  for (let i = 0; i < experiment.segmentationData.length; i++) {
+    let data = experiment.segmentationData[i];
+
+    for (let j = 0; j < data.regions.length; j++) {
+      let region = data.regions[j];
+
+      if (region.selected) {
+        frame = i;
+        selectedRegion = region;
+      }
+    }
+  }
+
+  if (selectedRegion) {
     experiment.selectedRegion = {
       frame: frame,
-      region: regions[0]
+      region: selectedRegion
     };
   }
   else {
@@ -369,6 +391,8 @@ function zoom(view, direction) {
 
 function setEditMode(mode) {
   settings.editMode = mode;
+
+  pushHistory();
 }
 
 function addTrace() {
