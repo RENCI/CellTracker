@@ -48,7 +48,7 @@ class Segmentation(models.Model):
 
 
 class UserSegmentation(models.Model):
-    user = models.OneToOneField(User, related_name='segmentation_user')
+    user = models.ForeignKey(User, related_name='segmentation_user')
     exp_id = models.CharField(max_length=50)
     frame_no = models.PositiveIntegerField()
     data = JSONField()

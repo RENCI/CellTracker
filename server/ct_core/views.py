@@ -25,7 +25,8 @@ from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist
 
 from ct_core.utils import get_experiment_list_util, read_video, extract_images_from_video, \
-    read_image_frame, convert_csv_to_json, get_exp_frame_no, get_seg_collection
+    read_image_frame, convert_csv_to_json, get_exp_frame_no, get_seg_collection, \
+    save_user_seg_data_to_db
 from ct_core.forms import SignUpForm, UserProfileForm
 from ct_core.models import UserProfile, Segmentation
 from django_irods.storage import IrodsStorage
@@ -124,6 +125,7 @@ def edit_user(request, pk):
                                                      "formset": formset})
 
 
+@login_required
 def get_experiment_list(request):
     """
     Invoked by an AJAX call and returns json object that holds experiment list in the format below:
@@ -144,6 +146,7 @@ def get_experiment_list(request):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@login_required
 def get_experiment_info(request, exp_id):
     """
     Invoked by an AJAX call and returns json object that holds info of that experiment identified by id
@@ -173,6 +176,7 @@ def get_experiment_info(request, exp_id):
                      status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@login_required
 @gzip.gzip_page
 def stream_video(request, exp_id):
     # remove the temp video directory before streaming the new one
@@ -196,6 +200,7 @@ def stream_video(request, exp_id):
     return HttpResponseServerError('iRODS server error')
 
 
+@login_required
 def extract_images(request, exp_id):
     # this view function is not used since we now save image sequences directly using ImageJ without dynamic extraction
     # from video. Keep this view function just for future reference.
@@ -219,6 +224,7 @@ def extract_images(request, exp_id):
         return HttpResponse(template.render(context, request))
 
 
+@login_required
 def display_image(request, exp_id, type, frame_no):
     """
     Return requested image to client
@@ -280,6 +286,7 @@ def display_image(request, exp_id, type, frame_no):
             return HttpResponseServerError('Requested image frame does not exist')
 
 
+@login_required
 def read_image(request, exp_id, img_file_name):
     # this view function is not used, but kept here for future reference
     ret_dict = read_image_frame(exp_id, img_file_name)
@@ -293,6 +300,7 @@ def read_image(request, exp_id, img_file_name):
         return HttpResponseServerError('Requested image frame does not exist')
 
 
+@login_required
 def get_seg_data(request, exp_id):
     json_resp_data = convert_csv_to_json(exp_id)
 
@@ -304,6 +312,7 @@ def get_seg_data(request, exp_id):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@login_required
 def get_frame_seg_data(request, exp_id, frame_no):
     seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=int(frame_no))
     if seg_obj:
@@ -316,6 +325,7 @@ def get_frame_seg_data(request, exp_id, frame_no):
         return JsonResponse({})
 
 
+@login_required
 def save_tracking_data(request, exp_id):
     uname = request.user.username
 
@@ -356,10 +366,11 @@ def save_tracking_data(request, exp_id):
     return HttpResponseServerError('iRODS session error')
 
 
+@login_required
 def save_frame_seg_data(request, exp_id, frame_no):
-    uname = request.user.username
-    exp_id = exp_id
-    fno = frame_no
-    seg_data = request.POST
-
-    return JsonResponse(status=status.HTTP_200_OK)
+    seg_data = request.POST.dict()
+    try:
+        save_user_seg_data_to_db(request.user, exp_id, frame_no, seg_data)
+        return JsonResponse({}, status=status.HTTP_200_OK)
+    except Exception as ex:
+        return JsonResponse({'message':ex.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

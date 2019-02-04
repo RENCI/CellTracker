@@ -12,7 +12,8 @@ from django.conf import settings
 
 from django_irods.storage import IrodsStorage
 
-from ct_core.models import Segmentation
+from ct_core.models import Segmentation, UserSegmentation
+from ct_core.tasks import sync_user_seg_data_to_irods
 
 
 frame_no_key = 'frame_no'
@@ -245,3 +246,29 @@ def sync_seg_data_to_db(eid):
                     # Segmentation object already exists, update it with new json data
                     obj.data = json_data
                     obj.save()
+
+
+def save_user_seg_data_to_db(user, eid, fno, json_data):
+    """
+    Save user segmentation data for a specific experiment and frame to db
+    :param user: requesting user
+    :param eid: experiment id
+    :param fno: frame no
+    :param seg_data: serialized dict data in String format sent via request.POST
+    :return: raise exception if any
+    """
+    rel_path = '{exp_id}/data/user_segmentation/{uname}/frame{fno}.json'.format(exp_id=eid,
+                                                                                uname=user.username,
+                                                                                fno=fno)
+    obj, created = UserSegmentation.objects.get_or_create(user= user,
+                                                          exp_id=eid,
+                                                          frame_no=fno,
+                                                          file=rel_path,
+                                                          defaults={'data': json_data})
+    if not created:
+        # UserSegmentation object already exists, update it with new json data
+        obj.data = json_data
+        obj.save()
+
+    # update user segmentation data in iRODS in a celery task
+    sync_user_seg_data_to_irods.apply_async((eid, user.username, json_data, rel_path), countdown=1)
