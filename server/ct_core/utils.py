@@ -12,7 +12,7 @@ from django.conf import settings
 
 from django_irods.storage import IrodsStorage
 
-from ct_core.models import Segmentation, UserSegmentation
+from ct_core.models import Segmentation, UserSegmentation, get_path
 from ct_core.tasks import sync_user_seg_data_to_irods
 
 
@@ -257,15 +257,17 @@ def save_user_seg_data_to_db(user, eid, fno, json_data):
     :param seg_data: serialized dict data in String format sent via request.POST
     :return: raise exception if any
     """
-    rel_path = '{exp_id}/data/user_segmentation/{uname}/frame{fno}.json'.format(exp_id=eid,
-                                                                                uname=user.username,
-                                                                                fno=fno)
+
     obj, created = UserSegmentation.objects.get_or_create(user= user,
                                                           exp_id=eid,
                                                           frame_no=fno,
-                                                          file=rel_path,
                                                           defaults={'data': json_data})
-    if not created:
+
+    rel_path = get_path(obj)
+    if created:
+        obj.file = rel_path
+        obj.save()
+    else:
         # UserSegmentation object already exists, update it with new json data
         obj.data = json_data
         obj.save()
