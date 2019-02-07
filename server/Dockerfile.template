@@ -1,7 +1,5 @@
-FROM renci/cell_tracker_docker_base:latest
+FROM renci/cell_tracker_docker_base:1.1.1
 MAINTAINER Hong Yi <hongyi@renci.org>
-
-RUN pip install Wand django-widget-tweaks
 
 RUN usermod -u HOST_USER_UID docker
 RUN groupmod -g HOST_USER_GID docker

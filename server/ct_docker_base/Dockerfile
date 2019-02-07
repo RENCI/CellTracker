@@ -40,7 +40,7 @@ WORKDIR /usr/src/
 
 # Install pip based packages (due to dependencies some packages need to come first)
 RUN pip install --upgrade pip
-RUN pip install Django==1.11.13
+RUN pip install Django==1.11.18
 RUN pip install numpy==1.11.1
 RUN pip install \
     arrow==0.7.0 \
@@ -54,8 +54,10 @@ RUN pip install \
     psycopg2==2.6.1 \
     redis==2.10.6 \
     requests==2.18.4 \
-    python-irodsclient \
-    opencv-python \
+    python-irodsclient==0.8.1 \
+    opencv-python==3.4.1.15 \
+    Wand==0.4.4 \
+    django-widget-tweaks==1.4.3 \
     sh==1.12.14
 
 # install iRODS v4.2.2
@@ -65,5 +67,5 @@ RUN echo "deb http://ftp.debian.org/debian jessie-backports main" \
     && echo "deb [arch=amd64] https://packages.irods.org/apt/ xenial main" \
     > /etc/apt/sources.list.d/renci-irods.list 
 RUN apt-get update 
-RUN apt-get install -y irods-runtime=4.2.2 irods-icommands=4.2.2
+RUN apt-get install -y irods-runtime=4.2.4 irods-icommands=4.2.4
 
