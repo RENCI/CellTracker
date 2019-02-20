@@ -31,7 +31,15 @@ module.exports = function (sketch) {
   // Segmentation
   var segmentationData = null,
       onSelectRegion = null,
-      onEditRegion = null;
+      onEditRegion = null,
+      regionColors = ['rgb(166,206,227)','rgb(31,120,180)','rgb(178,223,138)','rgb(51,160,44)','rgb(251,154,153)','rgb(227,26,28)','rgb(253,191,111)','rgb(255,127,0)','rgb(202,178,214)','rgb(106,61,154)','rgb(255,255,153)','rgb(177,89,40)'],
+      regionAlpha = 0.75,
+      regionColorMap = null;
+
+      // Add alpha to region colors, taken from color brewer
+      regionColors = regionColors.map(function(d) {
+        return d.replace("rgb", "rgba").replace(")", "," + regionAlpha + ")");
+      });
 
   // Editing
   var editView = false;
@@ -95,7 +103,22 @@ module.exports = function (sketch) {
       resizeImages();
     }
 
-    if (experiment) segmentationData = experiment.segmentationData;
+    if (experiment) {
+      segmentationData = experiment.segmentationData;
+
+      // Set colors
+      let ids = [];
+      segmentationData.forEach(function(frame) {
+        frame.regions.forEach(function(region) {
+          if (ids.indexOf(region.id) === -1) ids.push(region.id);
+        });
+      });
+
+      regionColorMap = {};
+      ids.forEach(function(id, i) {
+        regionColorMap[id] = regionColors[i % regionColors.length];
+      });
+    }
 
     highlight();
     sketch.redraw();
@@ -171,7 +194,8 @@ module.exports = function (sketch) {
       segmentationData[frame].regions.forEach(function(region) {
 //        if (region.selected) sketch.stroke(203,24,29);
 //        else sketch.stroke(127, 127, 127);
-        sketch.stroke(255, 255, 255, 127);
+//        sketch.stroke(255, 255, 255, 127);
+        sketch.stroke(regionColorMap[region.id]);
 
         var weight = region.highlight ? lineHighlightWeight : lineWeight;
         weight /= scale;
