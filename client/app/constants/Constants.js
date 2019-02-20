@@ -2,9 +2,12 @@ var keyMirror = require("keymirror");
 
 module.exports = keyMirror({
   RECEIVE_EXPERIMENT_LIST: null,
+  SELECT_EXPERIMENT: null,
   RECEIVE_EXPERIMENT: null,
   RECEIVE_FRAME: null,
   RECEIVE_SEGMENTATION_FRAME: null,
+  ADVANCE_FRAMES: null,
+  REVERSE_FRAMES: null,
 
   CYCLE_LOOP: null,
   TOGGLE_PLAY: null,

@@ -54,10 +54,24 @@ function setExperimentList(newList) {
   });
 }
 
-function setExperiment(newExperiment) {
+function selectExperiment(newExperiment) {
   experiment = newExperiment;
 
-  resetTraces();
+  reset();
+}
+
+function reset() {
+  // resetTraces();
+  resetHistory();
+
+  framesLoaded = 0;
+  segFramesLoaded = 0;
+
+  updateLoading();
+}
+
+function setExperiment(newExperiment) {
+  experiment = newExperiment;
 
   if (experiment) {
     experiment.name = experimentList.filter(function (e) {
@@ -65,13 +79,6 @@ function setExperiment(newExperiment) {
     })[0].name;
     experiment.images = [];
     experiment.segmentationData = experiment.hasSegmentation ? [] : null;
-
-    resetHistory();
-
-    framesLoaded = 0;
-    segFramesLoaded = 0;
-
-    updateLoading();
   }
 }
 
@@ -137,17 +144,60 @@ function receiveSegmentationFrame(frame, segmentations) {
 }
 
 function updateLoading() {
+  if (!experiment.frames) {
+    // No info yet
+    loading = {
+      frame: 0,
+      numFrames: 1,
+      segFrame: 0,
+      numSegFrames: 1
+    };
+
+    return;
+  }
+
   var numSegFrames = experiment.hasSegmentation ? experiment.frames : 0;
   var total = experiment.frames + numSegFrames;
 
   loading = framesLoaded + segFramesLoaded < total ? {
-    image: Math.max(experiment.frames, framesLoaded + 1),
-    numImages: experiment.frames,
-    segmentation: Math.max(numSegFrames, segFramesLoaded + 1),
-    numSegmentation: numSegFrames
+    frame: Math.min(experiment.frames, framesLoaded + 1),
+    numFrames: experiment.frames,
+    segFrame: Math.min(numSegFrames, segFramesLoaded + 1),
+    numSegFrames: numSegFrames
   } : null;
 
   if (!loading) resetPlayback();
+}
+
+function advanceFrames() {
+  let n = experiment.frames;
+  let overlap = 2;
+
+  let stop = Math.min(experiment.stop + n - overlap, experiment.totalFrames);
+  let start = Math.max(stop - n + 1, 1);
+
+  updateFrames(start, stop);
+}
+
+function reverseFrames() {
+  let n = experiment.frames;
+  let overlap = 2;
+
+  let start = Math.max(experiment.start - n + overlap, 1);
+  let stop = Math.min(start + n - 1, experiment.totalFrames);
+
+  updateFrames(start, stop);
+}
+
+function updateFrames(start, stop) {
+  experiment.start = start;
+  experiment.stop = stop;
+  experiment.frames = stop - start + 1;
+
+  setExperiment(experiment);
+
+  reset();
+  setPlay(false);
 }
 
 function resetPlayback() {
@@ -471,6 +521,11 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
       DataStore.emitChange();
       break;
 
+    case Constants.SELECT_EXPERIMENT:
+      selectExperiment(action.experiment);
+      DataStore.emitChange();
+      break;
+
     case Constants.RECEIVE_EXPERIMENT:
       setExperiment(action.experiment);
       skipBackward();
@@ -484,6 +539,16 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.RECEIVE_SEGMENTATION_FRAME:
       receiveSegmentationFrame(action.frame, action.segmentations);
+      DataStore.emitChange();
+      break;
+
+    case Constants.ADVANCE_FRAMES:
+      advanceFrames();
+      DataStore.emitChange();
+      break;
+
+    case Constants.REVERSE_FRAMES:
+      reverseFrames();
       DataStore.emitChange();
       break;
 

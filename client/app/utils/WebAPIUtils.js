@@ -77,6 +77,8 @@ function getExperimentInfo(experiment) {
       // Get frames
       var n = Math.min(data.frames, 10);
       var start = Math.floor(experiment.userProgress * (data.frames - n)) + 1;
+      
+      data.totalFrames = data.frames;
       data.frames = n;
       data.start = start;
       data.stop = start + n - 1;

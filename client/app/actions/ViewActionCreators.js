@@ -8,7 +8,26 @@ module.exports = {
     WebAPIUtils.getExperimentList();
   },
   selectExperiment: function (experiment) {
+    AppDispatcher.dispatch({
+      actionType: Constants.SELECT_EXPERIMENT,
+      experiment: experiment
+    });
+
     WebAPIUtils.getExperimentInfo(experiment);
+  },
+  advanceFrames: function () {
+    AppDispatcher.dispatch({
+      actionType: Constants.ADVANCE_FRAMES
+    });
+
+    //WebAPIUtils.getFrames(DataStore.getExperiment());
+  },
+  reverseFrames: function () {
+    AppDispatcher.dispatch({
+      actionType: Constants.REVERSE_FRAMES
+    });
+
+    //WebAPIUtils.getFrames(DataStore.getExperiment());
   },
 
   cycleLoop: function () {

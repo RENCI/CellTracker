@@ -4,13 +4,11 @@ var IconButton = require("./IconButton");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
 function onBackClick() {
-//  ViewActionCreators.undoHistory();
-console.log("back");
+  ViewActionCreators.reverseFrames();
 }
 
 function onForwardClick() {
-//  ViewActionCreators.redoHistory();
-console.log("forward");
+  ViewActionCreators.advanceFrames();
 }
 
 function onUndoClick() {
@@ -49,10 +47,14 @@ function DataControls(props) {
     );
   }));
 
-  let changesMade = props.experiment && props.experiment.segmentationData.reduce(function (p, c) {
-    return p || c.edited;
-  }, false);
+  let changesMade = props.experiment &&
+    props.experiment.segmentationData &&
+    props.experiment.segmentationData.reduce(function (p, c) {
+      return p || c.edited;
+    }, false);
 
+  let experimentSelectEnabled = options.length > 1 && !props.loading;
+  let frameControlsEnabled = props.experiment && !props.loading;
   let undoEnabled = props.history && props.history.index > 0;
   let redoEnabled = props.history && props.history.index < props.history.edits.length - 1;
 
@@ -63,7 +65,7 @@ function DataControls(props) {
           id="experimentSelect"
           className="form-control"
           value={props.experiment ? props.experiment.id : ""}
-          disabled={options.length <= 1}
+          disabled={!experimentSelectEnabled}
           onChange={onExperimentSelectChange}>
             {options}
         </select>
@@ -73,12 +75,12 @@ function DataControls(props) {
           <div className="btn-group mr-2">
             <IconButton
               iconName="oi-arrow-thick-left"
-              disabled={!props.experiment}
+              disabled={!frameControlsEnabled}
               classes="btn btn-primary"
               callback={onBackClick} />
             <IconButton
               iconName="oi-arrow-thick-right"
-              disabled={!props.experiment}
+              disabled={!frameControlsEnabled}
               classes="btn btn-primary"
               callback={onForwardClick} />
           </div>
@@ -119,6 +121,7 @@ function DataControls(props) {
 DataControls.propTypes = {
   experimentList: PropTypes.arrayOf(PropTypes.object).isRequired,
   experiment: PropTypes.object,
+  loading: PropTypes.object,
   history: PropTypes.object
 };
 

@@ -23,10 +23,10 @@ function MainSection(props) {
             {props.loading !== null ?
               <LoadingProgress
                 label={"Loading " + props.experiment.name}
-                value1={props.loading.image}
-                maxValue1={props.loading.numImages}
-                value2={props.loading.segmentation}
-                maxValue2={props.loading.numSegmentation} />
+                value1={props.loading.frame}
+                maxValue1={props.loading.numFrames}
+                value2={props.loading.segFrame}
+                maxValue2={props.loading.numSegFrames} />
             : null}
             {props.loading === null ?
               props.experiment.selectedRegion ?
