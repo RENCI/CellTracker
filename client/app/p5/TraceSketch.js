@@ -105,19 +105,7 @@ module.exports = function (sketch) {
 
     if (experiment) {
       segmentationData = experiment.segmentationData;
-
-      // Set colors
-      let ids = [];
-      segmentationData.forEach(function(frame) {
-        frame.regions.forEach(function(region) {
-          if (ids.indexOf(region.id) === -1) ids.push(region.id);
-        });
-      });
-
-      regionColorMap = {};
-      ids.forEach(function(id, i) {
-        regionColorMap[id] = regionColors[i % regionColors.length];
-      });
+      updateRegionColorMap();
     }
 
     highlight();
@@ -410,6 +398,7 @@ module.exports = function (sketch) {
       case "split":
         if (splitLine) {
           RegionEditing.splitRegion(region, splitLine, 0.5 / images[0].width, segmentationData[frame].regions);
+          updateRegionColorMap();
           onEditRegion(frame, region);
         }
 
@@ -435,14 +424,16 @@ module.exports = function (sketch) {
           onEditRegion(frame, region);
         }
         else {
-          RegionEditing.addRegion(
+          let newRegion = RegionEditing.addRegion(
             normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])),
             (region.max[0] - region.min[0]) / 2,
             segmentationData[frame].regions
           );
 
-          onEditRegion(frame, region);
-          onSelectRegion(frame, region);
+          updateRegionColorMap();
+
+          onEditRegion(frame, newRegion);
+          onSelectRegion(frame, newRegion);
         }
 
         break;
@@ -500,6 +491,21 @@ module.exports = function (sketch) {
     }
 
     return lut;
+  }
+
+  function updateRegionColorMap() {
+    // Set colors
+    let ids = [];
+    segmentationData.forEach(function(frame) {
+      frame.regions.forEach(function(region) {
+        if (ids.indexOf(region.id) === -1) ids.push(region.id);
+      });
+    });
+
+    regionColorMap = {};
+    ids.forEach(function(id, i) {
+      regionColorMap[id] = regionColors[i % regionColors.length];
+    });
   }
 
   function resizeImages() {

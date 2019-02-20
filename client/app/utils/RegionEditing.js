@@ -391,6 +391,8 @@ function addRegion(point, radius, regionArray) {
   };
 
   regionArray.push(region);
+
+  return region;
 }
 
 module.exports = {
