@@ -25,10 +25,10 @@ from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist
 
 from ct_core.utils import get_experiment_list_util, read_video, extract_images_from_video, \
-    read_image_frame, convert_csv_to_json, get_exp_frame_no, get_seg_collection, \
+    read_image_frame, get_exp_frame_no, get_seg_collection, \
     save_user_seg_data_to_db
 from ct_core.forms import SignUpForm, UserProfileForm
-from ct_core.models import UserProfile, Segmentation
+from ct_core.models import UserProfile, Segmentation, UserSegmentation
 from django_irods.storage import IrodsStorage
 
 
@@ -301,20 +301,17 @@ def read_image(request, exp_id, img_file_name):
 
 
 @login_required
-def get_seg_data(request, exp_id):
-    json_resp_data = convert_csv_to_json(exp_id)
-
-    if json_resp_data:
-        return HttpResponse(json.dumps(json_resp_data), content_type='application/json')
-    else:
-        return HttpResponse(json.dumps({'error': 'no csv segmentation file can be converted to '
-                                                 'JSON response'}),
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-@login_required
 def get_frame_seg_data(request, exp_id, frame_no):
-    seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=int(frame_no))
+    # check if user edit segmentation is available and if yes, use that instead
+    try:
+        seg_obj = UserSegmentation.objects.get(user=request.user, exp_id=exp_id,
+                                               frame_no=int(frame_no))
+    except UserSegmentation.DoesNotExist:
+        try:
+            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=int(frame_no))
+        except Segmentation.DoesNotExist:
+            seg_obj = None
+
     if seg_obj:
         json_resp_data = seg_obj.data
         if json_resp_data:
@@ -369,8 +366,12 @@ def save_tracking_data(request, exp_id):
 @login_required
 def save_frame_seg_data(request, exp_id, frame_no):
     seg_data = request.POST.dict()
+    if 'regions' not in seg_data:
+        return JsonResponse({'message': 'regions key not included in user edit segmentation data '
+                                        'to be saved'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     try:
-        save_user_seg_data_to_db(request.user, exp_id, frame_no, seg_data)
+        save_user_seg_data_to_db(request.user, exp_id, frame_no, seg_data['regions'])
         return JsonResponse({}, status=status.HTTP_200_OK)
     except Exception as ex:
         return JsonResponse({'message':ex.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

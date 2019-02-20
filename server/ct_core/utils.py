@@ -254,14 +254,15 @@ def save_user_seg_data_to_db(user, eid, fno, json_data):
     :param user: requesting user
     :param eid: experiment id
     :param fno: frame no
-    :param seg_data: serialized dict data in String format sent via request.POST
+    :param json_data: serialized dict data in String format sent via request.POST
     :return: raise exception if any
     """
 
+    udata = json.loads(json_data)
     obj, created = UserSegmentation.objects.get_or_create(user= user,
                                                           exp_id=eid,
                                                           frame_no=fno,
-                                                          defaults={'data': json_data})
+                                                          defaults={'data': udata})
 
     rel_path = get_path(obj)
     if created:
