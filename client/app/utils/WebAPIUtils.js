@@ -76,10 +76,10 @@ function getExperimentInfo(id) {
 
       // Get frames from random location
       var n = Math.min(data.frames, 5);
-      var start = Math.round(Math.random() * (data.frames - n));
+      var start = Math.floor(Math.random() * (data.frames - n)) + 1;
       data.frames = n;
       data.start = start;
-      data.stop = start + n -1;
+      data.stop = start + n - 1;
 
       // Create an action
       ServerActionCreators.receiveExperiment(data);
