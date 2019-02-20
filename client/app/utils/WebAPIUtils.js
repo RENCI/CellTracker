@@ -128,7 +128,9 @@ function saveSegmentationData(id, data) {
     $.ajax({
       type: "POST",
       url: "/save_segmentation_data/" + id + "/" + frame.frame,
-      data: regions,
+      data: {
+        regions: regions
+      },
       success: function (data) {
         // Segmentation saved action?
       },
