@@ -7,8 +7,8 @@ module.exports = {
   getExperimentList: function () {
     WebAPIUtils.getExperimentList();
   },
-  selectExperiment: function (id) {
-    WebAPIUtils.getExperimentInfo(id);
+  selectExperiment: function (experiment) {
+    WebAPIUtils.getExperimentInfo(experiment);
   },
 
   cycleLoop: function () {

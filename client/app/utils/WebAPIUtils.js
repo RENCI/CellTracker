@@ -51,7 +51,7 @@ function getExperimentList() {
   });
 }
 
-function getExperimentInfo(id) {
+function getExperimentInfo(experiment) {
   setupAjax();
 
   var imageType = "jpg";
@@ -70,13 +70,13 @@ function getExperimentInfo(id) {
 
   $.ajax({
     type: "POST",
-    url: "/get_experiment_info/" + id,
+    url: "/get_experiment_info/" + experiment.id,
     success: function (data) {
       data.hasSegmentation = data.hasSegmentation === "true";
 
-      // Get frames from random location
-      var n = Math.min(data.frames, 5);
-      var start = Math.floor(Math.random() * (data.frames - n)) + 1;
+      // Get frames
+      var n = Math.min(data.frames, 10);
+      var start = Math.floor(experiment.userProgress * (data.frames - n)) + 1;
       data.frames = n;
       data.start = start;
       data.stop = start + n - 1;
@@ -88,13 +88,13 @@ function getExperimentInfo(id) {
         var frame = start + i;
 
         // Load image frame
-        loadingSketch.loadImage("/display-image/" + id + "/" + imageType + "/" + frame, imageCallback(i));
+        loadingSketch.loadImage("/display-image/" + experiment.id + "/" + imageType + "/" + frame, imageCallback(i));
 
         // Load segmentation frame
         if (data.hasSegmentation) {
           $.ajax({
             type: "POST",
-            url: "/get_frame_seg_data/" + id + "/" + frame,
+            url: "/get_frame_seg_data/" + experiment.id + "/" + frame,
             success: segmentationCallback(i),
             error: function (xhr, textStatus, errorThrown) {
               console.log(textStatus + ": " + errorThrown);

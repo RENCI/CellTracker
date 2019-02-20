@@ -13,7 +13,7 @@ function MainSection(props) {
   return (
     <div>
       <div className="row">
-        <div className="offset-md-3 col-md-6">
+        <div className="offset-md-2 col-md-8">
           <DataControls {...props} />
         </div>
       </div>

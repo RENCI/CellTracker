@@ -46,6 +46,12 @@ var activeTrace = null;
 function setExperimentList(newList) {
   experimentList = newList;
   experiment = null;
+
+  // XXX: Decorate with user-specific info here, until such info is supplied by the server
+  experimentList.forEach(function(experiment) {
+    // XXX: Use a fraction since we don't know the number of frames yet
+    experiment.userProgress = Math.random();
+  });
 }
 
 function setExperiment(newExperiment) {

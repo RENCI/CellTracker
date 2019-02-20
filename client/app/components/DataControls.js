@@ -3,8 +3,14 @@ var PropTypes = require("prop-types");
 var IconButton = require("./IconButton");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
-function onExperimentSelectChange(e) {
-  ViewActionCreators.selectExperiment(e.target.value);
+function onBackClick() {
+//  ViewActionCreators.undoHistory();
+console.log("back");
+}
+
+function onForwardClick() {
+//  ViewActionCreators.redoHistory();
+console.log("forward");
 }
 
 function onUndoClick() {
@@ -16,6 +22,12 @@ function onRedoClick() {
 }
 
 function DataControls(props) {
+  function onExperimentSelectChange(e) {
+    let index = props.experimentList.map(e => e.id).indexOf(e.target.value);
+
+    ViewActionCreators.selectExperiment(props.experimentList[index]);
+  }
+
   function onSaveClick() {
     ViewActionCreators.saveSegmentationData(
       props.experiment.id,
@@ -58,6 +70,25 @@ function DataControls(props) {
       </div>
       <div className="col-4">
         <div className="btn-toolbar">
+          <div className="btn-group mr-2">
+            <IconButton
+              iconName="oi-arrow-thick-left"
+              disabled={!props.experiment}
+              classes="btn btn-primary"
+              callback={onBackClick} />
+            <IconButton
+              iconName="oi-arrow-thick-right"
+              disabled={!props.experiment}
+              classes="btn btn-primary"
+              callback={onForwardClick} />
+          </div>
+          <div className="mr-2" style={{
+              height: "auto",
+              width: "2px",
+              borderRadius: "1px",
+              backgroundColor: "#d0d4da"
+            }}>
+          </div>
           <div className="btn-group mr-2">
             <button
               type="button"
