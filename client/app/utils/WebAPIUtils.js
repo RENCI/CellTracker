@@ -54,6 +54,35 @@ function getExperimentList() {
 function getExperimentInfo(experiment) {
   setupAjax();
 
+  $.ajax({
+    type: "POST",
+    url: "/get_experiment_info/" + experiment.id,
+    success: function (data) {
+      data.hasSegmentation = data.hasSegmentation === "true";
+
+      // Get frames
+      var n = Math.min(data.frames, 10);
+      var start = Math.floor(experiment.userProgress * (data.frames - n)) + 1;
+
+      data.totalFrames = data.frames;
+      data.frames = n;
+      data.start = start;
+      data.stop = start + n - 1;
+
+      // Create an action
+      ServerActionCreators.receiveExperiment(data);
+
+      getFrames(data);
+    },
+    error: function (xhr, textStatus, errorThrown) {
+      console.log(textStatus + ": " + errorThrown);
+    }
+  });
+}
+
+function getFrames(experiment) {
+  setupAjax();
+
   var imageType = "jpg";
 
   function imageCallback(i) {
@@ -68,47 +97,24 @@ function getExperimentInfo(experiment) {
     }
   }
 
-  $.ajax({
-    type: "POST",
-    url: "/get_experiment_info/" + experiment.id,
-    success: function (data) {
-      data.hasSegmentation = data.hasSegmentation === "true";
+  for (var i = 0; i < experiment.frames; i++) {
+    var frame = experiment.start + i;
 
-      // Get frames
-      var n = Math.min(data.frames, 10);
-      var start = Math.floor(experiment.userProgress * (data.frames - n)) + 1;
-      
-      data.totalFrames = data.frames;
-      data.frames = n;
-      data.start = start;
-      data.stop = start + n - 1;
+    // Load image frame
+    loadingSketch.loadImage("/display-image/" + experiment.id + "/" + imageType + "/" + frame, imageCallback(i));
 
-      // Create an action
-      ServerActionCreators.receiveExperiment(data);
-
-      for (var i = 0; i < n; i++) {
-        var frame = start + i;
-
-        // Load image frame
-        loadingSketch.loadImage("/display-image/" + experiment.id + "/" + imageType + "/" + frame, imageCallback(i));
-
-        // Load segmentation frame
-        if (data.hasSegmentation) {
-          $.ajax({
-            type: "POST",
-            url: "/get_frame_seg_data/" + experiment.id + "/" + frame,
-            success: segmentationCallback(i),
-            error: function (xhr, textStatus, errorThrown) {
-              console.log(textStatus + ": " + errorThrown);
-            }
-          });
+    // Load segmentation frame
+    if (experiment.hasSegmentation) {
+      $.ajax({
+        type: "POST",
+        url: "/get_frame_seg_data/" + experiment.id + "/" + frame,
+        success: segmentationCallback(i),
+        error: function (xhr, textStatus, errorThrown) {
+          console.log(textStatus + ": " + errorThrown);
         }
-      }
-    },
-    error: function (xhr, textStatus, errorThrown) {
-      console.log(textStatus + ": " + errorThrown);
+      });
     }
-  });
+  }
 }
 
 function saveSegmentationData(id, data) {
@@ -172,6 +178,7 @@ function saveTraces(id, traces) {
 module.exports = {
   getExperimentList: getExperimentList,
   getExperimentInfo: getExperimentInfo,
+  getFrames: getFrames,
   saveSegmentationData: saveSegmentationData,
   saveTraces: saveTraces
 };

@@ -20,14 +20,14 @@ module.exports = {
       actionType: Constants.ADVANCE_FRAMES
     });
 
-    //WebAPIUtils.getFrames(DataStore.getExperiment());
+    WebAPIUtils.getFrames(DataStore.getExperiment());
   },
   reverseFrames: function () {
     AppDispatcher.dispatch({
       actionType: Constants.REVERSE_FRAMES
     });
 
-    //WebAPIUtils.getFrames(DataStore.getExperiment());
+    WebAPIUtils.getFrames(DataStore.getExperiment());
   },
 
   cycleLoop: function () {
