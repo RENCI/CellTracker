@@ -36,6 +36,7 @@ var timer = null;
 var settings = {
   editZoom: 1,
   playbackZoom: 1,
+  zoomPoint: [0, 0],
   editMode: "vertex"
 };
 
@@ -297,23 +298,13 @@ function setFrameRate(frameRate) {
 }
 
 function selectRegion(frame, region) {
-  experiment.segmentationData.forEach(function (frame) {
-    frame.regions.forEach(function (region) {
-      region.selected = false;
-    });
-  });
-
   if (region) {
-    region.selected = true;
-    experiment.selectedRegion = {
-      region: region,
-      frame: frame
-    };
+    experiment.editFrame = frame;
 
     setZoomLevels(region);
   }
   else {
-    experiment.selectedRegion = null;
+    experiment.editFrame = null;
   }
 
   pushHistory();
@@ -370,7 +361,8 @@ function getHistory() {
   settings.editZoom = edit.editZoom;
   settings.playbackZoom = edit.playbackZoom;
 
-  updateSelectedRegionFromHistory();
+  // XXX: ANY OF THIS NECESSARY NOW?
+//  updateSelectedRegionFromHistory();
 }
 
 function updateSelectedRegionFromHistory() {
@@ -422,6 +414,7 @@ function setZoomLevels(region) {
 
   settings.playbackZoom = 1 / (s * 3);
   settings.editZoom = 1 / (s * 1.5);
+  settings.zoomPoint = region.center;
 }
 
 function zoom(view, direction) {

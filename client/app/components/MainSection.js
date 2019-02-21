@@ -6,7 +6,7 @@ var PlaybackView = require("./PlaybackView");
 var EditView = require("./EditView");
 
 function MainSection(props) {
-  const divClass = props.experiment && props.experiment.selectedRegion ?
+  const divClass = props.experiment && props.experiment.editFrame ?
       "col-md-12 text-center" :
       "offset-md-1 col-md-10 text-center";
 
@@ -33,7 +33,7 @@ function MainSection(props) {
                 max2={props.loading.numSegFrames} />
             : null}
             {props.loading === null ?
-              props.experiment.selectedRegion ?
+              props.experiment.editFrame ?
                 <EditView {...props} /> :
                 <PlaybackView {...props} />
             : null}

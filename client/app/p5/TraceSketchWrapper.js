@@ -33,6 +33,7 @@ class TraceSketchWrapper extends React.Component {
 TraceSketchWrapper.propTypes = {
   experiment: PropTypes.object.isRequired,
   zoom: PropTypes.number,
+  zoomPoint: PropTypes.arrayOf(PropTypes.number),
   traces: PropTypes.arrayOf(PropTypes.object).isRequired,
   frame: PropTypes.number.isRequired,
   editMode: PropTypes.string,
@@ -45,6 +46,7 @@ TraceSketchWrapper.propTypes = {
 
 TraceSketchWrapper.defaultProps = {
   zoom: 1,
+  zoomPoint: null,
   editMode: "playback"
 };
 

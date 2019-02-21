@@ -1,5 +1,6 @@
 var d3Scale = require("d3-scale");
 var d3ScaleChromatic = require("d3-scale-chromatic");
+var d3Color = require("d3-color");
 var MathUtils = require("../utils/MathUtils");
 var RegionEditing = require("../utils/RegionEditing");
 
@@ -32,28 +33,28 @@ module.exports = function (sketch) {
   var segmentationData = null,
       onSelectRegion = null,
       onEditRegion = null,
-      regionColors = ['rgb(166,206,227)','rgb(31,120,180)','rgb(178,223,138)','rgb(51,160,44)','rgb(251,154,153)','rgb(227,26,28)','rgb(253,191,111)','rgb(255,127,0)','rgb(202,178,214)','rgb(106,61,154)','rgb(255,255,153)','rgb(177,89,40)'],
-      regionAlpha = 0.75,
-      regionColorMap = null;
-
-      // Add alpha to region colors, taken from color brewer
-      regionColors = regionColors.map(function(d) {
-        return d.replace("rgb", "rgba").replace(")", "," + regionAlpha + ")");
-      });
+      regionColorMap = d3Scale.scaleOrdinal(d3ScaleChromatic.schemeCategory10.map(c => {
+        let color = d3Color.color(c);
+        color.opacity = 0.75;
+        return color.toString();
+      }));
 
   // Editing
-  var editView = false;
-  var editMode = "playback";
-  var handle = null;
-  var moveHandle = false;
-  var moveMouse = false;
-  // XXX: Need to keep the previous mouse position because mouse moved is firing on mouse pressed
-  var oldMouseX = -1, oldMouseY = -1;
-  var splitLine = null;
+  var editView = false,
+      editMode = "playback",
+      handle = null,
+      currentRegion = null,
+      mergeRegion = null,
+      moveHandle = false,
+      moveMouse = false,
+      // XXX: Need to keep the previous mouse position because mouse moved is firing on mouse pressed
+      oldMouseX = -1, oldMouseY = -1,
+      splitLine = null;
 
   // Transform
-  var scale = 1;
-  var translation = [0, 0];
+  var zoom = 1,
+      zoomPoint = null,
+      translation = [0, 0];
 
   // Appearance
   var lineWeight = 1;
@@ -74,7 +75,8 @@ module.exports = function (sketch) {
   sketch.updateProps = function(props) {
     // Set props
     frame = props.frame;
-    scale = props.zoom;
+    zoom = props.zoom;
+    zoomPoint = props.zoomPoint;
     editMode = props.editMode;
     traces = props.traces;
     onKeyPress = props.onKeyPress;
@@ -105,7 +107,6 @@ module.exports = function (sketch) {
 
     if (experiment) {
       segmentationData = experiment.segmentationData;
-      updateRegionColorMap();
     }
 
     highlight();
@@ -137,13 +138,12 @@ module.exports = function (sketch) {
 
     // Set scale and translation
     translation = [0, 0];
-    if (segmentationData && experiment.selectedRegion) {
-      var c = scalePoint(experiment.selectedRegion.region.center);
-
-      translation = [sketch.width / 2 / scale - c[0], sketch.height / 2 / scale - c[1]];
+    if (zoomPoint) {
+      const p = scalePoint(zoomPoint);
+      translation = [sketch.width / 2 / zoom - p[0], sketch.height / 2 / zoom - p[1]];
     }
 
-    sketch.scale(scale);
+    sketch.scale(zoom);
     sketch.translate(translation[0], translation[1]);
 
     // Clear the background
@@ -180,13 +180,10 @@ module.exports = function (sketch) {
     // Draw segmentation data
     if (segmentationData) {
       segmentationData[frame].regions.forEach(function(region) {
-//        if (region.selected) sketch.stroke(203,24,29);
-//        else sketch.stroke(127, 127, 127);
-//        sketch.stroke(255, 255, 255, 127);
-        sketch.stroke(regionColorMap[region.id]);
+        sketch.stroke(regionColorMap(region.id));
 
-        var weight = region.highlight ? lineHighlightWeight : lineWeight;
-        weight /= scale;
+        let weight = region.highlight ? lineHighlightWeight : lineWeight;
+        weight /= zoom;
 
         sketch.strokeWeight(weight);
         sketch.strokeJoin(sketch.ROUND);
@@ -204,20 +201,20 @@ module.exports = function (sketch) {
         }
         sketch.endShape();
 
-        if (editView && region.selected) {
+        if (editView) {
           // Draw points
           sketch.ellipseMode(sketch.RADIUS);
           sketch.fill(127, 127, 127);
           sketch.noStroke();
 
-          var r = handleRadius / scale;
+          var r = handleRadius / zoom;
 
           region.vertices.forEach(function(vertex, i) {
             var v = scalePoint(vertex);
 
             if (vertex === handle) {
               if (!moveHandle) {
-                sketch.ellipse(v[0], v[1], handleHighlightRadius / scale);
+                sketch.ellipse(v[0], v[1], handleHighlightRadius / zoom);
               }
             }
             else {
@@ -231,7 +228,7 @@ module.exports = function (sketch) {
     if (splitLine) {
       sketch.stroke(255, 255, 255, 127);
 
-      var weight = lineWeight / scale;
+      var weight = lineWeight / zoom;
       sketch.strokeWeight(weight);
 
       // Draw line
@@ -273,7 +270,7 @@ module.exports = function (sketch) {
     moveMouse = false;
 
     if (editMode === "split" || editMode === "trim") {
-      var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+      const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
       splitLine = [
         [m[0], m[1]],
@@ -285,7 +282,9 @@ module.exports = function (sketch) {
   function mouseMoved(e) {
     e.preventDefault();
 
-    if (sketch.mouseButton !== sketch.LEFT) return;
+    if (sketch.mouseButton && sketch.mouseButton !== sketch.LEFT) return;
+
+    const regions = segmentationData[frame].regions;
 
     // Check mouse position
     if (sketch.mouseX === oldMouseX && sketch.mouseY === oldMouseY) return;
@@ -304,7 +303,7 @@ module.exports = function (sketch) {
         }
 
         if (moveHandle) {
-          var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+          const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
           handle[0] = m[0];
           handle[1] = m[1];
         }
@@ -317,9 +316,14 @@ module.exports = function (sketch) {
       case "split":
       case "trim":
         if (sketch.mouseIsPressed) {
-          var m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+          const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
           splitLine[1] = [m[0], m[1]];
+
+          // Highlight based on intersections with split line
+          regions.forEach(region => {
+            region.highlight = regionLineSegmentIntersections(region, splitLine) === 2;
+          });
         }
 
         break;
@@ -331,6 +335,22 @@ module.exports = function (sketch) {
 
     highlight();
     sketch.redraw();
+
+    function regionLineSegmentIntersections(region, line) {
+      let vertices = region.vertices;
+      let intersections = 0;
+
+      for (let i = 0; i < vertices.length; i++) {
+        const v1 = vertices[i],
+              v2 = vertices[i === vertices.length - 1 ? 0 : i + 1];
+
+        const p = MathUtils.lineSegmentIntersection(line[0], line[1], v1, v2);
+
+        if (p) intersections++;
+      }
+
+      return intersections;
+    }
   }
 
   function mouseReleased(e) {
@@ -338,20 +358,15 @@ module.exports = function (sketch) {
 
     if (sketch.mouseButton !== sketch.LEFT) return;
 
-    var region = experiment.selectedRegion ? experiment.selectedRegion.region : null;
-
-    var highlightRegion = segmentationData[frame].regions.filter(function(region) {
-      return region.highlight;
-    });
-    highlightRegion = highlightRegion.length > 0 ? highlightRegion[0] : null;
+    const regions = segmentationData[frame].regions;
 
     switch (editMode) {
       case "playback":
         if (!moveMouse) {
           // Select segmentation region
           if (segmentationData) {
-            if (highlightRegion) {
-              onSelectRegion(frame, highlightRegion);
+            if (currentRegion) {
+              onSelectRegion(frame, currentRegion);
             }
             else {
               onSelectRegion();
@@ -364,19 +379,19 @@ module.exports = function (sketch) {
       case "vertex":
         if (!moveMouse) {
           if (handle) {
-            if (RegionEditing.removeVertex(region, handle)) {
-              onEditRegion(frame, region);
+            if (RegionEditing.removeVertex(currentRegion, handle)) {
+              onEditRegion(frame, currentRegion);
             }
           }
           else {
             // Add handle at mouse position
-            RegionEditing.addVertex(region, normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])));
-            onEditRegion(frame, region);
+            RegionEditing.addVertex(currentRegion, normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])));
+            onEditRegion(frame, currentRegion);
           }
         }
         else {
           if (handle) {
-            onEditRegion(frame, region);
+            onEditRegion(frame, currentRegion);
           }
         }
 
@@ -387,9 +402,16 @@ module.exports = function (sketch) {
 
       case "merge":
         if (!moveMouse) {
-          if (highlightRegion && highlightRegion !== region) {
-            RegionEditing.mergeRegions(region, highlightRegion, 1.1 / images[0].width, segmentationData[frame].regions);
-            onEditRegion(frame, region);
+          if (mergeRegion && currentRegion && mergeRegion !== currentRegion) {
+            RegionEditing.mergeRegions(mergeRegion, currentRegion, 1.1 / images[0].width, regions);
+            onEditRegion(frame, mergeRegion);
+            mergeRegion = null;
+          }
+          else if (mergeRegion === currentRegion) {
+            mergeRegion = null;
+          }
+          else {
+            mergeRegion = currentRegion;
           }
         }
 
@@ -397,9 +419,10 @@ module.exports = function (sketch) {
 
       case "split":
         if (splitLine) {
-          RegionEditing.splitRegion(region, splitLine, 0.5 / images[0].width, segmentationData[frame].regions);
-          updateRegionColorMap();
-          onEditRegion(frame, region);
+          regions.filter(region => region.highlight).forEach(region => {
+            RegionEditing.splitRegion(region, splitLine, 0.5 / images[0].width, regions);
+            onEditRegion(frame, region);
+          });
         }
 
         splitLine = null;
@@ -408,8 +431,10 @@ module.exports = function (sketch) {
 
       case "trim":
         if (splitLine) {
-          RegionEditing.trimRegion(region, splitLine);
-          onEditRegion(frame, region);
+          regions.filter(region => region.highlight).forEach(region => {
+            RegionEditing.trimRegion(region, splitLine);
+            onEditRegion(frame, region);
+          });
         }
 
         splitLine = null;
@@ -419,18 +444,19 @@ module.exports = function (sketch) {
       case "regionEdit":
         if (moveMouse) return;
 
-        if (highlightRegion) {
-          RegionEditing.removeRegion(highlightRegion, segmentationData[frame].regions);
-          onEditRegion(frame, region);
+        if (currentRegion) {
+          RegionEditing.removeRegion(currentRegion, regions);
+          onEditRegion(frame, currentRegion);
         }
         else {
-          let newRegion = RegionEditing.addRegion(
-            normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])),
-            (region.max[0] - region.min[0]) / 2,
-            segmentationData[frame].regions
-          );
+          const radius = regions.reduce((p, c) => {
+            return p + c.max[0] - c.min[0];
+          }, 0) / regions.length / 2;
 
-          updateRegionColorMap();
+          const newRegion = RegionEditing.addRegion(
+            normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])),
+            radius, regions
+          );
 
           onEditRegion(frame, newRegion);
           onSelectRegion(frame, newRegion);
@@ -441,8 +467,8 @@ module.exports = function (sketch) {
       case "regionSelect":
         if (moveMouse) return;
 
-        if (highlightRegion) {
-          onSelectRegion(frame, highlightRegion);
+        if (currentRegion) {
+          onSelectRegion(frame, currentRegion);
         }
 
         break;
@@ -493,21 +519,6 @@ module.exports = function (sketch) {
     return lut;
   }
 
-  function updateRegionColorMap() {
-    // Set colors
-    let ids = [];
-    segmentationData.forEach(function(frame) {
-      frame.regions.forEach(function(region) {
-        if (ids.indexOf(region.id) === -1) ids.push(region.id);
-      });
-    });
-
-    regionColorMap = {};
-    ids.forEach(function(id, i) {
-      regionColorMap[id] = regionColors[i % regionColors.length];
-    });
-  }
-
   function resizeImages() {
     if (images.length === 0) return;
 
@@ -552,30 +563,34 @@ module.exports = function (sketch) {
     if (sketch.mouseIsPressed) return;
 
     // Get mouse position
-    var x = sketch.mouseX,
-        y = sketch.mouseY;
+    const x = sketch.mouseX,
+          y = sketch.mouseY;
 
     if (x < 0 || x >= sketch.width ||
         y < 0 || y >= sketch.height ||
         !segmentationData) return;
 
     // Mouse position
-    var m = applyZoom([sketch.mouseX, sketch.mouseY]);
+    const m = applyZoom([sketch.mouseX, sketch.mouseY]);
 
     // Clear highlighting
     handle = null;
+    currentRegion = null;
+    if (editMode !== "merge") mergeRegion = null;
 
-    var seg = segmentationData[frame].regions;
+    const regions = segmentationData[frame].regions;
 
-    seg.forEach(function(region) {
+    regions.forEach(function(region) {
       region.highlight = false;
     });
+
+    if (mergeRegion) mergeRegion.highlight = true;
 
     sketch.cursor(sketch.ARROW);
 
     switch (editMode) {
       case "playback":
-        if (scale !== 1) {
+        if (zoom !== 1) {
           sketch.cursor(sketch.MOVE);
         }
 
@@ -583,9 +598,12 @@ module.exports = function (sketch) {
       case "regionSelect":
       case "merge":
         // Test regions
-        for (var i = 0; i < seg.length; i++) {
-          if (MathUtils.insidePolygon(normalizePoint(m), seg[i].vertices)) {
-            seg[i].highlight = true;
+        for (var i = 0; i < regions.length; i++) {
+          const region = regions[i];
+
+          if (MathUtils.insidePolygon(normalizePoint(m), region.vertices)) {
+            currentRegion = region;
+            region.highlight = true;
 
             sketch.cursor(sketch.HAND);
 
@@ -598,20 +616,30 @@ module.exports = function (sketch) {
       case "vertex":
         sketch.cursor(sketch.CROSS);
 
-        // Test vertices
-        var region = experiment.selectedRegion.region;
-
         // Radius
-        var r = handleHighlightRadius / scale;
+        const r = handleHighlightRadius / zoom;
 
-        for (var i = 0; i < region.vertices.length; i++) {
-          var p = scalePoint(region.vertices[i]);
-          var d = sketch.dist(m[0], m[1], p[0], p[1]);
+        // Find region with closest vertex
+        let closestVertex = null;
+        let closestDistance = null;
+        regions.forEach(region => {
+          region.vertices.forEach(vertex => {
+            const p = scalePoint(vertex);
+            const d = sketch.dist(m[0], m[1], p[0], p[1]);
 
-          if (d <= r) {
-            handle = region.vertices[i];
-            sketch.cursor(sketch.HAND);
-          }
+            if (!closestDistance || d < closestDistance) {
+              closestVertex = vertex;
+              closestDistance = d;
+              currentRegion = region;
+            }
+          });
+        });
+
+        currentRegion.highlight = true;
+
+        if (closestDistance < r) {
+          handle = closestVertex;
+          sketch.cursor(sketch.HAND);
         }
 
         break;
@@ -634,11 +662,11 @@ module.exports = function (sketch) {
   }
 
   function applyZoom(p) {
-    var x = p[0] - translation[0] * scale;
-    x /= scale;
+    var x = p[0] - translation[0] * zoom;
+    x /= zoom;
 
-    var y = p[1] - translation[1] * scale;
-    y /= scale;
+    var y = p[1] - translation[1] * zoom;
+    y /= zoom;
 
     return [x, y];
   }

@@ -198,6 +198,7 @@ function mergeRegions(region1, region2, dilation, regionArray) {
         if (!v2) {
           // Find closest merge point
           console.log(valid1);
+          console.log(valid2);
 
           let closest = valid1.reduce(function(p, c, i) {
             if (!c) return p;
@@ -209,6 +210,12 @@ function mergeRegions(region1, region2, dilation, regionArray) {
               d2: d2
             } : p;
           }, null);
+
+          if (!closest) {
+            console.log(valid1);
+            console.log(valid2);
+            console.log(merged);
+          }
 
           selectedStart = closest.i;
 

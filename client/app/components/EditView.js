@@ -51,7 +51,7 @@ var frameDivStyle = {
 };
 
 function EditView(props) {
-  var frame = props.experiment.selectedRegion.frame;
+  var frame = props.experiment.editFrame;
   var frames = [];
 
   for (var i = frame - 2; i <= frame + 2; i++) {
@@ -96,6 +96,7 @@ function EditView(props) {
         <TraceSketchWrapper
           experiment={props.experiment}
           zoom={props.settings.playbackZoom}
+          zoomPoint={props.settings.zoomPoint}
           traces={props.traces}
           frame={props.playback.frame}
           onKeyPress={handleKeyPress}
@@ -113,8 +114,9 @@ function EditView(props) {
         <TraceSketchWrapper
           experiment={props.experiment}
           zoom={props.settings.editZoom}
+          zoomPoint={props.settings.zoomPoint}
           traces={props.traces}
-          frame={props.experiment.selectedRegion.frame}
+          frame={props.experiment.editFrame}
           editMode={props.settings.editMode}
           onKeyPress={handleKeyPress}
           onMouseWheel={handleMouseWheel}
