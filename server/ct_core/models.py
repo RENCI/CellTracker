@@ -61,6 +61,7 @@ class UserSegmentation(models.Model):
     data = JSONField()
     file = models.FileField(upload_to=get_path, max_length=4096, null=True, blank=True,
                             storage=IrodsStorage())
+    update_time = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         unique_together = ("user", "exp_id", "frame_no")

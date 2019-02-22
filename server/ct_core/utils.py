@@ -9,6 +9,7 @@ from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist
 
 from django.conf import settings
+from django.utils import timezone
 
 from django_irods.storage import IrodsStorage
 
@@ -248,6 +249,21 @@ def sync_seg_data_to_db(eid):
                     obj.save()
 
 
+def get_start_frame(user):
+    """
+    check if user has saved edit segmentation to a certain frame, and if so, return the
+    latest frame the user has worked on so that the user can pick up from where he left off
+    :param user: requesting user
+    :return: start frame the user has saved segmentation data, otherwise, return the first frame 1
+    """
+    filter_obj = UserSegmentation.objects.filter(user=user, update_time__isnull=False)
+    if filter_obj.exists():
+        obj = filter_obj.latest('update_time')
+        return obj.frame_no
+    else:
+        return 1
+
+
 def save_user_seg_data_to_db(user, eid, fno, json_data):
     """
     Save user segmentation data for a specific experiment and frame to db
@@ -259,10 +275,12 @@ def save_user_seg_data_to_db(user, eid, fno, json_data):
     """
 
     udata = json.loads(json_data)
+    curr_time = timezone.now()
     obj, created = UserSegmentation.objects.get_or_create(user= user,
                                                           exp_id=eid,
                                                           frame_no=fno,
-                                                          defaults={'data': udata})
+                                                          defaults={'data': udata,
+                                                                    'update_time': curr_time})
 
     rel_path = get_path(obj)
     if created:
@@ -271,6 +289,7 @@ def save_user_seg_data_to_db(user, eid, fno, json_data):
     else:
         # UserSegmentation object already exists, update it with new json data
         obj.data = json_data
+        obj.update_time = curr_time
         obj.save()
 
     # update user segmentation data in iRODS in a celery task

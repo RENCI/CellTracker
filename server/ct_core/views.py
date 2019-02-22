@@ -26,7 +26,7 @@ from irods.exception import CollectionDoesNotExist
 
 from ct_core.utils import get_experiment_list_util, read_video, extract_images_from_video, \
     read_image_frame, get_exp_frame_no, get_seg_collection, \
-    save_user_seg_data_to_db
+    save_user_seg_data_to_db, get_start_frame
 from ct_core.forms import SignUpForm, UserProfileForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
 from django_irods.storage import IrodsStorage
@@ -38,6 +38,7 @@ def index(request):
     #sys.path.append("/home/docker/pycharm-debug")
     #import pydevd
     #pydevd.settrace('172.17.0.1', port=21000, suspend=False)
+
     if request.user.is_authenticated():
         template = loader.get_template('ct_core/index.html')
         if 'just_signed_up' in request.session:
@@ -152,7 +153,10 @@ def get_experiment_info(request, exp_id):
     Invoked by an AJAX call and returns json object that holds info of that experiment identified by id
     in the format below:
     {
-        frames: number
+        frames: number,
+        id: exp_id,
+        hasSegmentation: 'true' or 'false'
+        start_frame: number
     }
 
     :param request:
@@ -170,6 +174,11 @@ def get_experiment_info(request, exp_id):
             exp_info['hasSegmentation'] = 'false'
         exp_info['frames'] = exp_frame_no
         exp_info['id'] = exp_id
+
+        # check if user has saved edit segmentation to a certain frame, and if so, return the
+        # latest frame the user has worked on so that the user can pick up from where he left off
+        exp_info['start_frame'] = get_start_frame(request.user)
+
         return HttpResponse(json.dumps(exp_info), content_type='application/json')
     else:
         HttpResponse(json.dumps({'error': 'Cannot connect to iRODS data server'}),
