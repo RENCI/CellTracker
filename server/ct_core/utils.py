@@ -294,3 +294,23 @@ def save_user_seg_data_to_db(user, eid, fno, json_data):
 
     # update user segmentation data in iRODS in a celery task
     sync_user_seg_data_to_irods.apply_async((eid, user.username, json_data, rel_path), countdown=1)
+
+
+def add_tracking(exp_id, user=''):
+    """
+    Add tracking to segmentation data for an experiment
+    :param exp_id: experiment id
+    :param user: empty by default. If empty, add tracking to system segmentation data; otherwise,
+    add tracking to user edit segmentation data
+    :return:
+    """
+    fno = get_exp_frame_no(exp_id)
+    for i in range(0, fno):
+        if user:
+            seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user=user, frame_no=i+1)
+        else:
+            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=i+1)
+        data = seg_obj.data
+        for region in data:
+            vertices = region['vertices']
+            # create numpy array from vertices
