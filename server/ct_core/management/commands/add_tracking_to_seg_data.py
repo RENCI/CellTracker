@@ -2,7 +2,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 
-from ct_core.utils import add_tracking
+from ct_core.tasks import add_tracking
 
 
 logger = logging.getLogger(__name__)

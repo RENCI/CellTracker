@@ -105,7 +105,7 @@ class Command(BaseCommand):
                 numx = float(x)/rows
                 numy = float(y)/cols
                 if 'id' in obj_dict:
-                    obj_dict['vertices'].append([str(numy), str(numx)])
+                    obj_dict['vertices'].append([numy, numx])
 
             # write the last frame
             if obj_dict:

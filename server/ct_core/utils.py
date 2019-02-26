@@ -14,7 +14,7 @@ from django.utils import timezone
 from django_irods.storage import IrodsStorage
 
 from ct_core.models import Segmentation, UserSegmentation, get_path
-from ct_core.tasks import sync_user_seg_data_to_irods
+from ct_core.tasks import sync_seg_data_to_irods
 
 
 frame_no_key = 'frame_no'
@@ -125,25 +125,6 @@ def get_exp_image_size(exp_id):
                 return -1, -1
 
 
-def get_exp_frame_no(exp_id):
-    fno = -1
-    with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
-                      password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
-        epath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id)
-        coll = session.collections.get(epath)
-        key = str(frame_no_key)
-        try:
-            col_md = coll.metadata.get_one(key)
-            fno = int(col_md.value)
-        except KeyError:
-            ipath = epath + '/data/image/jpg'
-            icoll = session.collections.get(ipath)
-            fno = len(icoll.data_objects)
-            coll.metadata.add(key, str(fno))
-
-    return fno
-
-
 def get_seg_collection(exp_id):
     """
     return iRODS collection for segmentation data for experiment id
@@ -172,12 +153,9 @@ def convert_csv_to_json(exp_id):
     :return: a list
     """
     resp_data = []
-    converted = False
     session, coll, coll_path = get_seg_collection(exp_id)
     if coll:
         for obj in coll.data_objects:
-            if converted:
-                break
             _, ext = os.path.splitext(obj.path)
             if ext != '.csv':
                 continue
@@ -220,7 +198,6 @@ def convert_csv_to_json(exp_id):
                 if obj_dict:
                     frame_ary.append(obj_dict)
                     resp_data.append(frame_ary)
-                converted = True
             break
 
     return resp_data
@@ -293,24 +270,4 @@ def save_user_seg_data_to_db(user, eid, fno, json_data):
         obj.save()
 
     # update user segmentation data in iRODS in a celery task
-    sync_user_seg_data_to_irods.apply_async((eid, user.username, json_data, rel_path), countdown=1)
-
-
-def add_tracking(exp_id, user=''):
-    """
-    Add tracking to segmentation data for an experiment
-    :param exp_id: experiment id
-    :param user: empty by default. If empty, add tracking to system segmentation data; otherwise,
-    add tracking to user edit segmentation data
-    :return:
-    """
-    fno = get_exp_frame_no(exp_id)
-    for i in range(0, fno):
-        if user:
-            seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user=user, frame_no=i+1)
-        else:
-            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=i+1)
-        data = seg_obj.data
-        for region in data:
-            vertices = region['vertices']
-            # create numpy array from vertices
+    sync_seg_data_to_irods.apply_async((eid, user.username, json_data, rel_path), countdown=1)

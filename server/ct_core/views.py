@@ -25,8 +25,9 @@ from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist
 
 from ct_core.utils import get_experiment_list_util, read_video, extract_images_from_video, \
-    read_image_frame, get_exp_frame_no, get_seg_collection, \
+    read_image_frame, get_seg_collection, \
     save_user_seg_data_to_db, get_start_frame
+from ct_core.task_utils import get_exp_frame_no
 from ct_core.forms import SignUpForm, UserProfileForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
 from django_irods.storage import IrodsStorage
