@@ -26,8 +26,4 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options['exp_id']:
             exp_id = str(options['exp_id'])
-            add_tracking(exp_id)
-            logger.debug('added tracking to system segmentation data for experiment {}'.format(
-                exp_id))
-        else:
-            logger.debug('experiment id must be passed in as the only parameter')
+            add_tracking.apply_async((exp_id, None, 9), countdown=1)

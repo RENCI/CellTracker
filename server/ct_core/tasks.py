@@ -1,70 +1,20 @@
 from __future__ import absolute_import
 
 import logging
-import os
-import json
-import shutil
-import errno
 import numpy as np
-
-from django.conf import settings
 
 from celery import shared_task
 
-from django_irods.storage import IrodsStorage
-
 from ct_core.models import UserSegmentation, Segmentation, get_path
-from ct_core.task_utils  import get_exp_frame_no, find_centroid, distance_between_point_sets
+from ct_core.task_utils  import get_exp_frame_no, find_centroid, distance_between_point_sets, \
+    sync_seg_data_to_irods
 
 
 logger = logging.getLogger('django')
 
 
-@shared_task
-def sync_seg_data_to_irods(exp_id='', username='', json_data={}, irods_path=''):
-    """
-    Sync system or user segmentation data from Database to iRODS
-    :param self:
-    :param exp_id: experiment id
-    :param username: requesting username
-    :param json_data: json dict data to be serealized to JSON format and saved to iRODS,
-    :param irods_path: IRODS path to save the seralized JSON frame data
-    :return: None with exceptions recorded in logs if failure
-    """
-    if not json_data or not irods_path or not username or not exp_id:
-        # nothing to sync
-        return
-
-    if not irods_path.endswith('.json'):
-        # nothing to sync
-        return
-
-    coll_path, fname = os.path.split(irods_path)
-    local_data_path = os.path.join(settings.IRODS_ROOT, exp_id, 'data', username)
-    try:
-        os.makedirs(local_data_path)
-    except OSError as ex:
-        if ex.errno == errno.EEXIST:
-            shutil.rmtree(local_data_path)
-            os.makedirs(local_data_path)
-        else:
-            logger.debug(ex.message)
-            return
-
-    local_data_file = os.path.join(local_data_path, fname)
-    with open(local_data_file, 'w') as json_file:
-        json.dump(json_data, json_file, indent=2)
-
-    istorage = IrodsStorage()
-    istorage.saveFile(local_data_file, irods_path, True)
-
-    shutil.rmtree(local_data_path)
-
-    return
-
-
-@shared_task
-def add_tracking(exp_id, user=None, frm_idx=None):
+@shared_task(bind=True)
+def add_tracking(self, exp_id, user=None, frm_idx=None):
     """
     Add tracking to segmentation data for an experiment
     :param exp_id: experiment id
@@ -75,6 +25,7 @@ def add_tracking(exp_id, user=None, frm_idx=None):
     :return:
     """
     fno = get_exp_frame_no(exp_id)
+    logger.warning('fno: ' + str(fno))
     centroids_xy = {}
     ids = {}
     min_f = 0
@@ -82,7 +33,7 @@ def add_tracking(exp_id, user=None, frm_idx=None):
     if frm_idx:
         min_f = frm_idx
         max_f = frm_idx + 2 if frm_idx < fno - 1 else fno
-
+    logger.warning('min_f: ' + str(min_f) + ', max_f: ' + str(max_f))
     for i in range(min_f, max_f):
         if user:
             seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user=user, frame_no=i+1)
@@ -101,7 +52,8 @@ def add_tracking(exp_id, user=None, frm_idx=None):
             id_list.append(id)
         centroids_xy[i] = np.array(centroid_list)
         ids[i] = id_list
-
+        logger.warning(str(centroids_xy[i]))
+        logger.warning(str(ids[i]))
     # compute minimum distance from a centroid to all centroids in the next frame
     for fi in range(min_f, max_f-1):
         if user:
@@ -109,18 +61,22 @@ def add_tracking(exp_id, user=None, frm_idx=None):
         else:
             seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=fi+1)
         next_frm = fi + 1
+        logger.warning('fi: ' + str(fi) + ', next_frm:'+str(next_frm))
         for cur_re in range(0, centroids_xy[fi].shape[0]):
             # xy1 contains centroid x, y for one region on frame fi
             xy1 = np.array([centroids_xy[fi][cur_re]])
             # xy2 contains all centroids for all regions on the next frame fj
             xy2 = centroids_xy[next_frm]
             min_idx = np.argmin(distance_between_point_sets(xy1, xy2))
+            logger.warning('min_idx' + str(min_idx))
             linked_id = ids[next_frm][min_idx]
+            logger.warning('linked_id:' + str(linked_id))
             seg_obj.data[cur_re]['link_id'] = linked_id
         seg_obj.save()
         # update iRODS data to be in sync with updated data in DB
         rel_path = get_path(seg_obj)
         if user:
+            logger.warning('before syncing to irods')
             sync_seg_data_to_irods(exp_id=exp_id, username=user.username, json_data=seg_obj.data,
                                    irods_path=rel_path)
         else:

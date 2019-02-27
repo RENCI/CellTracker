@@ -200,7 +200,7 @@ LOGGING = {
             'backupCount': 10,
         },
         'djangolog': {
-            'level': 'DEBUG',
+            'level': 'WARNING',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': '/home/docker/celltracker/log/django.log',
             'formatter': 'verbose',
@@ -208,7 +208,7 @@ LOGGING = {
             'backupCount': 10,
         },
         'celltrackerlog': {
-            'level': 'DEBUG',
+            'level': 'WARNING',
             'class': 'logging.handlers.RotatingFileHandler',
             'filename': '/home/docker/celltracker/log/celltracker.log',
             'formatter': 'verbose',
@@ -220,7 +220,7 @@ LOGGING = {
         'django': {
             'handlers': ['syslog', 'djangolog'],
             'propagate': True,
-            'level': 'DEBUG',
+            'level': 'WARNING',
         },
         'django.db.backends': {
             'handlers': ['syslog'],
@@ -231,7 +231,7 @@ LOGGING = {
         '': {
             'handlers': ['celltrackerlog'],
             'propagate': False,
-            'level': 'DEBUG'
+            'level': 'WARNING'
         },
     }
 }

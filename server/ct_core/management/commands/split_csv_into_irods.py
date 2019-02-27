@@ -40,10 +40,9 @@ class Command(BaseCommand):
                      options['exp_id'] + '/data/segmentation'
         rows, cols = get_exp_image_size(exp_id=options['exp_id'])
         if rows == -1:
-            logger.debug('cannot get experiment image size')
+            logger.error('cannot get experiment image size')
             return
-        logger.debug('exp_id='+str(options['exp_id']) + ', rows=' + str(rows) + ', cols=' +
-                     str(cols))
+
         with open(options['input_file']) as inf:
             outf_path = '/tmp/'
             contents = csv.reader(inf)

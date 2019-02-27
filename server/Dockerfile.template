@@ -1,6 +1,9 @@
 FROM renci/cell_tracker_docker_base:1.1.1
 MAINTAINER Hong Yi <hongyi@renci.org>
 
+# install StochPy
+RUN pip install scipy==1.2.1
+
 RUN usermod -u HOST_USER_UID docker
 RUN groupmod -g HOST_USER_GID docker
 
