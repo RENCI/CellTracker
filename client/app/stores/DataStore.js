@@ -90,49 +90,54 @@ function receiveFrame(i, image) {
   updateLoading();
 }
 
-function receiveSegmentationFrame(frame, segmentations) {
-  // Process vertices
-  segmentations.forEach(function (region) {
-    var vertices = region.vertices;
+function receiveSegmentationFrame(frame, regions) {
+  if (Array.isArray(regions)) {
+    // Process vertices
+    regions.forEach(function (region) {
+      var vertices = region.vertices;
 
-    // Remove duplicate vertex at the end
-    var v0 = vertices[0];
-    var v1 = vertices[vertices.length - 1];
+      // Remove duplicate vertex at the end
+      var v0 = vertices[0];
+      var v1 = vertices[vertices.length - 1];
 
-    if (v0[0] === v1[0] && v0[1] === v1[1]) {
-      vertices.pop();
-    }
+      if (v0[0] === v1[0] && v0[1] === v1[1]) {
+        vertices.pop();
+      }
 
-    // Convert to numbers
-    vertices.forEach(function (vertex) {
-      vertex[0] = +vertex[0];
-      vertex[1] = +vertex[1];
+      // Convert to numbers
+      vertices.forEach(function (vertex) {
+        vertex[0] = +vertex[0];
+        vertex[1] = +vertex[1];
+      });
+
+      // Get extent
+      var x = vertices.map(function (vertex) { return vertex[0]; });
+      var y = vertices.map(function (vertex) { return vertex[1]; });
+
+      region.min = [
+        x.reduce(function(p, c) { return Math.min(p, c); }),
+        y.reduce(function(p, c) { return Math.min(p, c); })
+      ];
+
+      region.max = [
+        x.reduce(function(p, c) { return Math.max(p, c); }),
+        y.reduce(function(p, c) { return Math.max(p, c); })
+      ];
+
+      region.center = [
+        (region.min[0] + region.max[0]) / 2,
+        (region.min[1] + region.max[1]) / 2
+      ];
     });
-
-    // Get extent
-    var x = vertices.map(function (vertex) { return vertex[0]; });
-    var y = vertices.map(function (vertex) { return vertex[1]; });
-
-    region.min = [
-      x.reduce(function(p, c) { return Math.min(p, c); }),
-      y.reduce(function(p, c) { return Math.min(p, c); })
-    ];
-
-    region.max = [
-      x.reduce(function(p, c) { return Math.max(p, c); }),
-      y.reduce(function(p, c) { return Math.max(p, c); })
-    ];
-
-    region.center = [
-      (region.min[0] + region.max[0]) / 2,
-      (region.min[1] + region.max[1]) / 2
-    ];
-  });
+  }
+  else {
+    regions = [];
+  }
 
   experiment.segmentationData[frame] = {
     frame: experiment.start + frame,
     edited: false,
-    regions: segmentations
+    regions: regions
   };
 
   segFramesLoaded++;
@@ -311,6 +316,7 @@ function selectRegion(frame, region) {
 }
 
 function editRegion(frame, region) {
+  region.unsavedEdit = true;
   experiment.segmentationData[frame].edited = true;
 
   pushHistory();
@@ -400,9 +406,16 @@ function cloneData(d) {
 }
 
 function saveSegmentationData() {
-  // Clear edited flag
+  // Clear edited flags
   experiment.segmentationData.forEach(function (frame) {
     frame.edited = false;
+
+    frame.regions.forEach(region => {
+      if (region.unsavedEdit) {
+        region.edited = true;
+        region.unsavedEdit = false;
+      }
+    });
   });
 }
 

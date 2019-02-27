@@ -123,16 +123,18 @@ function saveSegmentationData(id, data) {
   setupAjax();
 
   // Send each edited frame
-  data.filter(function (frame) {
-    return frame.edited;
-  }).forEach(function (frame) {
+  data.filter(frame => frame.edited).forEach(frame => {
     console.log("Saving frame " + frame.frame);
 
-    let regions = JSON.stringify(frame.regions.map(function(region) {
-      return {
+    let regions = JSON.stringify(frame.regions.map(region => {
+      const sendRegion = {
         id: region.id,
         vertices: region.vertices
       };
+
+      if (region.unsavedEdit) sendRegion.edited = true;
+
+      return sendRegion;
     }));
 
     $.ajax({

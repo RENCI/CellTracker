@@ -33,11 +33,17 @@ module.exports = function (sketch) {
   var segmentationData = null,
       onSelectRegion = null,
       onEditRegion = null,
-      regionColorMap = d3Scale.scaleOrdinal(d3ScaleChromatic.schemeCategory10.map(c => {
-        let color = d3Color.color(c);
+      colors = d3ScaleChromatic.schemeCategory10,
+      strokeColorMap = d3Scale.scaleOrdinal(colors.map(c => {
+        const color = d3Color.color(c);
         color.opacity = 0.75;
         return color.toString();
-      }));
+      })),
+      fillColorMap = d3Scale.scaleOrdinal(colors.map(c => {
+        const color = d3Color.color(c);
+        color.opacity = 0.5;
+        return color.toString();
+      }));;
 
   // Editing
   var editView = false,
@@ -178,16 +184,23 @@ module.exports = function (sketch) {
 */
 
     // Draw segmentation data
+    const dashArray = [5 / zoom, 5 / zoom];
+
+    fillColorMap.domain(strokeColorMap.domain());
+
     if (segmentationData) {
       segmentationData[frame].regions.forEach(function(region) {
-        sketch.stroke(regionColorMap(region.id));
-
         let weight = region.highlight ? lineHighlightWeight : lineWeight;
-        weight /= zoom;
+        weight /= zoom;        
 
+        sketch.stroke(strokeColorMap(region.id));
         sketch.strokeWeight(weight);
         sketch.strokeJoin(sketch.ROUND);
-        sketch.noFill();
+        
+        sketch.canvas.getContext("2d").setLineDash(region.unsavedEdit ? dashArray : []);
+
+        if (region.edited) sketch.fill(fillColorMap(region.id));
+        else sketch.noFill();
 
         // Draw outline
         sketch.beginShape();
@@ -420,8 +433,12 @@ module.exports = function (sketch) {
       case "split":
         if (splitLine) {
           regions.filter(region => region.highlight).forEach(region => {
-            RegionEditing.splitRegion(region, splitLine, 0.5 / images[0].width, regions);
-            onEditRegion(frame, region);
+            const newRegion = RegionEditing.splitRegion(region, splitLine, 0.5 / images[0].width, regions);
+            
+            if (newRegion) {
+              onEditRegion(frame, region);
+              onEditRegion(frame, newRegion);
+            }
           });
         }
 
@@ -432,8 +449,9 @@ module.exports = function (sketch) {
       case "trim":
         if (splitLine) {
           regions.filter(region => region.highlight).forEach(region => {
-            RegionEditing.trimRegion(region, splitLine);
-            onEditRegion(frame, region);
+            if (RegionEditing.trimRegion(region, splitLine)) {
+              onEditRegion(frame, region);
+            }
           });
         }
 
@@ -619,17 +637,25 @@ module.exports = function (sketch) {
         // Radius
         const r = handleHighlightRadius / zoom;
 
-        // Find region with closest vertex
+        // Find closest point and line segment
         let closestVertex = null;
-        let closestDistance = null;
+        let closestVertexDistance = null;
+        let closestSegmentDistance = null;
         regions.forEach(region => {
-          region.vertices.forEach(vertex => {
-            const p = scalePoint(vertex);
-            const d = sketch.dist(m[0], m[1], p[0], p[1]);
+          region.vertices.forEach((v1, i, a) => {
+            const p1 = scalePoint(v1);
+            const p2 = scalePoint(a[i === a.length - 1 ? 0 : i + 1]);
 
-            if (!closestDistance || d < closestDistance) {
-              closestVertex = vertex;
-              closestDistance = d;
+            const dVertex = sketch.dist(m[0], m[1], p1[0], p1[1]);
+            const dSegment = MathUtils.pointLineSegmentDistance(m, p1, p2);
+
+            if (!closestVertexDistance || dVertex < closestVertexDistance) {
+              closestVertex = v1;
+              closestVertexDistance = dVertex;
+            }
+
+            if (!closestSegmentDistance || dSegment < closestSegmentDistance) {
+              closestSegmentDistance = dSegment;
               currentRegion = region;
             }
           });
@@ -637,7 +663,7 @@ module.exports = function (sketch) {
 
         currentRegion.highlight = true;
 
-        if (closestDistance < r) {
+        if (closestVertexDistance < r) {
           handle = closestVertex;
           sketch.cursor(sketch.HAND);
         }
