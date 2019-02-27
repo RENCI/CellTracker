@@ -31,6 +31,7 @@ from ct_core.task_utils import get_exp_frame_no
 from ct_core.forms import SignUpForm, UserProfileForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
 from django_irods.storage import IrodsStorage
+from ct_core.tasks import add_tracking
 
 
 # Create your views here.
@@ -382,6 +383,7 @@ def save_frame_seg_data(request, exp_id, frame_no):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     try:
         save_user_seg_data_to_db(request.user, exp_id, frame_no, seg_data['regions'])
+        add_tracking.apply_async((exp_id, request.user, frame_no), countdown=1)
         return JsonResponse({}, status=status.HTTP_200_OK)
     except Exception as ex:
         return JsonResponse({'message':ex.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

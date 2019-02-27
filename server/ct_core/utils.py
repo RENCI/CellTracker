@@ -14,7 +14,6 @@ from django.utils import timezone
 from django_irods.storage import IrodsStorage
 
 from ct_core.models import Segmentation, UserSegmentation, get_path
-from ct_core.tasks import sync_seg_data_to_irods
 
 
 frame_no_key = 'frame_no'
@@ -268,6 +267,4 @@ def save_user_seg_data_to_db(user, eid, fno, json_data):
         obj.data = json_data
         obj.update_time = curr_time
         obj.save()
-
-    # update user segmentation data in iRODS in a celery task
-    sync_seg_data_to_irods.apply_async((eid, user.username, json_data, rel_path), countdown=1)
+    return

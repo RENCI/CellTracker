@@ -64,11 +64,11 @@ def sync_seg_data_to_irods(exp_id='', username='', json_data={}, irods_path=''):
 
 
 @shared_task
-def add_tracking(exp_id, user='', frm_idx=None):
+def add_tracking(exp_id, user=None, frm_idx=None):
     """
     Add tracking to segmentation data for an experiment
     :param exp_id: experiment id
-    :param user: empty by default. If empty, add tracking to system segmentation data; otherwise,
+    :param user: None by default. If None, add tracking to system segmentation data; otherwise,
     add tracking to user edit segmentation data
     :param frm_idx: None by default. If None, add tracking to all frames; otherwise,
     add tracking to only the pass-in frm_idx which is zero-based frame index
@@ -117,13 +117,14 @@ def add_tracking(exp_id, user='', frm_idx=None):
             min_idx = np.argmin(distance_between_point_sets(xy1, xy2))
             linked_id = ids[next_frm][min_idx]
             seg_obj.data[cur_re]['link_id'] = linked_id
+        seg_obj.save()
         # update iRODS data to be in sync with updated data in DB
         rel_path = get_path(seg_obj)
         if user:
             sync_seg_data_to_irods(exp_id=exp_id, username=user.username, json_data=seg_obj.data,
                                    irods_path=rel_path)
         else:
-            sync_seg_data_to_irods(exp_id=exp_id, json_data=seg_obj.data, irods_path=rel_path)
-        seg_obj.save()
+            sync_seg_data_to_irods(exp_id=exp_id, username='system', json_data=seg_obj.data,
+                                   irods_path=rel_path)
 
     return
