@@ -262,7 +262,7 @@ module.exports = function (sketch) {
   function mousePressed(e) {
     e.preventDefault();
 
-    if (sketch.mouseButton !== sketch.LEFT) return;
+    if (sketch.mouseButton && sketch.mouseButton !== sketch.LEFT) return;
 
     // Save mouse position
     oldMouseX = sketch.mouseX;

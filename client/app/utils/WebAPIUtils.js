@@ -60,9 +60,11 @@ function getExperimentInfo(experiment) {
     success: function (data) {
       data.hasSegmentation = data.hasSegmentation === "true";
 
-      // Get frames
-      var n = Math.min(data.frames, 10);
-      var start = Math.floor(experiment.userProgress * (data.frames - n)) + 1;
+      // Number of frames
+      const n = Math.min(data.frames, 10);
+
+      // Center around start_frame
+      const start = Math.max(data.start_frame - Math.ceil(n / 2) + 1, 1);
 
       data.totalFrames = data.frames;
       data.frames = n;
