@@ -26,4 +26,4 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options['exp_id']:
             exp_id = str(options['exp_id'])
-            add_tracking.apply_async((exp_id, '', -1), countdown=1)
+            add_tracking(exp_id)

@@ -15,8 +15,8 @@ from ct_core.task_utils  import get_exp_frame_no, find_centroid, distance_betwee
 logger = logging.getLogger('django')
 
 
-@shared_task(bind=True)
-def add_tracking(self, exp_id, username='', frm_idx=-1):
+@shared_task
+def add_tracking(exp_id, username='', frm_idx=-1):
     """
     Add tracking to segmentation data for an experiment
     :param exp_id: experiment id
@@ -39,7 +39,8 @@ def add_tracking(self, exp_id, username='', frm_idx=-1):
     if frm_idx >= 0:
         min_f = frm_idx
         max_f = frm_idx + 2 if frm_idx < fno - 1 else fno
-
+    logger.warning(min_f)
+    logger.warning(max_f)
     for i in range(min_f, max_f):
         if username:
             try:
