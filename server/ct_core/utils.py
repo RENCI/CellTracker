@@ -254,7 +254,7 @@ def save_user_seg_data_to_db(user, eid, fno, json_data):
     curr_time = timezone.now()
     obj, created = UserSegmentation.objects.get_or_create(user= user,
                                                           exp_id=eid,
-                                                          frame_no=fno,
+                                                          frame_no=int(fno),
                                                           defaults={'data': udata,
                                                                     'update_time': curr_time})
 

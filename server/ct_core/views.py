@@ -392,9 +392,8 @@ def save_frame_seg_data(request, exp_id, frame_no):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     try:
         save_user_seg_data_to_db(request.user, exp_id, frame_no, seg_data['regions'])
-        logging.debug('before calling add_tracking')
-        add_tracking.apply_async((exp_id, request.user, frame_no-1), countdown=1)
-        logging.debug('after calling add_tracking')
+        add_tracking.apply_async((exp_id, request.user.username, int(frame_no)-1), countdown=1)
         return JsonResponse({}, status=status.HTTP_200_OK)
     except Exception as ex:
+        logging.error(ex.message)
         return JsonResponse({}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
