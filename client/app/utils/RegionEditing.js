@@ -328,7 +328,11 @@ function splitRegion(region, line, offset, regionArray) {
     setVertices(newRegion, v2);
 
     regionArray.push(newRegion);
+
+    return newRegion;
   }
+
+  return null;
 }
 
 function trimRegion(region, line) {
@@ -366,14 +370,20 @@ function trimRegion(region, line) {
       }
     }
 
+    console.log(v1, v2);
+
     // Keep region with most vertices
     if (v1.length > v2.length) {
       setVertices(region, v1);
     }
-    else if (v2.length > v1.length) {
+    else {
       setVertices(region, v2);
     }
+
+    return true;
   }
+
+  return false;
 }
 
 function removeRegion(region, regionArray) {
