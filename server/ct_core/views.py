@@ -6,6 +6,7 @@ import os
 import shutil
 import json
 from uuid import uuid4
+import logging
 
 from django.contrib.auth.models import User
 from django.template import loader
@@ -25,11 +26,16 @@ from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist
 
 from ct_core.utils import get_experiment_list_util, read_video, extract_images_from_video, \
-    read_image_frame, get_exp_frame_no, get_seg_collection, \
+    read_image_frame, get_seg_collection, \
     save_user_seg_data_to_db, get_start_frame
+from ct_core.task_utils import get_exp_frame_no
 from ct_core.forms import SignUpForm, UserProfileForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
 from django_irods.storage import IrodsStorage
+from ct_core.tasks import add_tracking
+
+
+logger = logging.getLogger(__name__)
 
 
 # Create your views here.
@@ -46,7 +52,8 @@ def index(request):
                        'initial_login': True}
             del request.session['just_signed_up']
         else:
-            context = {'initial_login': True}
+            context = {'initial_login': True,
+                       'just_signed_up': False}
         return HttpResponse(template.render(context, request))
     else:
         template = loader.get_template('ct_core/home.html')
@@ -245,8 +252,12 @@ def display_image(request, exp_id, type, frame_no):
     image_path = os.path.join(settings.IRODS_ROOT, exp_id, 'image')
     #if os.path.exists(image_path):
     #    shutil.rmtree(image_path)
-    if not os.path.exists(image_path):
-        os.makedirs(image_path)
+    try:
+        if not os.path.exists(image_path):
+            os.makedirs(image_path)
+    except OSError:
+        # path already exists
+        pass
     fno = int(frame_no)
     istorage = IrodsStorage()
     irods_img_path = os.path.join(exp_id, 'data', 'image', type)
@@ -381,6 +392,8 @@ def save_frame_seg_data(request, exp_id, frame_no):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     try:
         save_user_seg_data_to_db(request.user, exp_id, frame_no, seg_data['regions'])
+        add_tracking.apply_async((exp_id, request.user.username, int(frame_no)-1), countdown=1)
         return JsonResponse({}, status=status.HTTP_200_OK)
     except Exception as ex:
-        return JsonResponse({'message':ex.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logging.error(ex.message)
+        return JsonResponse({}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

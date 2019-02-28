@@ -40,10 +40,9 @@ class Command(BaseCommand):
                      options['exp_id'] + '/data/segmentation'
         rows, cols = get_exp_image_size(exp_id=options['exp_id'])
         if rows == -1:
-            logger.debug('cannot get experiment image size')
+            logger.error('cannot get experiment image size')
             return
-        logger.debug('exp_id='+str(options['exp_id']) + ', rows=' + str(rows) + ', cols=' +
-                     str(cols))
+
         with open(options['input_file']) as inf:
             outf_path = '/tmp/'
             contents = csv.reader(inf)
@@ -105,7 +104,7 @@ class Command(BaseCommand):
                 numx = float(x)/rows
                 numy = float(y)/cols
                 if 'id' in obj_dict:
-                    obj_dict['vertices'].append([str(numy), str(numx)])
+                    obj_dict['vertices'].append([numy, numx])
 
             # write the last frame
             if obj_dict:

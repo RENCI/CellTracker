@@ -14,7 +14,6 @@ from django.utils import timezone
 from django_irods.storage import IrodsStorage
 
 from ct_core.models import Segmentation, UserSegmentation, get_path
-from ct_core.tasks import sync_user_seg_data_to_irods
 
 
 frame_no_key = 'frame_no'
@@ -125,25 +124,6 @@ def get_exp_image_size(exp_id):
                 return -1, -1
 
 
-def get_exp_frame_no(exp_id):
-    fno = -1
-    with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
-                      password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
-        epath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id)
-        coll = session.collections.get(epath)
-        key = str(frame_no_key)
-        try:
-            col_md = coll.metadata.get_one(key)
-            fno = int(col_md.value)
-        except KeyError:
-            ipath = epath + '/data/image/jpg'
-            icoll = session.collections.get(ipath)
-            fno = len(icoll.data_objects)
-            coll.metadata.add(key, str(fno))
-
-    return fno
-
-
 def get_seg_collection(exp_id):
     """
     return iRODS collection for segmentation data for experiment id
@@ -172,12 +152,9 @@ def convert_csv_to_json(exp_id):
     :return: a list
     """
     resp_data = []
-    converted = False
     session, coll, coll_path = get_seg_collection(exp_id)
     if coll:
         for obj in coll.data_objects:
-            if converted:
-                break
             _, ext = os.path.splitext(obj.path)
             if ext != '.csv':
                 continue
@@ -220,7 +197,6 @@ def convert_csv_to_json(exp_id):
                 if obj_dict:
                     frame_ary.append(obj_dict)
                     resp_data.append(frame_ary)
-                converted = True
             break
 
     return resp_data
@@ -278,7 +254,7 @@ def save_user_seg_data_to_db(user, eid, fno, json_data):
     curr_time = timezone.now()
     obj, created = UserSegmentation.objects.get_or_create(user= user,
                                                           exp_id=eid,
-                                                          frame_no=fno,
+                                                          frame_no=int(fno),
                                                           defaults={'data': udata,
                                                                     'update_time': curr_time})
 
@@ -291,6 +267,4 @@ def save_user_seg_data_to_db(user, eid, fno, json_data):
         obj.data = json_data
         obj.update_time = curr_time
         obj.save()
-
-    # update user segmentation data in iRODS in a celery task
-    sync_user_seg_data_to_irods.apply_async((eid, user.username, json_data, rel_path), countdown=1)
+    return

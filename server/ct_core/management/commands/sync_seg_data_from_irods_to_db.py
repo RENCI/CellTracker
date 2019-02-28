@@ -29,10 +29,8 @@ class Command(BaseCommand):
         if options['exp_id']:
             exp_id = str(options['exp_id'])
             sync_seg_data_to_db(exp_id)
-            logger.debug('Synced db from irods for only one experiment {}'.format(exp_id))
         else:
             exp_list, err_msg = get_experiment_list_util()
             for exp in exp_list:
                 exp_id = exp['id']
                 sync_seg_data_to_db(exp_id)
-                logger.debug('Synced db from irods for one experiment {}'.format(exp_id))
