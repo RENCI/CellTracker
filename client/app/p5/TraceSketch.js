@@ -193,13 +193,13 @@ module.exports = function (sketch) {
         let weight = region.highlight ? lineHighlightWeight : lineWeight;
         weight /= zoom;        
 
-        sketch.stroke(strokeColorMap(region.id));
+        sketch.stroke(strokeColorMap(region.trajectory_id));
         sketch.strokeWeight(weight);
         sketch.strokeJoin(sketch.ROUND);
         
         sketch.canvas.getContext("2d").setLineDash(region.unsavedEdit ? dashArray : []);
 
-        if (region.edited) sketch.fill(fillColorMap(region.id));
+        if (region.edited) sketch.fill(fillColorMap(region.trajectory_id));
         else sketch.noFill();
 
         // Draw outline

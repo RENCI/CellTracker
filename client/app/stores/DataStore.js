@@ -143,6 +143,24 @@ function receiveSegmentationFrame(frame, regions) {
   segFramesLoaded++;
 
   if (segFramesLoaded === experiment.frames) {
+    // Use link id to generate trace ids
+    let counter = 0;
+    experiment.segmentationData.forEach((frame, i, a) => {
+      frame.regions.forEach(region => {
+        if (!region.trajectory_id) {
+          region.trajectory_id = "trajectory" + counter++;          
+        }
+
+        if (i < a.length - 1 && region.link_id) {
+          const linked = a[i + 1].regions.filter(r => r.id === region.link_id);
+
+          if (linked.length > 0) {
+            linked[0].trajectory_id = region.trajectory_id;
+          }
+        }
+      });
+    });
+
     pushHistory();
   }
 
