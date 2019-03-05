@@ -28,8 +28,8 @@ function PlaybackControls() {
   return (
     <div className="form-inline">
       <div className="btn-group-sm">
-        <IconButton iconName="oi-zoom-in" callback={onZoomInClick} />
-        <IconButton iconName="oi-zoom-out" callback={onZoomOutClick} />
+        <IconButton iconName="oi-zoom-in" callback={onZoomInClick} tooltip="Zoom in" />
+        <IconButton iconName="oi-zoom-out" callback={onZoomOutClick} tooltip="Zoom out" />
       </div>
     </div>
   );

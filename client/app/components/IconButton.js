@@ -10,6 +10,8 @@ function IconButton(props) {
       type="button"
       className={classes}
       disabled={props.disabled}
+      data-toggle={props.tooltip ? "tooltip" : null}
+      title={props.tooltip ? props.tooltip : null}
       onClick={props.callback}>
         <span className={"oi " + props.iconName}></span>
     </button>
@@ -21,13 +23,14 @@ IconButton.propTypes = {
   classes: PropTypes.string,
   disabled: PropTypes.bool,
   active: PropTypes.bool,
+  tooltip: PropTypes.string,
   callback: PropTypes.func.isRequired
 };
 
 IconButton.defaultProps = {
+  classes: "btn btn-outline-secondary",
   disabled: false,
-  active: false,
-  classes: "btn btn-outline-secondary"
+  active: false
 };
 
 module.exports = IconButton;

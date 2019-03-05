@@ -4,6 +4,7 @@ var TraceSketchWrapper = require("../p5/TraceSketchWrapper");
 var PlaybackControls = require("./PlaybackControls");
 var MediaControls = require("./MediaControls");
 var EditControls = require("./EditControls");
+var TooltipContainer = require("../containers/TooltipContainer");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
 function handleKeyPress(keyCode) {
@@ -92,7 +93,9 @@ function EditView(props) {
     <div className="row">
       <div className="col-md-5">
         <h4>Playback</h4>
-        <PlaybackControls />
+        <TooltipContainer>
+          <PlaybackControls />
+        </TooltipContainer>
         <TraceSketchWrapper
           experiment={props.experiment}
           zoom={props.settings.playbackZoom}
@@ -110,7 +113,9 @@ function EditView(props) {
       </div>
       <div className="col-md-7">
         <h4>Edit</h4>
-        <EditControls editMode={props.settings.editMode} />
+        <TooltipContainer>
+          <EditControls editMode={props.settings.editMode} />
+        </TooltipContainer>
         <TraceSketchWrapper
           experiment={props.experiment}
           zoom={props.settings.editZoom}
