@@ -46,7 +46,7 @@ function EditControls(props) {
         <IconButton 
           iconName="oi-fullscreen-enter" callback={onSplitClick} active={props.editMode === "split"} tooltip="Split region" />
         <IconButton 
-          iconName="oi-crop" callback={onTrimClick} active={props.editMode === "trim"} tooltip="Crop region" />
+          iconName="oi-crop" callback={onTrimClick} active={props.editMode === "trim"} tooltip="Trim region" />
         <IconButton 
           iconName="oi-wrench" callback={onRegionEditClick} active={props.editMode === "regionEdit"} tooltip="Add/remove region" />
         <IconButton

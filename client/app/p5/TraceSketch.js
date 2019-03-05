@@ -55,7 +55,8 @@ module.exports = function (sketch) {
       moveMouse = false,
       // XXX: Need to keep the previous mouse position because mouse moved is firing on mouse pressed
       oldMouseX = -1, oldMouseY = -1,
-      splitLine = null;
+      splitLine = null,
+      actionString = "";
 
   // Transform
   var zoom = 1,
@@ -75,6 +76,7 @@ module.exports = function (sketch) {
     canvas.mouseReleased(mouseReleased);
     canvas.mouseMoved(mouseMoved);
     canvas.mouseWheel(mouseWheel);
+    canvas.mouseOut(mouseOut);
     sketch.noLoop();
   }
 
@@ -116,6 +118,7 @@ module.exports = function (sketch) {
     }
 
     highlight();
+    actionString = "";
     sketch.redraw();
   }
 
@@ -248,7 +251,15 @@ module.exports = function (sketch) {
       var p1 = scalePoint(splitLine[0]);
       var p2 = scalePoint(splitLine[1]);
       sketch.line(p1[0], p1[1], p2[0], p2[1]);
-    }
+    }    
+
+    // Draw action string
+    sketch.resetMatrix();
+    sketch.fill("rgba(255, 255, 255, 0.5)");
+    sketch.noStroke();
+    sketch.textAlign(sketch.RIGHT);
+    sketch.text(actionString, sketch.width - 10, sketch.height - 10);
+
 /*
     // Draw path for current trace
     sketch.strokeWeight(4);
@@ -295,6 +306,8 @@ module.exports = function (sketch) {
   function mouseMoved(e) {
     e.preventDefault();
 
+    actionString = "";
+
     if (sketch.mouseButton && sketch.mouseButton !== sketch.LEFT) return;
 
     const regions = segmentationData[frame].regions;
@@ -313,6 +326,7 @@ module.exports = function (sketch) {
         if (sketch.mouseIsPressed && handle) {
           moveHandle = true;
           sketch.noCursor();
+          actionString = "Moving vertex";
         }
 
         if (moveHandle) {
@@ -337,6 +351,14 @@ module.exports = function (sketch) {
           regions.forEach(region => {
             region.highlight = regionLineSegmentIntersections(region, splitLine) === 2;
           });
+
+          const numRegions = regions.filter(region => region.highlight).length;
+
+          if (numRegions > 0) {
+            actionString = editMode === "split" ? "Split region" : "Trim region";
+            if (numRegions > 1) actionString += "s";
+          }
+          console.log(actionString);
         }
 
         break;
@@ -368,6 +390,8 @@ module.exports = function (sketch) {
 
   function mouseReleased(e) {
     e.preventDefault();
+
+    actionString = "";
 
     if (sketch.mouseButton !== sketch.LEFT) return;
 
@@ -516,6 +540,11 @@ module.exports = function (sketch) {
     return false;
   }
 
+  function mouseOut() {
+    actionString = "";
+    sketch.redraw();
+  }
+
   function getTrace() {
     return points.slice();
   }
@@ -615,6 +644,10 @@ module.exports = function (sketch) {
       case "regionEdit":
       case "regionSelect":
       case "merge":
+        actionString = 
+          editMode === "regionEdit" ? "Add region" :
+          editMode === "playback" && zoom !== 1 ? "Reset view" : ""; 
+
         // Test regions
         for (var i = 0; i < regions.length; i++) {
           const region = regions[i];
@@ -624,6 +657,13 @@ module.exports = function (sketch) {
             region.highlight = true;
 
             sketch.cursor(sketch.HAND);
+
+            actionString = 
+              editMode === "regionEdit" ? "Remove region" : 
+              editMode === "regionSelect" ? "Center on region" : 
+              editMode === "merge" && !mergeRegion ? "Select first merge region" :
+              editMode === "merge" && mergeRegion ? "Select second merge region" :
+              editMode === "playback" ? "Center on region" : ""; 
 
             break;
           }
@@ -663,9 +703,13 @@ module.exports = function (sketch) {
 
         currentRegion.highlight = true;
 
+        actionString = "Add vertex";
+
         if (closestVertexDistance < r) {
           handle = closestVertex;
           sketch.cursor(sketch.HAND);
+
+          actionString = "Remove vertex";
         }
 
         break;
