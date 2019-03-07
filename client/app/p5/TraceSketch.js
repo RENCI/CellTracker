@@ -101,7 +101,7 @@ module.exports = function (sketch) {
       experiment = props.experiment;
 
       images = experiment.images.map(function(d) {
-        var w = d.width,
+        const w = d.width,
             h = d.height,
             im = sketch.createImage(w, h);
 
@@ -115,6 +115,15 @@ module.exports = function (sketch) {
 
     if (experiment) {
       segmentationData = experiment.segmentationData;
+
+      // Update color map domain
+      // XXX: Could move to DataStore and share same color map
+      segmentationData.forEach(frame => {
+        frame.regions.forEach(region => {
+          strokeColorMap(region.trajectory_id);
+          fillColorMap(region.trajectory_id);
+        });
+      });
     }
 
     highlight();
@@ -189,8 +198,6 @@ module.exports = function (sketch) {
     // Draw segmentation data
     const dashArray = [5 / zoom, 5 / zoom];
 
-    fillColorMap.domain(strokeColorMap.domain());
-
     if (segmentationData) {
       segmentationData[frame].regions.forEach(function(region) {
         let weight = region.highlight ? lineHighlightWeight : lineWeight;
@@ -243,6 +250,7 @@ module.exports = function (sketch) {
 
     if (splitLine) {
       sketch.stroke(255, 255, 255, 127);
+      sketch.canvas.getContext("2d").setLineDash([]);
 
       var weight = lineWeight / zoom;
       sketch.strokeWeight(weight);
