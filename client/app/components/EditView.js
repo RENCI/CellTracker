@@ -95,8 +95,6 @@ function EditView(props) {
     }
   }
 
-  console.log(frames);
-
   return (
     <div className="row">
       <div className="col-md-5">

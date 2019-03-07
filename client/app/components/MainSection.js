@@ -6,7 +6,9 @@ var PlaybackView = require("./PlaybackView");
 var EditView = require("./EditView");
 
 function MainSection(props) {
-  const divClass = props.experiment && props.experiment.editFrame ?
+  const edit = props.experiment && Number.isInteger(props.experiment.editFrame);
+
+  const divClass = edit ?
       "col-md-12 text-center" :
       "offset-md-1 col-md-10 text-center";
 
@@ -33,7 +35,7 @@ function MainSection(props) {
                 max2={props.loading.numSegFrames} />
             : null}
             {props.loading === null ?
-              props.experiment.editFrame ?
+              edit ?
                 <EditView {...props} /> :
                 <PlaybackView {...props} />
             : null}
