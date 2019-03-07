@@ -42,6 +42,7 @@ function handleUpdateTrace(points) {
 function PlaybackView(props) {
   return (
     <div>
+      <h4>Overview</h4>
       <TraceSketchWrapper
         experiment={props.experiment}
         traces={props.traces}

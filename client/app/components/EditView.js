@@ -52,11 +52,16 @@ var frameDivStyle = {
 };
 
 function EditView(props) {
-  var frame = props.experiment.editFrame;
-  var frames = [];
+  const frame = props.experiment.editFrame;
+  const frames = [];
+  let framesIndex = -1;
 
-  for (var i = frame - 2; i <= frame + 2; i++) {
-    var frameStyle = {
+  for (let i = 0; i < props.experiment.frames; i++) {
+    if (i % 5 === 0) {
+      framesIndex = frames.push([]) - 1;
+    }
+
+    const frameStyle = {
       flex: "1",
       width: "0px",
       paddingTop: "5px",
@@ -67,17 +72,18 @@ function EditView(props) {
     };
 
     if (i < 0 || i >= props.experiment.frames) {
-      frames.push(
+      frames[framesIndex].push(
         <div style={frameStyle} key={i}>
         </div>
       );
     }
     else {
-      frames.push(
+      frames[framesIndex].push(
         <div style={frameStyle} key={i}>
           <TraceSketchWrapper
             experiment={props.experiment}
             zoom={props.settings.playbackZoom}
+            zoomPoint={props.settings.zoomPoint}
             traces={props.traces}
             frame={i}
             onKeyPress={handleKeyPress}
@@ -88,6 +94,8 @@ function EditView(props) {
       );
     }
   }
+
+  console.log(frames);
 
   return (
     <div className="row">
@@ -105,10 +113,14 @@ function EditView(props) {
           onKeyPress={handleKeyPress}
           onMouseWheel={handleMouseWheel}
           onSelectRegion={handleSelectRegion}
-          onUpdateTrace={handleUpdateTrace} />
-        <div style={frameDivStyle}>
-          {frames}
-        </div>
+          onUpdateTrace={handleUpdateTrace} />       
+          {frames.map((frames, i) => {
+            return (
+              <div style={frameDivStyle} key={i}>
+                {frames}
+              </div>          
+            );
+          })}         
         <MediaControls {...props} />
       </div>
       <div className="col-md-7">

@@ -438,13 +438,13 @@ function saveSegmentationData() {
 }
 
 function setZoomLevels(region) {
-  var w = region.max[0] - region.min[0];
-  var h = region.max[1] - region.min[1];
+  const w = region.max[0] - region.min[0];
+  const h = region.max[1] - region.min[1];
 
-  var s = Math.max(w, h);
+  const s = Math.max(w, h);
 
-  settings.playbackZoom = 1 / (s * 3);
   settings.editZoom = 1 / (s * 1.5);
+  settings.playbackZoom = settings.editZoom / 2;
   settings.zoomPoint = region.center;
 }
 

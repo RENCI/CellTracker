@@ -257,8 +257,10 @@ module.exports = function (sketch) {
     sketch.resetMatrix();
     sketch.fill("rgba(255, 255, 255, 0.5)");
     sketch.noStroke();
+    const fontSize = sketch.constrain(sketch.width / 20, 10, 24);
+    sketch.textSize(fontSize);
     sketch.textAlign(sketch.RIGHT);
-    sketch.text(actionString, sketch.width - 10, sketch.height - 10);
+    sketch.text(actionString, sketch.width - fontSize / 2, sketch.height - fontSize / 2);
 
 /*
     // Draw path for current trace
