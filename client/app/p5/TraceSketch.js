@@ -369,7 +369,6 @@ module.exports = function (sketch) {
             actionString = editMode === "split" ? "Split region" : "Trim region";
             if (numRegions > 1) actionString += "s";
           }
-          console.log(actionString);
         }
 
         break;
