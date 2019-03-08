@@ -41,7 +41,7 @@ module.exports = function (sketch) {
       })),
       fillColorMap = d3Scale.scaleOrdinal(colors.map(c => {
         const color = d3Color.color(c);
-        color.opacity = 0.5;
+        color.opacity = 0.25;
         return color.toString();
       }));;
 
@@ -207,10 +207,11 @@ module.exports = function (sketch) {
         sketch.strokeWeight(weight);
         sketch.strokeJoin(sketch.ROUND);
         
-        sketch.canvas.getContext("2d").setLineDash(region.unsavedEdit ? dashArray : []);
+        //sketch.canvas.getContext("2d").setLineDash(region.unsavedEdit ? dashArray : []);
 
-        if (region.edited) sketch.fill(fillColorMap(region.trajectory_id));
-        else sketch.noFill();
+        //if (region.edited) sketch.fill(fillColorMap(region.trajectory_id));
+        //else sketch.noFill();
+        sketch.fill(fillColorMap(region.trajectory_id));
 
         // Draw outline
         sketch.beginShape();
