@@ -11,6 +11,11 @@ class TooltipContainer extends React.Component {
     $(this.div).find("[data-toggle='tooltip']").tooltip();
   }
 
+  componentDidUpdate() {
+    // Hide any open tooltips
+    $(this.div).find("[data-toggle='tooltip']").tooltip("hide");
+  }
+
   render() {
     return (
       <div ref={div => this.div = div} >
