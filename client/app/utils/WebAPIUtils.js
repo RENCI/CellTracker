@@ -119,6 +119,48 @@ function getFrames(experiment) {
   }
 }
 
+function pollUpdatedTracking(taskId) {
+  var timeOutStatusId = -1;
+
+  $.ajax({
+    dataType: "json",
+    cache: false,
+    timeout: 60000,
+    type: "POST",
+    url: '/check_task_status/',
+    data: {
+      task_id: taskId
+    },
+    success: function(data) {
+      if (data.error) {
+        if (timeOutStatusId > -1) {
+          clearTimeout(timeOutStatusId);
+        }
+        console.log(data.error);
+      }
+      else if (data.result) {
+        if (timeOutStatusId > -1) {
+          clearTimeout(timeOutStatusId);
+        }
+
+        console.log(data.result);
+      }
+      else {
+        timeOutStatusId = setTimeout(function () {
+          pollUpdatedTracking(taskId);
+        }, 1000);
+      }
+    },
+    error: function (xhr, textStatus, errorThrown) {
+      if (timeOutStatusId > -1) {
+        clearTimeout(timeOutStatusId);
+      }
+
+      console.log(textStatus + ": " + errorThrown);
+    }
+  });
+}
+
 function saveSegmentationData(id, data) {
   setupAjax();
 
@@ -144,7 +186,10 @@ function saveSegmentationData(id, data) {
         regions: regions
       },
       success: function (data) {
-        // Segmentation saved action?
+        if (data.task_id) {
+          console.log('task_id is ' + data.task_id);
+          pollUpdatedTracking(data.task_id);
+        }
       },
       error: function (xhr, textStatus, errorThrown) {
         console.log(textStatus + ": " + errorThrown);

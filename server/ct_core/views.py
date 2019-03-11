@@ -392,8 +392,42 @@ def save_frame_seg_data(request, exp_id, frame_no):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     try:
         save_user_seg_data_to_db(request.user, exp_id, frame_no, seg_data['regions'])
-        add_tracking.apply_async((exp_id, request.user.username, int(frame_no)-1), countdown=1)
-        return JsonResponse({}, status=status.HTTP_200_OK)
+        task = add_tracking.apply_async((exp_id, request.user.username, int(frame_no)-1),
+                                        countdown=1)
+        return JsonResponse({'task_id': task.task_id}, status=status.HTTP_200_OK)
     except Exception as ex:
-        logging.error(ex.message)
-        return JsonResponse({}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return JsonResponse({'message': ex.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+def check_task_status(request):
+    '''
+    A view function to tell the client if the asynchronous add_tracking() task is done.
+    Args:
+        request: an ajax request to check for add tracking status
+    Returns:
+        JSON response to return result from asynchronous task add_tracking()
+    '''
+    task_id = request.POST.get('task_id', None)
+    ret_result = {}
+    if not task_id:
+        ret_result['result'] = None
+        ret_result['error'] = 'task_id input is not in request POST data'
+        return JsonResponse(ret_result,
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    result = add_tracking.AsyncResult(task_id)
+    if result.ready():
+        try:
+            get_result = result.get()
+        except Exception as ex:
+            ret_result['result'] = None
+            ret_result['error'] = ex.message
+            return JsonResponse(ret_result,
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        ret_result['result'] = get_result
+        return JsonResponse(ret_result,
+                            status=status.HTTP_200_OK)
+    else:
+        return JsonResponse({"result": None},
+                            status=status.HTTP_200_OK)
