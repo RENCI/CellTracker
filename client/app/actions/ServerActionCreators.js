@@ -27,5 +27,11 @@ module.exports = {
       frame: frame,
       segmentations: segmentations
     });
+  },
+  updateTracking: function (trackingData) {
+    AppDispatcher.dispatch({
+      actionType: Constants.UPDATE_TRACKING,
+      trackingData: trackingData
+    });
   }
 };

@@ -6,6 +6,7 @@ module.exports = keyMirror({
   RECEIVE_EXPERIMENT: null,
   RECEIVE_FRAME: null,
   RECEIVE_SEGMENTATION_FRAME: null,
+  UPDATE_TRACKING: null,
   ADVANCE_FRAMES: null,
   REVERSE_FRAMES: null,
 

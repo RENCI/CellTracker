@@ -143,7 +143,7 @@ function pollUpdatedTracking(taskId) {
           clearTimeout(timeOutStatusId);
         }
 
-        console.log(data.result);
+        ServerActionCreators.updateTracking(data.result);
       }
       else {
         timeOutStatusId = setTimeout(function () {
@@ -187,7 +187,6 @@ function saveSegmentationData(id, data) {
       },
       success: function (data) {
         if (data.task_id) {
-          console.log('task_id is ' + data.task_id);
           pollUpdatedTracking(data.task_id);
         }
       },

@@ -143,28 +143,57 @@ function receiveSegmentationFrame(frame, regions) {
   segFramesLoaded++;
 
   if (segFramesLoaded === experiment.frames) {
-    // Use link id to generate trace ids
-    let counter = 0;
-    experiment.segmentationData.forEach((frame, i, a) => {
-      frame.regions.forEach(region => {
-        if (!region.trajectory_id) {
-          region.trajectory_id = "trajectory" + counter++;          
-        }
-
-        if (i < a.length - 1 && region.link_id) {
-          const linked = a[i + 1].regions.filter(r => r.id === region.link_id);
-
-          if (linked.length > 0) {
-            linked[0].trajectory_id = region.trajectory_id;
-          }
-        }
-      });
-    });
+    generateTrajectoryIds();
 
     pushHistory();
   }
 
   updateLoading();
+}
+
+function generateTrajectoryIds() {
+  // Remove any existing ids
+  experiment.segmentationData.forEach(frame => {
+    frame.regions.forEach(region => region.trajectory_id = null);
+  });
+
+  // Use link id to generate trace ids
+  let counter = 0;
+  experiment.segmentationData.forEach((frame, i, a) => {
+    frame.regions.forEach(region => {
+      if (!region.trajectory_id) {
+        region.trajectory_id = "trajectory" + counter++;          
+      }
+
+      if (i < a.length - 1 && region.link_id) {
+        const linked = a[i + 1].regions.filter(r => r.id === region.link_id);
+
+        if (linked.length > 0) {
+          linked[0].trajectory_id = region.trajectory_id;
+        }
+      }
+    });
+  });
+}
+
+function updateTracking(trackingData) {
+  trackingData.forEach(trackFrame => {
+    let segFrame = experiment.segmentationData.filter(segFrame => segFrame.frame === trackFrame.frame_no);
+    
+    if (segFrame.length === 0) return;
+    segFrame = segFrame[0];   
+
+    trackFrame.region_ids.forEach(ids => {
+      for (let i = 0; i < segFrame.regions.length; i++) {
+        const region = segFrame.regions[i];
+        if (region.id === ids.id) {
+          region.link_id = ids.linked_id;
+        }
+      }
+    });
+  });
+
+  generateTrajectoryIds();
 }
 
 function updateLoading() {
@@ -563,6 +592,11 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.RECEIVE_SEGMENTATION_FRAME:
       receiveSegmentationFrame(action.frame, action.segmentations);
+      DataStore.emitChange();
+      break;
+
+    case Constants.UPDATE_TRACKING:
+      updateTracking(action.trackingData);
       DataStore.emitChange();
       break;
 
