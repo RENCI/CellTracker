@@ -59,6 +59,14 @@ class Command(BaseCommand):
                         if istr.startswith('frame'):
                             curr_fno = int(istr[len('frame'):])
                             if obj_dict:
+                                # remove the last vertex if it is duplicate with the first one
+                                v1y, v1x = obj_dict['vertices'][0]
+                                v2y, v2x = obj_dict['vertices'][-1]
+                                tol = 0.0000001
+                                if abs(v2y-v1y) < tol and abs(v2x-v1x) < tol:
+                                    # two vertices are equal
+                                    del obj_dict['vertices'][-1]
+
                                 # filter out polygons with less than 3 vertices
                                 if len(obj_dict['vertices']) > 2:
                                     frame_ary.append(obj_dict)
@@ -72,7 +80,7 @@ class Command(BaseCommand):
                                 ofilename = 'frame' + str(last_fno+1) + '.json'
                                 outf_name = outf_path + ofilename
                                 with open(outf_name, 'w') as outf:
-                                    outf.write(json.dumps(frame_ary))
+                                    outf.write(json.dumps(frame_ary, indent=2))
                                 # put file to irods
                                 with iRODSSession(host=settings.IRODS_HOST,
                                                   port=settings.IRODS_PORT,
@@ -117,7 +125,7 @@ class Command(BaseCommand):
                 ofilename = 'frame' + str(last_fno + 1) + '.json'
                 outf_name = outf_path + ofilename
                 with open(outf_name, 'w') as outf:
-                    outf.write(json.dumps(frame_ary))
+                    outf.write(json.dumps(frame_ary, indent=2))
                 # put file to irods
                 with iRODSSession(host=settings.IRODS_HOST,
                                   port=settings.IRODS_PORT,

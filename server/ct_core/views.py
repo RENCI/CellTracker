@@ -375,7 +375,7 @@ def save_tracking_data(request, exp_id):
         irods_fname = 'trace_' + str(trace_no) + '.json'
         temp_file_name = os.path.join(temp_path, irods_fname)
         with open(temp_file_name, 'w') as out:
-            out.write(json.dumps(traces, indent=4))
+            out.write(json.dumps(traces, indent=2))
         session.data_objects.put(temp_file_name, ipath + '/' + irods_fname)
         shutil.rmtree(temp_path)
         return HttpResponse("Trace has been saved correctly")
