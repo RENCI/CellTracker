@@ -6,6 +6,8 @@ import numpy as np
 from celery import shared_task
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.models import User
+from django.utils import timezone
 
 from ct_core.models import UserSegmentation, Segmentation, get_path
 from ct_core.task_utils  import get_exp_frame_no, find_centroid, distance_between_point_sets, \
@@ -72,8 +74,16 @@ def add_tracking(exp_id, username='', frm_idx=-1):
                 seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user__username=username,
                                                        frame_no=fi+1)
             except ObjectDoesNotExist:
-                # check system Segmentation if the next frame of user segmentation does not exist
-                seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=fi+1)
+                # check system Segmentation if the frame of user segmentation does not exist,
+                # and create a UserSegmentation object for the frame using the data of the frame
+                # on the system segmentation data since the link_id field of some regions could be
+                # updated as a result of region updates of the next frame
+                sys_seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=fi+1)
+                seg_obj = UserSegmentation(user=User.objects.get(username=username),
+                                           exp_id=exp_id, frame_no=fi+1, data=sys_seg_obj.data,
+                                           update_time=timezone.now())
+                rel_path = get_path(seg_obj)
+                seg_obj.file = rel_path
         else:
             seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=fi+1)
         if frm_idx >= 0:
@@ -87,11 +97,11 @@ def add_tracking(exp_id, username='', frm_idx=-1):
             min_idx = np.argmin(distance_between_point_sets(xy1, xy2))
             linked_id = ids[next_frm][min_idx]
             seg_obj.data[cur_re]['link_id'] = linked_id
-            if frm_idx >= 0:
+            if username and frm_idx >= 0:
                 return_regions.append({'id': ids[fi][cur_re],
                                        'linked_id': linked_id})
         seg_obj.save()
-        if frm_idx >= 0:
+        if username and frm_idx >= 0:
             ret_result.append({'frame_no': fi+1,
                                'region_ids': return_regions})
         # update iRODS data to be in sync with updated data in DB
