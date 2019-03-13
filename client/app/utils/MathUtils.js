@@ -107,6 +107,7 @@ function lineSegmentIntersection(p1, p2, p3, p4) {
 
 module.exports = {
   normalizeVector: normalizeVector,
+  distance: distance,
   distance2: distance2,
   insidePolygon: insidePolygon,
   pointLineSegmentDistance: pointLineSegmentDistance,

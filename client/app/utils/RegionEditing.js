@@ -58,204 +58,116 @@ function addVertex(region, point) {
   vertices.splice(segments[segment.i][1], 0, point);
 }
 
-function mergeRegions(region1, region2, dilation, regionArray) {
-  // Dilate the two regions
-  let dilate1 = dilate(region1.vertices, dilation);
-  let dilate2 = dilate(region2.vertices, dilation);
+function mergeRegions(region1, region2, regionArray) {
+  const vertices1 = region1.vertices;
+  const vertices2 = region2.vertices;
 
-  // Nullify points in the dilation intersection
-  let valid1 = region1.vertices.map(function(v) {
-    return MathUtils.insidePolygon(v, dilate2) ? null : v;
-  });
-
-  let valid2 = region2.vertices.map(function(v) {
-    return MathUtils.insidePolygon(v, dilate1) ? null : v;
-  });
-
-  if (valid1.indexOf(null) === -1 || valid2.indexOf(null) === -1) {
-    // Get non-null vertices
-    valid1 = valid1.filter(function(d) { return d !== null; });
-    valid2 = valid2.filter(function(d) { return d !== null; });
-
-    // Find two closest point pairs and merge them
-    let pairs = [];
-    valid1.forEach(function(v1, i) {
-      valid2.forEach(function(v2, j) {
-        pairs.push({
-          i: i,
-          j: j,
-          d2: MathUtils.distance2(v1, v2)
-        });
+  // Compute distances for each pair
+  let pairs = [];
+  vertices1.forEach((v1, i) => {
+    vertices2.forEach((v2, j) => {
+      pairs.push({
+        v1: v1,
+        v2: v2,
+        i: i,
+        j: j,
+        dist: MathUtils.distance(v1, v2)
       });
     });
+  });
 
-    pairs.sort(function(a, b) {
-      return a.d2 - b.d2;
+  // Sort
+  pairs.sort((a, b) => a.dist - b.dist);
+
+  // Compute distance threshold
+  // XXX: Maybe look at using Otsu thresholding to determine threshold?
+  const threshold = pairs[1].dist * 2;
+
+  // Compute midpoints for possible merge points
+  pairs = pairs.filter(d => d.dist < threshold);
+  pairs.forEach(d => {
+    d.midPoint = mergePoints(d.v1, d.v2);
+  });
+
+  // Compute distances between midpoints
+  let midPairs = [];
+  pairs.forEach(p1 => {
+    pairs.forEach(p2 => {
+      if (p1 !== p2) midPairs.push({
+        p1: p1,
+        p2: p2,
+        dist2: MathUtils.distance2(p1.midPoint, p2.midPoint)
+      });
     });
+  });
 
-    let pair1 = pairs[0];
-    let pair2;
-    for (let i = 1; i < pairs.length; i++) {
-      let p = pairs[i];
+  // Sort
+  midPairs.sort((a, b) => b.dist2 - a.dist2);
 
-      if (p.i !== pair1.i && p.j !== pair1.j) {
-        pair2 = p;
-        break;
-      }
+  // Final merge pairs
+  const p1 = midPairs[0].p1;
+  const p2 = midPairs[0].p2;
+
+  // Find the left-most vertex
+  const left1 = vertices1.reduce((p, c) => {
+    return c[0] < p[0] ? c : p;
+  });
+
+  const left2 = vertices2.reduce((p, c) => {
+    return c[0] < p[0] ? c : p;
+  });
+
+  // If first region not left-most, start with right-most
+  const start = left1[0] < left2[0] ? left1 : vertices1.reduce((p, c) => {
+    return c[0] > p[0] ? c : p;
+  });
+
+  // Do the merge
+  const vertices = [];
+
+  let startIndex = vertices1.indexOf(start);
+  let pFirst = null;
+  let pSecond = null;
+  
+  for (let i = startIndex; i !== left(startIndex, vertices1); i = right(i, vertices1)) {
+    vertices.push(vertices1[i]);
+
+    if (i === p1.i) {
+      pFirst = p1;
+      pSecond = p2;
+      break;
     }
-
-    // Sort by lowest i index
-    if (pair1.i > pair2.i) {
-      let temp = pair1;
-      pair1 = pair2;
-      pair2 = temp;
+    else if (i === p2.i) {     
+      pFirst = p2;
+      pSecond = p1;
+      break;
     }
-
-    function mergePoints(p1, p2) {
-      return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
-    }
-
-    // Merge regions
-    let merged = [];
-
-    for (let i = 0; i < pair1.i; i++) {
-      merged.push(valid1[i]);
-    }
-
-    merged.push(mergePoints(valid1[pair1.i], valid2[pair1.j]));
-
-    // XXX: Refactor to reduce redundancy with above code
-    for (let i = 0; i < valid2.length; i++) {
-      let j = (i + pair1.j + 1) % valid2.length;
-
-      if (j === pair2.j) break;
-
-      merged.push(valid2[j]);
-    }
-
-    merged.push(mergePoints(valid1[pair2.i], valid2[pair2.j]));
-
-    for (let i = pair2.i + 1; i < valid1.length; i++) {
-      merged.push(valid1[i]);
-    }
-
-    // Update the vertices
-    setVertices(region1, merged);
-
-    // Remove the other region
-    regionArray.splice(regionArray.indexOf(region2), 1);
-  }
-  else {
-    // Merge regions
-    let merged = [];
-    let mergeStart;
-    for (let i = 0; i < valid1.length; i++) {
-      let v1 = valid1[i];
-
-      if (v1) {
-        // Add this one
-        merged.push(v1);
-
-        let v2 = valid1[(i + 1) % valid1.length];
-
-        if (!v2) {
-          // Find closest merge point
-          let closest = valid2.reduce(function(p, c, i) {
-            if (!c) return p;
-
-            let d2 = MathUtils.distance2(v1, c);
-
-            return p === null || d2 < p.d2 ? {
-              i: i,
-              d2: d2
-            } : p;
-          }, null);
-
-          mergeStart = closest.i;
-
-          valid1[i] = null;
-
-          break;
-        }
-      }
-
-      valid1[i] = null;
-    }
-
-    // XXX: Refactor to reduce redundancy with above code
-    let selectedStart;
-    for (let i = 0; i < valid2.length; i++) {
-      let i1 = (i + mergeStart) % valid2.length;
-
-      let v1 = valid2[i1];
-
-      if (v1) {
-        // Add this one
-        merged.push(v1);
-
-        let v2 = valid2[(i1 + 1) % valid2.length];
-
-        if (!v2) {
-          // Find closest merge point
-          console.log(valid1);
-          console.log(valid2);
-
-          let closest = valid1.reduce(function(p, c, i) {
-            if (!c) return p;
-
-            let d2 = MathUtils.distance2(v1, c);
-
-            return p === null || d2 < p.d2 ? {
-              i: i,
-              d2: d2
-            } : p;
-          }, null);
-
-          if (!closest) {
-            console.log(valid1);
-            console.log(valid2);
-            console.log(merged);
-          }
-
-          selectedStart = closest.i;
-
-          valid2[i1] = null;
-
-          break;
-        }
-      }
-
-      valid2[i1] = null;
-    }
-
-    for (let i = selectedStart; i < valid1.length; i++) {
-      let v = valid1[i];
-
-      if (v) merged.push(v);
-      //else break;
-    }
-
-    // Update the vertices
-    setVertices(region1, merged);
-
-    // Remove the other region
-    regionArray.splice(regionArray.indexOf(region2), 1);
   }
 
-  function dilate(vertices, alpha) {
-    return vertices.map(function(v, i, a) {
-      // Get neighbors
-      const v1 = i === 0 ? a[a.length - 1] : a[i - 1];
-      const v2 = i === a.length - 1 ? a[0] : a[i + 1];
+  for (let j = pFirst.j; j !== pSecond.j; j = right(j, vertices2)) {
+    vertices.push(vertices2[j]);
+  }
 
-      // Get normals
-      const n1 = MathUtils.normalizeVector([v[1] - v1[1], -(v[0] - v1[0])]);
-      const n2 = MathUtils.normalizeVector([v2[1] - v[1], -(v2[0] - v[0])]);
-      const n = [(n1[0] + n2[0]) / 2, (n1[1] + n2[1]) / 2];
+  for (let i = pSecond.i; i !== startIndex; i = right(i, vertices1)) {
+    vertices.push(vertices1[i]);
+  }
 
-      // Dilate
-      return [v[0] + n[0] * alpha, v[1] + n[1] * alpha];
-    });
+  // Update the vertices
+  setVertices(region1, vertices);
+
+  // Remove the other region
+  regionArray.splice(regionArray.indexOf(region2), 1);
+
+  function mergePoints(p1, p2) {
+    return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+  }
+
+  function left(i, a) {
+    return i === 0 ? a.length - 1 : i - 1;
+  }
+
+  function right(i, a) {
+    return i === a.length - 1 ? 0 : i + 1;
   }
 }
 

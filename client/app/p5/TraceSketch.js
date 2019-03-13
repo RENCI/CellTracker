@@ -199,7 +199,7 @@ module.exports = function (sketch) {
     const dashArray = [5 / zoom, 5 / zoom];
 
     if (segmentationData) {
-      segmentationData[frame].regions.forEach(function(region) {
+      segmentationData[frame].regions.forEach(function(region, i, a) {
         let weight = region.highlight ? lineHighlightWeight : lineWeight;
         weight /= zoom;        
 
@@ -450,7 +450,7 @@ module.exports = function (sketch) {
       case "merge":
         if (!moveMouse) {
           if (mergeRegion && currentRegion && mergeRegion !== currentRegion) {
-            RegionEditing.mergeRegions(mergeRegion, currentRegion, 1.1 / images[0].width, regions);
+            RegionEditing.mergeRegions(mergeRegion, currentRegion, regions);
             onEditRegion(frame, mergeRegion);
             mergeRegion = null;
           }
