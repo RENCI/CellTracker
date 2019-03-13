@@ -59,24 +59,36 @@ function addVertex(region, point) {
 }
 
 function mergeRegions(region1, region2, regionArray) {
+  // Keep track of minimum distance for each vertex in region 1
   const vertices1 = region1.vertices;
   const vertices2 = region2.vertices;
+
+  const minDist1 = vertices1.map(() => null);
 
   // Compute distances for each pair
   let pairs = [];
   vertices1.forEach((v1, i) => {
     vertices2.forEach((v2, j) => {
+      const dist = MathUtils.distance(v1, v2);
+
       pairs.push({
         v1: v1,
         v2: v2,
         i: i,
         j: j,
-        dist: MathUtils.distance(v1, v2)
+        dist: dist
       });
+
+      if (minDist1[i] === null || dist < minDist1[i]) minDist1[i] = dist;
     });
   });
 
-  // Sort
+  // Get the starting vertex on region 1
+  const startIndex = minDist1.reduce((p, c, i, a) => {
+    return c < a[p] ? i : p;
+  });
+
+  // Sort pairs
   pairs.sort((a, b) => a.dist - b.dist);
 
   // Compute distance threshold
@@ -108,27 +120,12 @@ function mergeRegions(region1, region2, regionArray) {
   const p1 = midPairs[0].p1;
   const p2 = midPairs[0].p2;
 
-  // Find the left-most vertex
-  const left1 = vertices1.reduce((p, c) => {
-    return c[0] < p[0] ? c : p;
-  });
-
-  const left2 = vertices2.reduce((p, c) => {
-    return c[0] < p[0] ? c : p;
-  });
-
-  // If first region not left-most, start with right-most
-  const start = left1[0] < left2[0] ? left1 : vertices1.reduce((p, c) => {
-    return c[0] > p[0] ? c : p;
-  });
-
   // Do the merge
   const vertices = [];
 
-  let startIndex = vertices1.indexOf(start);
   let pFirst = null;
   let pSecond = null;
-  
+
   for (let i = startIndex; i !== left(startIndex, vertices1); i = right(i, vertices1)) {
     vertices.push(vertices1[i]);
 
@@ -137,7 +134,7 @@ function mergeRegions(region1, region2, regionArray) {
       pSecond = p2;
       break;
     }
-    else if (i === p2.i) {     
+    else if (i === p2.i) {
       pFirst = p2;
       pSecond = p1;
       break;
