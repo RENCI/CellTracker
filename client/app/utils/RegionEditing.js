@@ -1,4 +1,5 @@
 let MathUtils = require("./MathUtils");
+let d3 = require("d3");
 
 function setVertices(region, vertices) {
   region.vertices = vertices;
@@ -63,39 +64,46 @@ function mergeRegions(region1, region2, regionArray) {
   const vertices1 = region1.vertices;
   const vertices2 = region2.vertices;
 
-  // Compute closest distance from region 1 vertices to region 2 vertices
-  let pairs = vertices1.map((v1, i) => {
-    return vertices2.reduce((p, v2, j) => {
-      const dist = MathUtils.distance(v1, v2);
-
-      return !p || dist < p.dist ? {
+  // Compute all distances from region 1 vertices to region 2 vertices
+  let pairs = [];
+  vertices1.forEach((v1, i) => {
+    vertices2.forEach((v2, j) => {
+      pairs.push({
         v1: v1,
         v2: v2,
         i: i,
         j: j,
-        dist: dist
-      } : p;
-    }, null);
+        dist: MathUtils.distance(v1, v2)
+      });
+    });
   });
 
   // Sort pairs
   pairs.sort((a, b) => a.dist - b.dist);
 
-  // Make sure vertices from region 2 only appear once
-  const js = pairs.map(p => p.j);
-  pairs = pairs.filter((p, i) => {
-    return js.indexOf(p.j) === i;
+  // Compute distance threshold
+  // XXX: Maybe look at using Otsu thresholding to determine threshold?
+  const threshold = d3.quantile(pairs.map(p => p.dist), 0.1);
+
+  // Make sure vertices only appear once
+  const is = vertices1.map(() => true);
+  const js = vertices2.map(() => true);
+  pairs = pairs.filter(p => {
+    const valid = is[p.i] && js[p.j];
+
+    if (valid) is[p.i] = js[p.j] = false;
+
+    return valid;
   });
 
   // Get the starting vertex on region 1
   const startIndex = pairs[pairs.length - 1].i;
 
-  // Compute distance threshold
-  // XXX: Maybe look at using Otsu thresholding to determine threshold?
-  const threshold = pairs[1].dist * 2;
+  // Threshold pairs
+  const thresholdPairs = pairs.filter(d => d.dist < threshold);
+  pairs = thresholdPairs.length >= 2 ? thresholdPairs : pairs.slice(0, 2);
 
   // Compute midpoints for possible merge points
-  pairs = pairs.filter(d => d.dist < threshold);
   pairs.forEach(d => {
     d.midPoint = mergePoints(d.v1, d.v2);
   });
