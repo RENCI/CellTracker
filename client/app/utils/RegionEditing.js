@@ -1,6 +1,14 @@
 let MathUtils = require("./MathUtils");
 let d3 = require("d3");
 
+function left(i, a) {
+  return i === 0 ? a.length - 1 : i - 1;
+}
+
+function right(i, a) {
+  return i === a.length - 1 ? 0 : i + 1;
+}
+
 function setVertices(region, vertices) {
   region.vertices = vertices;
 
@@ -165,26 +173,18 @@ function mergeRegions(region1, region2, regionArray) {
   function mergePoints(p1, p2) {
     return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
   }
-
-  function left(i, a) {
-    return i === 0 ? a.length - 1 : i - 1;
-  }
-
-  function right(i, a) {
-    return i === a.length - 1 ? 0 : i + 1;
-  }
 }
 
 function splitRegion(region, line, offset, regionArray) {
   // Find intersections with region line segments
-  let vertices = region.vertices;
+  const vertices = region.vertices;
   let intersections = [];
 
   for (let i = 0; i < vertices.length; i++) {
-    let v1 = vertices[i],
+    const v1 = vertices[i],
         v2 = vertices[i === vertices.length - 1 ? 0 : i + 1];
 
-    let p = MathUtils.lineSegmentIntersection(line[0], line[1], v1, v2);
+    const p = MathUtils.lineSegmentIntersection(line[0], line[1], v1, v2);
 
     if (p) {
       intersections.push({
@@ -194,73 +194,75 @@ function splitRegion(region, line, offset, regionArray) {
     }
   }
 
-  if (intersections.length === 2) {
-    // Split into two regions
-    let v1 = [];
-    let v2 = [];
+  if (intersections.length % 2 === 1) return null;
 
-    for (let i = 0; i < vertices.length; i++) {
-      let v = vertices[i];
+  // Create sections between each intersection
+  let sections = [[]];
+  for (let i = 0; i < vertices.length; i++) {
+    const v = vertices[i];
 
-      if (i === intersections[0].index) {
-        let p = intersections[0].point;
+    // Add vertex
+    sections[sections.length - 1].push(v);
 
-        let x = MathUtils.normalizeVector([p[0] - v[0], p[1] - v[1]]);
+    // Check for intersection
+    for (let j = 0; j < intersections.length; j++) {
+      const ix = intersections[j];
+
+      if (i === ix.index) {
+        // Compute offset from intersection point
+        const x = MathUtils.normalizeVector([ix.point[0] - v[0], ix.point[1] - v[1]]);
         x[0] *= offset;
         x[1] *= offset;
 
-        v1.push(v);
-        v1.push([p[0] - x[0], p[1] - x[1]]);
+        const p1 = [ix.point[0] - x[0], ix.point[1] - x[1]];
+        const p2 = [ix.point[0] + x[0], ix.point[1] + x[1]];
 
-        v2.push([p[0] + x[0], p[1] + x[1]]);
-      }
-      else if (i === intersections[1].index) {
-        let p = intersections[1].point;
+        // Add intersection point
+        sections[sections.length - 1].push(p1);
 
-        let x = MathUtils.normalizeVector([p[0] - v[0], p[1] - v[1]]);
-        x[0] *= offset;
-        x[1] *= offset;
+        // Start new section
+        sections.push([p2]);        
 
-        v2.push(v);
-        v2.push([p[0] - x[0], p[1] - x[1]]);
-
-        v1.push([p[0] + x[0], p[1] + x[1]]);
-      }
-      else if (i > intersections[0].index && i < intersections[1].index) {
-        v2.push(v);
-      }
-      else {
-        v1.push(v);
+        break;
       }
     }
-
-    // Set vertices on original region and add new one
-    let newRegion = {
-      id: "object" + regionArray.length,
-      selected: false
-    };
-
-    setVertices(region, v1);
-    setVertices(newRegion, v2);
-
-    regionArray.push(newRegion);
-
-    return newRegion;
   }
 
-  return null;
+  // Combine first and last sections
+  sections[0] = sections.pop().concat(sections[0]);
+
+  // Combine every other section
+  let vertices1 = [];
+  let vertices2 = [];
+  sections.forEach((section, i) => {
+    if (i % 2 === 0) vertices1 = vertices1.concat(section);
+    else vertices2 = vertices2.concat(section);
+  });
+
+  // Set vertices on original region and add new one
+  const newRegion = {
+    id: "object" + regionArray.length,
+    selected: false
+  };
+
+  setVertices(region, vertices1);
+  setVertices(newRegion, vertices2);
+
+  regionArray.push(newRegion);
+
+  return newRegion;
 }
 
 function trimRegion(region, line) {
   // Find intersections with region line segments
-  let vertices = region.vertices;
+  const vertices = region.vertices;
   let intersections = [];
 
   for (let i = 0; i < vertices.length; i++) {
-    let v1 = vertices[i],
+    const v1 = vertices[i],
         v2 = vertices[i === vertices.length - 1 ? 0 : i + 1];
 
-    let p = MathUtils.lineSegmentIntersection(line[0], line[1], v1, v2);
+    const p = MathUtils.lineSegmentIntersection(line[0], line[1], v1, v2);
 
     if (p) {
       intersections.push({
@@ -270,36 +272,61 @@ function trimRegion(region, line) {
     }
   }
 
-  if (intersections.length === 2) {
-    // Split into two regions
-    let v1 = [];
-    let v2 = [];
+  if (intersections.length % 2 === 1) return false;
 
-    for (let i = 0; i < vertices.length; i++) {
-      let v = vertices[i];
+  // Create sections between each intersection
+  let sections = [[]];
+  for (let i = 0; i < vertices.length; i++) {
+    const v = vertices[i];
 
-      if (i > intersections[0].index && i <= intersections[1].index) {
-        v2.push(v);
+    // Add vertex
+    sections[sections.length - 1].push(v);
+
+    // Check for intersection
+    for (let j = 0; j < intersections.length; j++) {
+      const ix = intersections[j];
+
+      if (i === ix.index) {
+        // Add intersection point
+        sections[sections.length - 1].push(ix.point);
+
+        // Start new section
+        sections.push([ix.point]);        
+
+        break;
       }
-      else {
-        v1.push(v);
-      }
     }
-
-    console.log(v1, v2);
-
-    // Keep region with most vertices
-    if (v1.length > v2.length) {
-      setVertices(region, v1);
-    }
-    else {
-      setVertices(region, v2);
-    }
-
-    return true;
   }
 
-  return false;
+  // Combine first and last sections
+  sections[0] = sections.pop().concat(sections[0]);
+
+  // Get longest section
+  const longest = sections.reduce((p, c, i) => {
+    const length = c.reduce((p, c, i, a) => {
+      return p + MathUtils.distance(c, a[right(i, a)]);
+    }, 0);
+
+    return !p || length > p.length ? {
+      index: i,
+      length: length
+    } : p;
+  }, null);
+
+  // Get every other section
+  sections = sections.filter((s, i) => {
+    return i % 2 === longest.index % 2;
+  });
+
+  // Merge arrays
+  const newVertices = [].concat.apply([], sections);
+
+  console.log(newVertices);
+
+  // Set the vertices
+  setVertices(region, newVertices);
+
+  return true;
 }
 
 function removeRegion(region, regionArray) {

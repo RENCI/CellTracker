@@ -360,7 +360,8 @@ module.exports = function (sketch) {
 
           // Highlight based on intersections with split line
           regions.forEach(region => {
-            region.highlight = regionLineSegmentIntersections(region, splitLine) === 2;
+            const intersections = regionLineSegmentIntersections(region, splitLine);
+            region.highlight = intersections > 0 && intersections % 2 === 0;
           });
 
           const numRegions = regions.filter(region => region.highlight).length;
