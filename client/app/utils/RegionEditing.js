@@ -86,7 +86,7 @@ function mergeRegions(region1, region2, regionArray) {
   // Get the starting vertex on region 1
   const startIndex = minDist1.reduce((p, c, i, a) => {
     return c < a[p] ? i : p;
-  });
+  }, 0);
 
   // Sort pairs
   pairs.sort((a, b) => a.dist - b.dist);
