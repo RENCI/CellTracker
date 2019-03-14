@@ -63,33 +63,32 @@ function mergeRegions(region1, region2, regionArray) {
   const vertices1 = region1.vertices;
   const vertices2 = region2.vertices;
 
-  const minDist1 = vertices1.map(() => null);
-
-  // Compute distances for each pair
-  let pairs = [];
-  vertices1.forEach((v1, i) => {
-    vertices2.forEach((v2, j) => {
+  // Compute closest distance from region 1 vertices to region 2 vertices
+  let pairs = vertices1.map((v1, i) => {
+    return vertices2.reduce((p, v2, j) => {
       const dist = MathUtils.distance(v1, v2);
 
-      pairs.push({
+      return !p || dist < p.dist ? {
         v1: v1,
         v2: v2,
         i: i,
         j: j,
         dist: dist
-      });
-
-      if (minDist1[i] === null || dist < minDist1[i]) minDist1[i] = dist;
-    });
+      } : p;
+    }, null);
   });
-
-  // Get the starting vertex on region 1
-  const startIndex = minDist1.reduce((p, c, i, a) => {
-    return c < a[p] ? i : p;
-  }, 0);
 
   // Sort pairs
   pairs.sort((a, b) => a.dist - b.dist);
+
+  // Make sure vertices from region 2 only appear once
+  const js = pairs.map(p => p.j);
+  pairs = pairs.filter((p, i) => {
+    return js.indexOf(p.j) === i;
+  });
+
+  // Get the starting vertex on region 1
+  const startIndex = pairs[pairs.length - 1].i;
 
   // Compute distance threshold
   // XXX: Maybe look at using Otsu thresholding to determine threshold?
