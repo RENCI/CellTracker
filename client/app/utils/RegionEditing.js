@@ -321,8 +321,6 @@ function trimRegion(region, line) {
   // Merge arrays
   const newVertices = [].concat.apply([], sections);
 
-  console.log(newVertices);
-
   // Set the vertices
   setVertices(region, newVertices);
 
