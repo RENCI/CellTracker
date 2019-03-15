@@ -91,35 +91,56 @@ function mergeRegions(region1, region2, regionArray) {
 
   // Compute distance threshold
   // XXX: Maybe look at using Otsu thresholding to determine threshold?
-  const threshold = d3.quantile(pairs.map(p => p.dist), 0.1);
-
-  // Make sure vertices only appear once
-  const is = vertices1.map(() => true);
-  const js = vertices2.map(() => true);
-  pairs = pairs.filter(p => {
-    const valid = is[p.i] && js[p.j];
-
-    if (valid) is[p.i] = js[p.j] = false;
-
-    return valid;
-  });
+  //const threshold = d3.quantile(pairs.map(p => p.dist), 0.1);
+  const threshold = pairs[1].dist * 1.25;
 
   // Get the starting vertex on region 1
   const startIndex = pairs[pairs.length - 1].i;
 
   // Threshold pairs
   const thresholdPairs = pairs.filter(d => d.dist < threshold);
-  pairs = thresholdPairs.length >= 2 ? thresholdPairs : pairs.slice(0, 2);
+
+  // Make sure there are at least 2 distinct vertices for each region
+  function unique(a) {
+    return a.reduce((p, c) => {
+      if (p.indexOf(c) === -1) p.push(c);
+      return p;
+    }, []);
+  }
+
+  const unique1 = unique(thresholdPairs.map(p => p.i));
+  const unique2 = unique(thresholdPairs.map(p => p.j));
+
+  if (unique1.length === 1) {
+    for (let i = thresholdPairs.length; i < pairs.length; i++) {
+      let p = pairs[i];
+
+      if (p.i !== unique1[0]) {
+        thresholdPairs.push(p);
+        break;
+      }
+    }
+  }
+  else if (unique2.length === 1) {
+    for (let i = thresholdPairs.length; i < pairs.length; i++) {
+      let p = pairs[i];
+
+      if (p.j !== unique2[0]) {
+        thresholdPairs.push(p);
+        break;
+      }
+    }
+  }
 
   // Compute midpoints for possible merge points
-  pairs.forEach(d => {
+  thresholdPairs.forEach(d => {
     d.midPoint = mergePoints(d.v1, d.v2);
   });
 
   // Compute distances between midpoints
   let midPairs = [];
-  pairs.forEach(p1 => {
-    pairs.forEach(p2 => {
+  thresholdPairs.forEach(p1 => {
+    thresholdPairs.forEach(p2 => {
       if (p1 !== p2) midPairs.push({
         p1: p1,
         p2: p2,
@@ -132,8 +153,23 @@ function mergeRegions(region1, region2, regionArray) {
   midPairs.sort((a, b) => b.dist2 - a.dist2);
 
   // Final merge pairs
-  const p1 = midPairs[0].p1;
-  const p2 = midPairs[0].p2;
+  let p1 = null;
+  let p2 = null;
+  for (let i = 0; i < midPairs.length; i++) {
+    const mp = midPairs[i];
+
+    if (mp.p1.i !== mp.p2.i && mp.p1.j !== mp.p2.j) {
+      p1 = mp.p1;
+      p2 = mp.p2;
+
+      break;
+    }
+  } 
+  
+  if (!p1) {
+    console.log("PROBLEM");
+    return;
+  }
 
   // Do the merge
   const vertices = [];
