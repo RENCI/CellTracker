@@ -96,14 +96,6 @@ function receiveSegmentationFrame(frame, regions) {
     regions.forEach(function (region) {
       var vertices = region.vertices;
 
-      // Remove duplicate vertex at the end
-      var v0 = vertices[0];
-      var v1 = vertices[vertices.length - 1];
-
-      if (v0[0] === v1[0] && v0[1] === v1[1]) {
-        vertices.pop();
-      }
-
       // Convert to numbers
       vertices.forEach(function (vertex) {
         vertex[0] = +vertex[0];
