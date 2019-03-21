@@ -27,7 +27,7 @@ from irods.exception import CollectionDoesNotExist
 
 from ct_core.utils import get_experiment_list_util, read_video, extract_images_from_video, \
     read_image_frame, get_seg_collection, \
-    save_user_seg_data_to_db, get_start_frame
+    save_user_seg_data_to_db, get_start_frame, get_exp_image
 from ct_core.task_utils import get_exp_frame_no
 from ct_core.forms import SignUpForm, UserProfileForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
@@ -249,61 +249,12 @@ def display_image(request, exp_id, type, frame_no):
     :param frame_no: image frame sequence number starting from 1
     :return:
     """
-    image_path = os.path.join(settings.IRODS_ROOT, exp_id, 'image')
-    #if os.path.exists(image_path):
-    #    shutil.rmtree(image_path)
-    try:
-        if not os.path.exists(image_path):
-            os.makedirs(image_path)
-    except OSError:
-        # path already exists
-        pass
-    fno = int(frame_no)
-    istorage = IrodsStorage()
-    irods_img_path = os.path.join(exp_id, 'data', 'image', type)
-    file_list = istorage.listdir(irods_img_path)[1]
-    flistlen = len(file_list)
-    if flistlen <= 0:
-        return HttpResponseServerError("Requested experiment does not contain any image")
-    if fno > flistlen:
-        return HttpResponseBadRequest('Requested frame_no does not exist')
-    
-    # check whether image frame data in iRODS backend starts with 1 or 0
-    if "frame0.jpg" in file_list and frame_no > 0:
-        fno -= 1
-    img_name = 'frame' + str(fno) + '.jpg'
-    if not img_name in file_list:
-        if len(file_list) == 1:
-            if fno == 1:
-                img_name = file_list[0]
-            else:
-                return HttpResponseBadRequest('Requested frame_no does not exist')
-        else:
-            img1_name = file_list[0]
-            start_idx = len('frame')
-            seq_len = len(img1_name[start_idx:-4])
-            if len(frame_no) == seq_len:
-                img_name = 'frame' + frame_no + '.' + type
-            elif len(frame_no) > seq_len:
-                return HttpResponseBadRequest('Requested frame_no does not exist')
-            else:
-                # len(frame_no) < seq_len
-                zero_cnt = seq_len - len(frame_no)
-                packstr = ''
-                for i in range(0, zero_cnt):
-                    packstr += '0'
-                img_name = 'frame' + packstr + frame_no + '.' + type
+    img_file, err_msg = get_exp_image(exp_id, frame_no)
 
-    ifile = os.path.join(image_path, img_name)
-    if os.path.isfile(ifile):
-        return HttpResponse(open(ifile, 'rb'), content_type='image/' + type)
-    else:
-        dest_path = istorage.getOneImageFrame(exp_id, type, img_name, image_path)
-        ifile = os.path.join(dest_path, img_name)
-        if os.path.isfile(ifile):
-            return HttpResponse(open(ifile, 'rb'), content_type='image/' + type)
-        else:
-            return HttpResponseServerError('Requested image frame does not exist')
+    if err_msg:
+        return HttpResponseServerError(err_msg)
+
+    return HttpResponse(open(img_file, 'rb'), content_type='image/' + type)
 
 
 @login_required

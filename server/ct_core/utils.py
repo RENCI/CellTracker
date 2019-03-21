@@ -4,16 +4,19 @@ import os
 import shutil
 import csv
 import json
+import numpy as np
 
 from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist
 
 from django.conf import settings
 from django.utils import timezone
+from django.core.exceptions import ObjectDoesNotExist
 
 from django_irods.storage import IrodsStorage
 
 from ct_core.models import Segmentation, UserSegmentation, get_path
+from ct_core.task_utils  import get_exp_frame_no
 
 
 frame_no_key = 'frame_no'
@@ -122,6 +125,70 @@ def get_exp_image_size(exp_id):
                 return rows, cols
             else:
                 return -1, -1
+
+
+def get_exp_image(exp_id, frame_no):
+    """
+    return the specified frame image in the specified experiment
+    :param exp_id: experiment id
+    :param frame_no: frame number that starts from 1
+    :return: image file name, error message if any
+    """
+    image_path = os.path.join(settings.IRODS_ROOT, exp_id, 'image')
+    # if os.path.exists(image_path):
+    #    shutil.rmtree(image_path)
+    try:
+        if not os.path.exists(image_path):
+            os.makedirs(image_path)
+    except OSError:
+        # path already exists
+        pass
+    fno = int(frame_no)
+    istorage = IrodsStorage()
+    irods_img_path = os.path.join(exp_id, 'data', 'image', type)
+    file_list = istorage.listdir(irods_img_path)[1]
+    flistlen = len(file_list)
+    if flistlen <= 0:
+        return None, "Requested experiment does not contain any image"
+    if fno > flistlen:
+        return None, 'Requested frame_no does not exist'
+
+    # check whether image frame data in iRODS backend starts with 1 or 0
+    if "frame0.jpg" in file_list and frame_no > 0:
+        fno -= 1
+    img_name = 'frame' + str(fno) + '.jpg'
+    if not img_name in file_list:
+        if len(file_list) == 1:
+            if fno == 1:
+                img_name = file_list[0]
+            else:
+                return None, 'Requested frame_no does not exist'
+        else:
+            img1_name = file_list[0]
+            start_idx = len('frame')
+            seq_len = len(img1_name[start_idx:-4])
+            if len(frame_no) == seq_len:
+                img_name = 'frame' + frame_no + '.' + type
+            elif len(frame_no) > seq_len:
+                return None, 'Requested frame_no does not exist'
+            else:
+                # len(frame_no) < seq_len
+                zero_cnt = seq_len - len(frame_no)
+                packstr = ''
+                for i in range(0, zero_cnt):
+                    packstr += '0'
+                img_name = 'frame' + packstr + frame_no + '.' + type
+
+    ifile = os.path.join(image_path, img_name)
+    if os.path.isfile(ifile):
+        return ifile, None
+    else:
+        dest_path = istorage.getOneImageFrame(exp_id, type, img_name, image_path)
+        ifile = os.path.join(dest_path, img_name)
+        if os.path.isfile(ifile):
+            return ifile, None
+        else:
+            return None, 'Requested image frame does not exist'
 
 
 def get_seg_collection(exp_id):
@@ -268,3 +335,56 @@ def save_user_seg_data_to_db(user, eid, fno, json_data):
         obj.update_time = curr_time
         obj.save()
     return
+
+
+def compute_time_series_and_put_in_irods(exp_id, username=''):
+    """
+    compute average intensity for each cell and output time series data in csv format to iRODS for
+    an experiment
+    :param exp_id: experiment id
+    :param username: Empty by default. If Empty, use system segmentation tracking data;
+    otherwise, use user edit segmentation tracking data
+    :return:
+    """
+    if isinstance(username, unicode):
+        username = str(username)
+
+    fno = get_exp_frame_no(exp_id)
+    min_f = 0
+    max_f = fno
+
+    image_path = os.path.join(settings.IRODS_ROOT, exp_id, 'image')
+    if not os.path.exists(image_path):
+        os.makedirs(image_path)
+
+    for i in range(min_f, max_f):
+        if username:
+            try:
+                seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user__username=username,
+                                                       frame_no=i+1)
+            except ObjectDoesNotExist:
+                # check system Segmentation if the next frame of user segmentation does not exist
+                seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=i+1)
+        else:
+            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=i+1)
+
+        ifile, err_msg = get_exp_image(exp_id, i+1)
+
+        if err_msg:
+            return err_msg
+
+        img = cv2.imread(ifile, cv2.IMREAD_GRAYSCALE)
+        rows, cols = img.shape
+        for region in seg_obj.data:
+            vertices = region['vertices']
+            # create numpy array from vertices
+            ary_vertices = np.array(vertices)
+            # vertices are normalized into [0, 1], need to restore to original coordinates
+            ary_vertices = np.rint(np.multiply(ary_vertices, [cols, rows]))
+            ypts = ary_vertices[:, 0]
+            xpts = ary_vertices[:, 1]
+            pts = np.vstack((xpts, ypts)).astype(np.int32).T
+            mask = np.zeros_like(img)
+            cv2.fillPoly(mask, [pts], 255)
+            avg_int = cv2.mean(img, mask)[0]
+            region['avg_intensity'] = avg_int
