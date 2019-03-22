@@ -2,7 +2,7 @@ import logging
 
 from django.core.management.base import BaseCommand
 
-from ct_core.tasks import add_tracking
+from ct_core.utils import compute_time_series_and_put_in_irods
 
 
 logger = logging.getLogger(__name__)
@@ -28,4 +28,4 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options['exp_id']:
             exp_id = str(options['exp_id'])
-            add_tracking(exp_id)
+            compute_time_series_and_put_in_irods(exp_id)

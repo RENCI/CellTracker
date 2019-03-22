@@ -249,7 +249,7 @@ def display_image(request, exp_id, type, frame_no):
     :param frame_no: image frame sequence number starting from 1
     :return:
     """
-    img_file, err_msg = get_exp_image(exp_id, frame_no)
+    img_file, err_msg = get_exp_image(exp_id, frame_no, type)
 
     if err_msg:
         return HttpResponseServerError(err_msg)

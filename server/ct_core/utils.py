@@ -127,11 +127,12 @@ def get_exp_image_size(exp_id):
                 return -1, -1
 
 
-def get_exp_image(exp_id, frame_no):
+def get_exp_image(exp_id, frame_no, type='jpg'):
     """
     return the specified frame image in the specified experiment
     :param exp_id: experiment id
     :param frame_no: frame number that starts from 1
+    :param type: jpg or png, with default being jpg
     :return: image file name, error message if any
     """
     image_path = os.path.join(settings.IRODS_ROOT, exp_id, 'image')
@@ -357,7 +358,17 @@ def compute_time_series_and_put_in_irods(exp_id, username=''):
     if not os.path.exists(image_path):
         os.makedirs(image_path)
 
+    cid_row = ['CellID']
+    c_row = ['Cell']
+    sp_row = ['Species']
+    f_row = ['Feature']
+    cell_linked_data = []
+    cids_linked_data = []
+    cell_val_rows = []
     for i in range(min_f, max_f):
+        row = [i]
+        cids = []
+        cell_id_dict = {}
         if username:
             try:
                 seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user__username=username,
@@ -368,13 +379,15 @@ def compute_time_series_and_put_in_irods(exp_id, username=''):
         else:
             seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=i+1)
 
-        ifile, err_msg = get_exp_image(exp_id, i+1)
+        ifile, err_msg = get_exp_image(exp_id, str(i+1))
 
         if err_msg:
             return err_msg
 
         img = cv2.imread(ifile, cv2.IMREAD_GRAYSCALE)
         rows, cols = img.shape
+
+        cell_no = 1
         for region in seg_obj.data:
             vertices = region['vertices']
             # create numpy array from vertices
@@ -388,3 +401,48 @@ def compute_time_series_and_put_in_irods(exp_id, username=''):
             cv2.fillPoly(mask, [pts], 255)
             avg_int = cv2.mean(img, mask)[0]
             region['avg_intensity'] = avg_int
+            cell_id_dict[region['id']] = {
+                'value': avg_int,
+                'link_id': region['link_id'] if 'link_id' in region else ''
+            }
+            if i == min_f:
+                cid_row.append(region['id'])
+                cids.append(region['id'])
+                c_row.append('cell{}'.format(cell_no))
+                sp_row.append('Species')
+                f_row.append('Feature')
+                row.append(avg_int)
+
+            cell_no += 1
+
+        if i > min_f:
+            # use linked id data from last frame to derive order for the current frame
+            idx = len(cell_linked_data) - 1
+            last_frame_dict = cell_linked_data[idx]
+            last_cids = cids_linked_data[idx]
+            for id in last_cids:
+                link_id = last_frame_dict[id]['link_id']
+                cids.append(link_id)
+                row.append(cell_id_dict[link_id]['value'])
+
+        cell_linked_data.append(cell_id_dict)
+        cids_linked_data.append(cids)
+        cell_val_rows.append(row)
+
+    output_file = 'time_series.csv'
+    output_file_with_path = os.path.join(settings.IRODS_ROOT, exp_id, output_file)
+    with open(output_file_with_path, 'w') as csvfile:
+        fwriter = csv.writer(csvfile)
+        fwriter.writerow(cid_row)
+        fwriter.writerow(c_row)
+        fwriter.writerow(sp_row)
+        fwriter.writerow(f_row)
+        for r in cell_val_rows:
+            fwriter.writerow(r)
+
+    # write csv file to iRODS
+    istorage = IrodsStorage()
+    irods_path = exp_id + '/data/segmentation/' + output_file
+    istorage.saveFile(output_file_with_path, irods_path, True)
+
+    os.remove(output_file_with_path)
