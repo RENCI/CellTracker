@@ -433,6 +433,27 @@ def compute_time_series_and_put_in_irods(exp_id, username=''):
     output_file_with_path = os.path.join(settings.IRODS_ROOT, exp_id, output_file)
     with open(output_file_with_path, 'w') as csvfile:
         fwriter = csv.writer(csvfile)
+        md_start_row = []
+        md_end_row = []
+        cell_line_row = []
+        name_row = []
+        for cid in cid_row:
+            if cid == 'CellID':
+                md_start_row.append('<begin metadata>')
+                md_end_row.append('<end metadata>')
+                cell_line_row.append('Cell Line')
+                cell_line_row.append('CellLinePlaceHolder')
+                name_row.append('Name')
+                name_row.append('NamePlaceHolder')
+            else:
+                md_start_row.append('')
+                md_end_row.append('')
+                cell_line_row.append('')
+
+        fwriter.writerow(md_start_row)
+        fwriter.writerow(cell_line_row)
+        fwriter.writerow(name_row)
+        fwriter.writerow(md_end_row)
         fwriter.writerow(cid_row)
         fwriter.writerow(c_row)
         fwriter.writerow(sp_row)
