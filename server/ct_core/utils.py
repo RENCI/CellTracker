@@ -358,7 +358,6 @@ def compute_time_series_and_put_in_irods(exp_id, username=''):
     if not os.path.exists(image_path):
         os.makedirs(image_path)
 
-    cid_row = ['CellID']
     c_row = ['Cell']
     sp_row = ['Species']
     f_row = ['Feature']
@@ -406,7 +405,6 @@ def compute_time_series_and_put_in_irods(exp_id, username=''):
                 'link_id': region['link_id'] if 'link_id' in region else ''
             }
             if i == min_f:
-                cid_row.append(region['id'])
                 cids.append(region['id'])
                 c_row.append('cell{}'.format(cell_no))
                 sp_row.append('Species')
@@ -420,10 +418,31 @@ def compute_time_series_and_put_in_irods(exp_id, username=''):
             idx = len(cell_linked_data) - 1
             last_frame_dict = cell_linked_data[idx]
             last_cids = cids_linked_data[idx]
+            link_id_list = []
             for id in last_cids:
                 link_id = last_frame_dict[id]['link_id']
-                cids.append(link_id)
-                row.append(cell_id_dict[link_id]['value'])
+                if link_id:
+                    link_id_list.append(link_id)
+                    cids.append(link_id)
+                    row.append(cell_id_dict[link_id]['value'])
+                else:
+                    # this cell has ended the cycle - no linkage of the cell to next frame
+                    cids.append('NaN')
+                    row.append('NaN')
+            # check whether there are new cells appearing from this frame
+            cell_no = len(c_row) + 1
+            for region in seg_obj.data:
+                if region['id'] not in link_id_list:
+                    # a new cell appeared in this frame
+                    cids.append(region['id'])
+                    c_row.append('cell{}'.format(cell_no))
+                    sp_row.append('Species')
+                    f_row.append('Feature')
+                    row.append(region['avg_intensity'])
+                    # append NaN to all previous rows to account for the new cell appearing
+                    for r in cell_val_rows:
+                        r.append('NaN')
+                    cell_no += 1
 
         cell_linked_data.append(cell_id_dict)
         cids_linked_data.append(cids)
@@ -437,8 +456,8 @@ def compute_time_series_and_put_in_irods(exp_id, username=''):
         md_end_row = []
         cell_line_row = []
         name_row = []
-        for cid in cid_row:
-            if cid == 'CellID':
+        for cid in c_row:
+            if cid == 'Cell':
                 md_start_row.append('<begin metadata>')
                 md_end_row.append('<end metadata>')
                 cell_line_row.append('Cell Line')
@@ -454,7 +473,6 @@ def compute_time_series_and_put_in_irods(exp_id, username=''):
         fwriter.writerow(cell_line_row)
         fwriter.writerow(name_row)
         fwriter.writerow(md_end_row)
-        fwriter.writerow(cid_row)
         fwriter.writerow(c_row)
         fwriter.writerow(sp_row)
         fwriter.writerow(f_row)
