@@ -184,7 +184,7 @@ def get_experiment_info(request, exp_id):
 
         # check if user has saved edit segmentation to a certain frame, and if so, return the
         # latest frame the user has worked on so that the user can pick up from where he left off
-        exp_info['start_frame'] = get_start_frame(request.user)
+        exp_info['start_frame'] = get_start_frame(request.user, exp_id)
 
         return HttpResponse(json.dumps(exp_info), content_type='application/json')
     else:

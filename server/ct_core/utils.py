@@ -225,14 +225,17 @@ def sync_seg_data_to_db(eid):
                     obj.save()
 
 
-def get_start_frame(user):
+def get_start_frame(user, exp_id):
     """
     check if user has saved edit segmentation to a certain frame, and if so, return the
     latest frame the user has worked on so that the user can pick up from where he left off
     :param user: requesting user
-    :return: start frame the user has saved segmentation data, otherwise, return the first frame 1
+    :param exp_id: experiment id
+    :return: start frame the user has saved segmentation data for the experiment,
+    otherwise, return the first frame 1
     """
-    filter_obj = UserSegmentation.objects.filter(user=user, update_time__isnull=False)
+    filter_obj = UserSegmentation.objects.filter(user=user, exp_id=exp_id,
+                                                 update_time__isnull=False)
     if filter_obj.exists():
         obj = filter_obj.latest('update_time')
         return obj.frame_no
