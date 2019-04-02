@@ -81,6 +81,13 @@ module.exports = {
       region: region
     });
   },
+  selectZoomPoint: function (frame, point) {
+    AppDispatcher.dispatch({
+      actionType: Constants.SELECT_ZOOM_POINT,
+      frame: frame,
+      point: point
+    });
+  },
   editRegion: function (frame, region) {
     AppDispatcher.dispatch({
       actionType: Constants.EDIT_REGION,

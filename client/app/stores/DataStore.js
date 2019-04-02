@@ -354,6 +354,14 @@ function selectRegion(frame, region) {
   pushHistory();
 }
 
+function selectZoomPoint(frame, point) {
+  experiment.editFrame = frame;
+
+  setZoomLevels(point)
+
+  pushHistory();
+}
+
 function editRegion(frame, region) {
   region.unsavedEdit = true;
   experiment.segmentationData[frame].edited = true;
@@ -458,15 +466,45 @@ function saveSegmentationData() {
   });
 }
 
-function setZoomLevels(region) {
-  const w = region.max[0] - region.min[0];
-  const h = region.max[1] - region.min[1];
+function setZoomLevels(item) {
+  // Default
+  let s = 0.01;
 
-  const s = Math.max(w, h);
+  if (item.length) {
+    // Point, get average region size
+    let w = 0.0;
+    let h = 0.0;
+    let n = 0;
 
-  settings.editZoom = 1 / (s * 1.5);
-  settings.playbackZoom = settings.editZoom / 2;
-  settings.zoomPoint = region.center;
+    experiment.segmentationData.forEach(frame => {
+      frame.regions.forEach(region => {
+        w += region.max[0] - region.min[0];
+        h += region.max[1] - region.min[1];
+        n++;
+      });
+    });
+
+    if (n > 0) {
+      w /= n;
+      h /= n;
+      s = Math.max(w, h);
+    }
+
+    settings.zoomPoint = item;
+  }
+  else {
+    // Region
+    const w = item.max[0] - item.min[0];
+    const h = item.max[1] - item.min[1];
+    s = Math.max(w, h);
+
+    settings.zoomPoint = item.center
+  }
+
+  const zoom = 1 / (s * 1.5);
+
+  settings.editZoom = zoom
+  settings.playbackZoom = zoom / 2;
 }
 
 function zoom(view, direction) {
@@ -644,6 +682,11 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.SELECT_REGION:
       selectRegion(action.frame, action.region);
+      DataStore.emitChange();
+      break;
+
+    case Constants.SELECT_ZOOM_POINT:
+      selectZoomPoint(action.frame, action.point);
       DataStore.emitChange();
       break;
 

@@ -35,6 +35,10 @@ function handleSelectRegion(frame, region) {
   ViewActionCreators.selectRegion(frame, region);
 }
 
+function handleSelectZoomPoint(frame, point) {
+  ViewActionCreators.selectZoomPoint(frame, point);
+}
+
 function handleUpdateTrace(points) {
   ViewActionCreators.updateTrace(points);
 }
@@ -50,6 +54,7 @@ function PlaybackView(props) {
         onKeyPress={handleKeyPress}
         onMouseWheel={handleMouseWheel}
         onSelectRegion={handleSelectRegion}
+        onSelectZoomPoint={handleSelectZoomPoint}
         onUpdateTrace={handleUpdateTrace} />
       <MediaControls {...props} />
     </div>

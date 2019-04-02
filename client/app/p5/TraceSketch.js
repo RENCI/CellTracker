@@ -26,14 +26,11 @@ module.exports = function (sketch) {
   // Tracing
   var trace = false,
       traces = [],
-      points = [],
-      onUpdateTrace = null;
+      points = [];
 
   // Segmentation
   var segmentationData = null,
-      onSelectRegion = null,
-      onEditRegion = null,
-      colors = d3ScaleChromatic.schemeCategory10,
+      colors = d3ScaleChromatic.schemeDark2.slice(0, -1),
       strokeColorMap = d3Scale.scaleOrdinal(colors.map(c => {
         const color = d3Color.color(c);
         color.opacity = 0.75;
@@ -43,7 +40,13 @@ module.exports = function (sketch) {
         const color = d3Color.color(c);
         color.opacity = 0.25;
         return color.toString();
-      }));;
+      }));
+
+  // Callbacks
+  var onSelectRegion = null,
+  onSelectZoomPoint = null,
+  onEditRegion = null,      
+  onUpdateTrace = null;
 
   // Editing
   var editView = false,
@@ -66,7 +69,7 @@ module.exports = function (sketch) {
   // Appearance
   var lineWeight = 1;
   var lineHighlightWeight = 2;
-  var handleRadius = 2;
+  var handleRadius = 3;
   var handleHighlightRadius = 5;
 
   sketch.setup = function() {
@@ -90,11 +93,14 @@ module.exports = function (sketch) {
     onKeyPress = props.onKeyPress;
     onMouseWheel = props.onMouseWheel;
     onSelectRegion = props.onSelectRegion;
+    onSelectZoomPoint = props.onSelectZoomPoint;
     onEditRegion = props.onEditRegion;
     onUpdateTrace = props.onUpdateTrace;
 
     editView = editMode !== "playback";
     if (editMode !== "split" && editMode !== "trim") splitLine = null;
+    
+    sketch.canvas.getContext("2d").imageSmoothingEnabled = editMode === "playback" ? true : false;
 
     // Check for new experiment
     if (!experiment || experiment.id !== props.experiment.id) {
@@ -211,7 +217,8 @@ module.exports = function (sketch) {
 
         //if (region.edited) sketch.fill(fillColorMap(region.trajectory_id));
         //else sketch.noFill();
-        sketch.fill(fillColorMap(region.trajectory_id));
+        if (region.highlight) sketch.noFill();
+        else sketch.fill(fillColorMap(region.trajectory_id));
 
         // Draw outline
         sketch.beginShape();
@@ -228,8 +235,8 @@ module.exports = function (sketch) {
         if (editView) {
           // Draw points
           sketch.ellipseMode(sketch.RADIUS);
-          sketch.fill(127, 127, 127);
-          sketch.noStroke();
+          sketch.fill(200);
+          sketch.stroke(100);
 
           var r = handleRadius / zoom;
 
@@ -416,6 +423,9 @@ module.exports = function (sketch) {
             if (currentRegion) {
               onSelectRegion(frame, currentRegion);
             }
+            else if (onSelectZoomPoint) {
+              onSelectZoomPoint(frame, normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])));
+            }  
             else {
               onSelectRegion();
             }

@@ -20,6 +20,7 @@ module.exports = keyMirror({
   SELECT_FRAME_RATE: null,
 
   SELECT_REGION: null,
+  SELECT_ZOOM_POINT: null,
   EDIT_REGION: null,
   SAVE_SEGMENTATION_DATA: null,
   UNDO_HISTORY: null,

@@ -40,6 +40,7 @@ TraceSketchWrapper.propTypes = {
   onKeyPress: PropTypes.func.isRequired,
   onMouseWheel: PropTypes.func.isRequired,
   onSelectRegion: PropTypes.func.isRequired,
+  onSelectZoomPoint: PropTypes.func,
   onEditRegion: PropTypes.func,
   onUpdateTrace: PropTypes.func.isRequired
 };
