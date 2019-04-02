@@ -590,7 +590,7 @@ module.exports = function (sketch) {
     images.forEach(function(im) {
       im.resize(w, h);
     });
-
+/*
     colorImages = images.map(function(im) {
       var colorIm = sketch.createImage(im.width, im.height);
 
@@ -613,6 +613,8 @@ module.exports = function (sketch) {
 
       return colorIm;
     });
+*/
+    colorImages = images.slice();
 
     sketch.resizeCanvas(w, h);
   }
