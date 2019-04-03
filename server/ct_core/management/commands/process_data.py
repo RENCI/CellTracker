@@ -41,8 +41,9 @@ class Command(BaseCommand):
             count = 0
             while success:
                 ofile = outf_path + "frame{}.jpg".format(count)
-                gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-                cv2.imwrite(ofile, gray)
+                # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                # cv2.imwrite(ofile, gray)
+                cv2.imwrite(ofile, frame)
                 success, frame = cap.read()
                 count += 1
         elif options['input_file'].endswith('.tif'):

@@ -3,8 +3,6 @@ from django.contrib.auth import password_validation
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
 
-from ct_core.models import UserProfile
-
 
 class SignUpForm(forms.ModelForm):
     """
