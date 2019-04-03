@@ -99,7 +99,8 @@ module.exports = function (sketch) {
 
     editView = editMode !== "playback";
     if (editMode !== "split" && editMode !== "trim") splitLine = null;
-    
+  
+    // Image smoothing
     sketch.canvas.getContext("2d").imageSmoothingEnabled = editMode === "playback" ? true : false;
 
     // Check for new experiment
@@ -116,7 +117,8 @@ module.exports = function (sketch) {
         return im;
       });
 
-      resizeImages();
+      processImages();
+      resize();
     }
 
     if (experiment) {
@@ -138,7 +140,7 @@ module.exports = function (sketch) {
   }
 
   sketch.windowResized = function() {
-    resizeImages();
+    resize();
   }
 
   sketch.draw = function() {
@@ -159,7 +161,6 @@ module.exports = function (sketch) {
       points.push([p[0], p[1], frame - 1]);
     }
 */
-
     // Set scale and translation
     translation = [0, 0];
     if (zoomPoint) {
@@ -174,7 +175,10 @@ module.exports = function (sketch) {
     sketch.background(127, 127, 127);
 
     // Draw the image
+    sketch.push()
+    sketch.scale(sketch.width / im.width);
     sketch.image(im, 0, 0);
+    sketch.pop();
 
 /*
     // Draw points for all traces
@@ -587,19 +591,7 @@ module.exports = function (sketch) {
     return lut;
   }
 
-  function resizeImages() {
-    if (images.length === 0) return;
-
-    // Size canvas to image aspect ratio
-    var im = images[0],
-        aspect = im.width / im.height,
-        w = innerWidth(sketch._userNode),
-        h = w / aspect;
-
-    // Resize images
-    images.forEach(function(im) {
-      im.resize(w, h);
-    });
+  function processImages() {
 /*
     colorImages = images.map(function(im) {
       var colorIm = sketch.createImage(im.width, im.height);
@@ -624,9 +616,19 @@ module.exports = function (sketch) {
       return colorIm;
     });
 */
-    colorImages = images.slice();
+    colorImages = images.slice();   
+  }
 
-    sketch.resizeCanvas(w, h);
+  function resize() {
+    if (images.length === 0) return;
+
+    // Size canvas to image aspect ratio
+    var im = images[0],
+        aspect = im.width / im.height,
+        w = innerWidth(sketch._userNode),
+        h = w / aspect;
+
+    sketch.resizeCanvas(w, h);    
   }
 
   function highlight() {
