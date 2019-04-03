@@ -501,7 +501,7 @@ function setZoomLevels(item) {
     settings.zoomPoint = item.center
   }
 
-  const zoom = 1 / (s * 1.5);
+  const zoom = 1 / (s * 3);
 
   settings.editZoom = zoom
   settings.playbackZoom = zoom / 2;
