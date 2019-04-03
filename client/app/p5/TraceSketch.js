@@ -516,7 +516,7 @@ module.exports = function (sketch) {
           onEditRegion(frame, currentRegion);
         }
         else {
-          const radius = regions.reduce((p, c) => {
+          const radius = regions.length === 0 ? 0.01 : regions.reduce((p, c) => {
             return p + c.max[0] - c.min[0];
           }, 0) / regions.length / 2;
 
@@ -726,7 +726,7 @@ module.exports = function (sketch) {
           });
         });
 
-        currentRegion.highlight = true;
+        if (currentRegion) currentRegion.highlight = true;
 
         actionString = "Add vertex";
 

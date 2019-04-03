@@ -79,7 +79,23 @@ function setExperiment(newExperiment) {
       return e.id === experiment.id;
     })[0].name;
     experiment.images = [];
-    experiment.segmentationData = experiment.hasSegmentation ? [] : null;
+
+    if (experiment.hasSegmentation) {
+      // Empty array to be filled in
+      experiment.segmentationData = [];
+    }
+    else {
+      // Create data with no regions
+      experiment.segmentationData = [];
+
+      for (let i = experiment.start; i <= experiment.stop; i++) {
+        experiment.segmentationData.push({
+          frame: i,
+          edited: false,
+          regions: []
+        });
+      }
+    }    
   }
 }
 
