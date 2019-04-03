@@ -22,7 +22,7 @@ def add_tracking(exp_id, username='', frm_idx=-1):
     """
     Add tracking to segmentation data for an experiment
     :param exp_id: experiment id
-    :param user: Empty by default. If not Empty, add tracking to system segmentation data;
+    :param user: Empty by default. If Empty, add tracking to system segmentation data;
     otherwise, add tracking to user edit segmentation data
     :param frm_idx: -1 by default. If -1, add tracking to all frames; otherwise,
     add tracking to only the pass-in frm_idx which is zero-based frame index
