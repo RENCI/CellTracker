@@ -119,22 +119,22 @@ function receiveSegmentationFrame(frame, regions) {
       });
 
       // Get extent
-      var x = vertices.map(function (vertex) { return vertex[0]; });
-      var y = vertices.map(function (vertex) { return vertex[1]; });
+      const x = vertices.map(vertex => vertex[0]);
+      const y = vertices.map(vertex => vertex[1]);
 
       region.min = [
-        x.reduce(function(p, c) { return Math.min(p, c); }),
-        y.reduce(function(p, c) { return Math.min(p, c); })
+        x.reduce((p, c) => Math.min(p, c)),
+        y.reduce((p, c) => Math.min(p, c))
       ];
 
       region.max = [
-        x.reduce(function(p, c) { return Math.max(p, c); }),
-        y.reduce(function(p, c) { return Math.max(p, c); })
+        x.reduce((p, c) => Math.max(p, c)),
+        y.reduce((p, c) =>  Math.max(p, c))
       ];
 
       region.center = [
-        (region.min[0] + region.max[0]) / 2,
-        (region.min[1] + region.max[1]) / 2
+        x.reduce((p, c) => p + c) / x.length,
+        y.reduce((p, c) => p + c) / y.length
       ];
     });
   }

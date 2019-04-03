@@ -67,8 +67,8 @@ module.exports = function (sketch) {
       translation = [0, 0];
 
   // Appearance
-  var lineWeight = 1;
-  var lineHighlightWeight = 2;
+  var lineWeight = 2;
+  var lineHighlightWeight = 3;
   var handleRadius = 3;
   var handleHighlightRadius = 5;
 
@@ -221,17 +221,18 @@ module.exports = function (sketch) {
 
         //if (region.edited) sketch.fill(fillColorMap(region.trajectory_id));
         //else sketch.noFill();
-        if (region.highlight) sketch.noFill();
-        else sketch.fill(fillColorMap(region.trajectory_id));
+        //if (region.highlight) sketch.noFill();
+        //else sketch.fill(fillColorMap(region.trajectory_id));
+        sketch.noFill();
 
         // Draw outline
         sketch.beginShape();
         region.vertices.forEach(function(vertex) {
-          var v = scalePoint(vertex);
+          const v = scalePoint(vertex);
           sketch.vertex(v[0], v[1]);
         });
         if (region.vertices.length > 0) {
-          var v = scalePoint(region.vertices[0]);
+          const v = scalePoint(region.vertices[0]);
           sketch.vertex(v[0], v[1]);
         }
         sketch.endShape();
@@ -239,13 +240,14 @@ module.exports = function (sketch) {
         if (editView) {
           // Draw points
           sketch.ellipseMode(sketch.RADIUS);
-          sketch.fill(200);
+          sketch.fill(200);          
           sketch.stroke(100);
+          sketch.strokeWeight(1 / zoom);
 
-          var r = handleRadius / zoom;
+          const r = handleRadius / zoom;
 
           region.vertices.forEach(function(vertex, i) {
-            var v = scalePoint(vertex);
+            const v = scalePoint(vertex);
 
             if (vertex === handle) {
               if (!moveHandle) {
@@ -257,6 +259,18 @@ module.exports = function (sketch) {
             }
           });
         }
+/*
+        // Draw circle marker
+        sketch.ellipseMode(sketch.RADIUS);
+        sketch.fill(strokeColorMap(region.trajectory_id));
+        sketch.noStroke();
+
+        const r = handleHighlightRadius / zoom;
+        const x = (region.max[0] - region.min[0]) * 0.75;
+        const c = scalePoint([region.center[0] + x, region.center[1]]);
+            
+        sketch.ellipse(c[0], c[1], r);
+*/        
       });
     }
 
