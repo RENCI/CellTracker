@@ -68,8 +68,6 @@ function getExperimentInfo(experiment) {
       const stop = Math.min(start + n - 1, data.frames);
       start = stop - n + 1;
 
-      console.log(start, stop, data.frames);
-
       data.totalFrames = data.frames;
       data.frames = n;
       data.start = start;
