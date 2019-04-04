@@ -383,6 +383,8 @@ function editRegion(frame, region) {
   experiment.segmentationData[frame].edited = true;
 
   pushHistory();
+
+  setEditMode("vertex");
 }
 
 function resetHistory() {
@@ -517,7 +519,7 @@ function setZoomLevels(item) {
     settings.zoomPoint = item.center
   }
 
-  const zoom = 1 / (s * 3);
+  const zoom = 1 / (s * 2);
 
   settings.editZoom = zoom
   settings.playbackZoom = zoom / 2;

@@ -505,7 +505,7 @@ module.exports = function (sketch) {
           });
         }
 
-        splitLine = null;
+        splitLine = null;        
 
         break;
 
