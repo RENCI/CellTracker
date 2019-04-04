@@ -65,8 +65,10 @@ function getExperimentInfo(experiment) {
 
       // Center around start_frame
       let start = Math.max(data.start_frame - Math.ceil(n / 2) + 1, 1);
-      const stop = Math.min(start + n - 1, n);
+      const stop = Math.min(start + n - 1, data.frames);
       start = stop - n + 1;
+
+      console.log(start, stop, data.frames);
 
       data.totalFrames = data.frames;
       data.frames = n;
@@ -97,6 +99,7 @@ function getFrames(experiment) {
 
   function segmentationCallback(i) {
     return function(data) {
+      console.log(data);
       ServerActionCreators.receiveSegmentationFrame(i, data);
     }
   }
