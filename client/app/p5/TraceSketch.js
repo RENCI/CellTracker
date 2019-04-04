@@ -81,6 +81,8 @@ module.exports = function (sketch) {
     canvas.mouseWheel(mouseWheel);
     canvas.mouseOut(mouseOut);
     sketch.noLoop();
+
+    sketch.canvas.getContext("2d").imageSmoothingEnabled = false;
   }
 
   sketch.updateProps = function(props) {
@@ -101,7 +103,7 @@ module.exports = function (sketch) {
     if (editMode !== "split" && editMode !== "trim") splitLine = null;
   
     // Image smoothing
-    sketch.canvas.getContext("2d").imageSmoothingEnabled = editMode === "playback" ? true : false;
+    //sketch.canvas.getContext("2d").imageSmoothingEnabled = editMode === "playback" ? true : false;
 
     // Check for new experiment
     if (!experiment || experiment.id !== props.experiment.id) {
@@ -206,16 +208,36 @@ module.exports = function (sketch) {
 */
 
     // Draw segmentation data
-    const dashArray = [5 / zoom, 5 / zoom];
-
     if (segmentationData) {
+      const dashArray = [5 / zoom, 5 / zoom];
+      const handleColor = 200;
+      const lineBackground = 0;
+
+      sketch.strokeJoin(sketch.ROUND);
+
       segmentationData[frame].regions.forEach(function(region, i, a) {
         let weight = region.highlight ? lineHighlightWeight : lineWeight;
         weight /= zoom;        
 
+        // Draw outline background
+        sketch.stroke(lineBackground);
+        sketch.strokeWeight(weight + 1 / zoom);
+        sketch.noFill();
+
+        sketch.beginShape();
+        region.vertices.forEach(function(vertex) {
+          const v = scalePoint(vertex);
+          sketch.vertex(v[0], v[1]);
+        });
+        if (region.vertices.length > 0) {
+          const v = scalePoint(region.vertices[0]);
+          sketch.vertex(v[0], v[1]);
+        }
+        sketch.endShape();
+
+        // Draw outline
         sketch.stroke(strokeColorMap(region.trajectory_id));
         sketch.strokeWeight(weight);
-        sketch.strokeJoin(sketch.ROUND);
         
         //sketch.canvas.getContext("2d").setLineDash(region.unsavedEdit ? dashArray : []);
 
@@ -240,8 +262,8 @@ module.exports = function (sketch) {
         if (editView) {
           // Draw points
           sketch.ellipseMode(sketch.RADIUS);
-          sketch.fill(200);          
-          sketch.stroke(100);
+          sketch.fill(handleColor);          
+          sketch.stroke(lineBackground);
           sketch.strokeWeight(1 / zoom);
 
           const r = handleRadius / zoom;
@@ -453,6 +475,8 @@ module.exports = function (sketch) {
         break;
 
       case "vertex":
+        if (!currentRegion) break;
+
         if (!moveMouse) {
           if (handle) {
             if (RegionEditing.removeVertex(currentRegion, handle)) {
@@ -740,15 +764,17 @@ module.exports = function (sketch) {
           });
         });
 
-        if (currentRegion) currentRegion.highlight = true;
+        if (currentRegion) {
+          currentRegion.highlight = true;
 
-        actionString = "Add vertex";
+          actionString = "Add vertex";
 
-        if (closestVertexDistance < r) {
-          handle = closestVertex;
-          sketch.cursor(sketch.HAND);
+          if (closestVertexDistance < r) {
+            handle = closestVertex;
+            sketch.cursor(sketch.HAND);
 
-          actionString = "Remove vertex";
+            actionString = "Remove vertex";
+          }
         }
 
         break;
