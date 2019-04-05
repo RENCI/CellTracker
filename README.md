@@ -29,6 +29,6 @@ This section is aimed for developers interested in working on the code. It provi
    
 ## License 
 
-TRACE is released under the [BSD 3-Clause License] (https://tldrlegal.com/license/bsd-3-clause-license-(revised)). This means that you can do what you want, so long as you don't mess with the trademark, and as long as you keep the license with the source code.
+TRACE is released under the [BSD 3-Clause License](https://tldrlegal.com/license/bsd-3-clause-license-(revised)). This means that you can do what you want, so long as you don't mess with the trademark, and as long as you keep the license with the source code.
 
 ©2018. This material is based upon work supported by a medical research grant from W. M. Keck Foundation. Any opinions, findings, conclusions, or recommendations expressed in this material are those of the authors and do not necessarily reflect the views of the foundation.
