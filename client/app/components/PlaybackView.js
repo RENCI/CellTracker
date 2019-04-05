@@ -49,7 +49,6 @@ function PlaybackView(props) {
       <h4>Overview</h4>
       <TraceSketchWrapper
         experiment={props.experiment}
-        traces={props.traces}
         frame={props.playback.frame}
         onKeyPress={handleKeyPress}
         onMouseWheel={handleMouseWheel}
@@ -63,8 +62,7 @@ function PlaybackView(props) {
 
 PlaybackView.propTypes = {
   experiment: PropTypes.object,
-  playback: PropTypes.object,
-  traces: PropTypes.arrayOf(PropTypes.object).isRequired
+  playback: PropTypes.object
 };
 
 module.exports = PlaybackView;

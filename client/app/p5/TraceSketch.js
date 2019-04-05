@@ -8,9 +8,6 @@ module.exports = function (sketch) {
   // Current experiment
   var experiment = null;
 
-  // PNG or JPG
-  var imageType = "jpg";
-
   // Images
   var images = [],
       colorImages = [],
@@ -22,11 +19,6 @@ module.exports = function (sketch) {
   // Interaction
   var onKeyPress = null,
       onMouseWheel = null;
-
-  // Tracing
-  var trace = false,
-      traces = [],
-      points = [];
 
   // Segmentation
   var segmentationData = null,
@@ -45,8 +37,7 @@ module.exports = function (sketch) {
   // Callbacks
   var onSelectRegion = null,
   onSelectZoomPoint = null,
-  onEditRegion = null,      
-  onUpdateTrace = null;
+  onEditRegion = null;
 
   // Editing
   var editView = false,
@@ -60,6 +51,9 @@ module.exports = function (sketch) {
       oldMouseX = -1, oldMouseY = -1,
       splitLine = null,
       actionString = "";
+
+  // Settings
+  var stabilize = true;
 
   // Transform
   var zoom = 1,
@@ -91,13 +85,12 @@ module.exports = function (sketch) {
     zoom = props.zoom;
     zoomPoint = props.zoomPoint;
     editMode = props.editMode;
-    traces = props.traces;
+    stabilize = props.stabilize;
     onKeyPress = props.onKeyPress;
     onMouseWheel = props.onMouseWheel;
     onSelectRegion = props.onSelectRegion;
     onSelectZoomPoint = props.onSelectZoomPoint;
     onEditRegion = props.onEditRegion;
-    onUpdateTrace = props.onUpdateTrace;
 
     editView = editMode !== "playback";
     if (editMode !== "split" && editMode !== "trim") splitLine = null;
@@ -151,24 +144,32 @@ module.exports = function (sketch) {
       return;
     }
 
-//    if (!moveHandle) highlight();
-
     // Get image
-    var im = colorImages[frame];
-/*
-    if (trace && frame > 0) {
-      // Get normalized mouse position at end of last frame
-      var p = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+    const im = colorImages[frame];
 
-      points.push([p[0], p[1], frame - 1]);
-    }
-*/
+    // Get regions    
+    const regions = segmentationData ? segmentationData[frame].regions : null;
+
     // Set scale and translation
-    translation = [0, 0];
-    if (zoomPoint) {
-      const p = scalePoint(zoomPoint);
-      translation = [sketch.width / 2 / zoom - p[0], sketch.height / 2 / zoom - p[1]];
+    let p = null;
+
+    if (regions && experiment.centerRegion && stabilize) {
+      // Try to center on trajectory
+      const id = experiment.centerRegion.trajectory_id;
+      const i = regions.map(region => region.trajectory_id).indexOf(id);
+
+      if (i !== -1) {
+        p = scalePoint(segmentationData[frame].regions[i].center);
+        translation = [sketch.width / 2 / zoom - p[0], sketch.height / 2 / zoom - p[1]];
+      }
     }
+
+    if (!p && zoomPoint) {
+      // Center on zoom point
+      p = scalePoint(zoomPoint);
+    }
+
+    translation = p ? [sketch.width / 2 / zoom - p[0], sketch.height / 2 / zoom - p[1]] : [0, 0];
 
     sketch.scale(zoom);
     sketch.translate(translation[0], translation[1]);
@@ -182,40 +183,15 @@ module.exports = function (sketch) {
     sketch.image(im, 0, 0);
     sketch.pop();
 
-/*
-    // Draw points for all traces
-    sketch.stroke(0, 0, 0, 127);
-    sketch.strokeWeight(1);
-    sketch.fill(255, 255, 255, 127);
-    traces.forEach(function (d) {
-      // Check for a point at this frame
-      var p = null;
-
-      for (var i = 0; i < d.points.length; i++) {
-        if (d.points[i][2] === frame) {
-          p = d.points[i];
-          break;
-        }
-      }
-
-      if (p === null) return;
-
-      var s = 10;
-      var p2 = scalePoint(p);
-
-      sketch.ellipse(p2[0], p2[1], s, s);
-    });
-*/
-
     // Draw segmentation data
-    if (segmentationData) {
-      const dashArray = [5 / zoom, 5 / zoom];
-      const handleColor = 200;
-      const lineBackground = 0;
+    const dashArray = [5 / zoom, 5 / zoom];
+    const handleColor = 200;
+    const lineBackground = 0;
 
-      sketch.strokeJoin(sketch.ROUND);
+    sketch.strokeJoin(sketch.ROUND);
 
-      segmentationData[frame].regions.forEach(function(region, i, a) {
+    if (regions) {
+      regions.forEach(function(region, i, a) {
         let weight = region.highlight ? lineHighlightWeight : lineWeight;
         weight /= zoom;        
 
@@ -317,21 +293,6 @@ module.exports = function (sketch) {
     sketch.textSize(fontSize);
     sketch.textAlign(sketch.RIGHT);
     sketch.text(actionString, sketch.width - fontSize / 2, sketch.height - fontSize / 2);
-
-/*
-    // Draw path for current trace
-    sketch.strokeWeight(4);
-    sketch.noFill();
-    for (var i = 1; i < points.length; i++) {
-      var p0 = points[i - 1],
-          p1 = points[i],
-          alpha = points.length === 2 ? 255 : sketch.map(i, 1, points.length - 1, 100, 255);
-
-      sketch.stroke(127, 127, 127, alpha);
-
-      sketch.line(p0[0] * maxX, p0[1] * maxY, p1[0] * maxX, p1[1] * maxY);
-    }
-*/
   }
 
   // XXX: Limit to events on the canvas?
@@ -459,7 +420,7 @@ module.exports = function (sketch) {
       case "playback":
         if (!moveMouse) {
           // Select segmentation region
-          if (segmentationData) {
+          if (regions) {
             if (currentRegion) {
               onSelectRegion(frame, currentRegion);
             }
@@ -581,18 +542,6 @@ module.exports = function (sketch) {
 
     highlight();
     sketch.redraw();
-
-      // XXX: Below for tracing
-  /*
-      trace = !trace;
-
-      sketch.cursor(trace ? sketch.CROSS : sketch.ARROW);
-
-      if (trace) points = [];
-      else onUpdateTrace(getTrace());
-
-      return false;
-  */
   }
 
   function mouseWheel(e) {
@@ -606,10 +555,6 @@ module.exports = function (sketch) {
   function mouseOut() {
     actionString = "";
     sketch.redraw();
-  }
-
-  function getTrace() {
-    return points.slice();
   }
 
   function createLut(colors) {

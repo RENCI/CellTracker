@@ -52,8 +52,7 @@ MainSection.propTypes = {
   history: PropTypes.object,
   settings: PropTypes.object,
   loading: PropTypes.object,
-  playback: PropTypes.object,
-  traces: PropTypes.arrayOf(PropTypes.object).isRequired
+  playback: PropTypes.object
 };
 
 module.exports = MainSection;

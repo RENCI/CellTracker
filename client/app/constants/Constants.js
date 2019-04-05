@@ -26,10 +26,8 @@ module.exports = keyMirror({
   UNDO_HISTORY: null,
   REDO_HISTORY: null,
 
-  ZOOM: null,
-  SET_EDIT_MODE: null,
+  TOGGLE_STABILIZE: null,
 
-  ADD_TRACE: null,
-  UPDATE_TRACE: null,
-  SELECT_TRACE: null
+  ZOOM: null,
+  SET_EDIT_MODE: null
 });

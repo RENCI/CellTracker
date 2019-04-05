@@ -12,8 +12,7 @@ function getStateFromStore() {
     history: DataStore.getHistory(),
     settings: DataStore.getSettings(),
     loading: DataStore.getLoading(),
-    playback: DataStore.getPlayback(),
-    traces: DataStore.getTraces()
+    playback: DataStore.getPlayback()
   };
 }
 
@@ -32,6 +31,9 @@ class AppContainer extends React.Component {
 
     // Bootstrap the application by getting the experiment list here
     ViewActionCreators.getExperimentList();
+
+    // Initialize dropdown menu
+    $(".dropdown-toggle").dropdown();
   }
 
   componentWillUnmount() {

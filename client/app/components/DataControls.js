@@ -1,7 +1,8 @@
-var React = require("react");
-var PropTypes = require("prop-types");
-var IconButton = require("./IconButton");
-var ViewActionCreators = require("../actions/ViewActionCreators");
+const React = require("react");
+const PropTypes = require("prop-types");
+const IconButton = require("./IconButton");
+const ButtonDivider = require("./ButtonDivider");
+const ViewActionCreators = require("../actions/ViewActionCreators");
 
 function onBackClick() {
   ViewActionCreators.reverseFrames();
@@ -19,9 +20,13 @@ function onRedoClick() {
   ViewActionCreators.redoHistory();
 }
 
+function onStabilizeClick() {
+  ViewActionCreators.toggleStabilize();
+}
+
 function DataControls(props) {
   function onExperimentSelectChange(e) {
-    let index = props.experimentList.map(e => e.id).indexOf(e.target.value);
+    const index = props.experimentList.map(e => e.id).indexOf(e.target.value);
 
     ViewActionCreators.selectExperiment(props.experimentList[index]);
   }
@@ -47,20 +52,16 @@ function DataControls(props) {
     );
   }));
 
-  let changesMade = props.experiment &&
-    props.experiment.segmentationData &&
-    props.experiment.segmentationData.reduce(function (p, c) {
-      return p || c.edited;
-    }, false);
+  const experimentSelectEnabled = options.length > 1 && !props.loading;
+  const frameControlsEnabled = props.experiment && !props.loading;
+  const undoEnabled = props.history && props.history.index > 0;
+  const redoEnabled = props.history && props.history.index < props.history.edits.length - 1;
 
-  let experimentSelectEnabled = options.length > 1 && !props.loading;
-  let frameControlsEnabled = props.experiment && !props.loading;
-  let undoEnabled = props.history && props.history.index > 0;
-  let redoEnabled = props.history && props.history.index < props.history.edits.length - 1;
+  const buttonClasses = "btn btn-primary";
 
   return (
     <div className="form-row mb-3">
-      <div className="col-8">
+      <div className="col-7">
         <select
           id="experimentSelect"
           className="form-control"
@@ -70,47 +71,63 @@ function DataControls(props) {
             {options}
         </select>
       </div>
-      <div className="col-4">
+      <div className="col-5">
         <div className="btn-toolbar">
           <div className="btn-group mr-2">
             <IconButton
               iconName="oi-arrow-thick-left"
               disabled={!frameControlsEnabled}
-              classes="btn btn-primary"
+              classes={buttonClasses}
               callback={onBackClick} />
             <IconButton
               iconName="oi-arrow-thick-right"
               disabled={!frameControlsEnabled}
-              classes="btn btn-primary"
+              classes={buttonClasses}
               callback={onForwardClick} />
           </div>
-          <div className="mr-2" style={{
-              height: "auto",
-              width: "2px",
-              borderRadius: "1px",
-              backgroundColor: "#d0d4da"
-            }}>
+          <ButtonDivider />
+          <div className="btn-group mr-2">
+            <IconButton
+                iconName="oi-data-transfer-upload"
+                disabled={!undoEnabled}
+                classes={buttonClasses}
+                callback={onSaveClick} />
           </div>
           <div className="btn-group mr-2">
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={!changesMade}
-              onClick={onSaveClick}>
-                Save
-            </button>
-          </div>
-          <div className="btn-group">
             <IconButton
               iconName="oi-action-undo"
               disabled={!undoEnabled}
-              classes="btn btn-primary"
+              classes={buttonClasses}
               callback={onUndoClick} />
             <IconButton
               iconName="oi-action-redo"
               disabled={!redoEnabled}
-              classes="btn btn-primary"
+              classes={buttonClasses}
               callback={onRedoClick} />
+          </div>
+          <ButtonDivider />
+          <div className="btn-group">
+            <div className="dropdown">          
+              <IconButton
+                iconName="oi-menu"
+                classes={buttonClasses}
+                dropDown={true} />
+              <div className="dropdown-menu">
+                <form className="px-3" style={{fontSize: "small"}}>
+                  <div className="form-check">
+                    <input 
+                      type="checkbox" 
+                      className="form-check-input" 
+                      id="stabilizeCheck" 
+                      defaultChecked={props.settings.stabilize}
+                      onClick={onStabilizeClick}/>
+                    <label className="form-check-label" htmlFor="stabilizeCheck">
+                      Stabilize playback
+                    </label>
+                  </div>
+                </form>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -121,6 +138,7 @@ function DataControls(props) {
 DataControls.propTypes = {
   experimentList: PropTypes.arrayOf(PropTypes.object).isRequired,
   experiment: PropTypes.object,
+  settings: PropTypes.object,
   loading: PropTypes.object,
   history: PropTypes.object
 };

@@ -113,6 +113,12 @@ module.exports = {
     });
   },
 
+  toggleStabilize: function () {
+    AppDispatcher.dispatch({
+      actionType: Constants.TOGGLE_STABILIZE
+    });
+  },
+
   zoom: function (view, direction) {
     AppDispatcher.dispatch({
       actionType: Constants.ZOOM,
@@ -126,29 +132,5 @@ module.exports = {
       actionType: Constants.SET_EDIT_MODE,
       mode: mode
     });
-  },
-
-  addTrace: function () {
-    AppDispatcher.dispatch({
-      actionType: Constants.ADD_TRACE
-    });
-  },
-  updateTrace: function (points) {
-    AppDispatcher.dispatch({
-      actionType: Constants.UPDATE_TRACE,
-      points: points
-    });
-  },
-  selectTrace: function (index) {
-    AppDispatcher.dispatch({
-      actionType: Constants.SELECT_TRACE,
-      index: index
-    });
-  },
-  saveTraces: function (userName) {
-    WebAPIUtils.saveTraces(
-      DataStore.getExperiment().id,
-      DataStore.getTraces()
-    );
   }
 };

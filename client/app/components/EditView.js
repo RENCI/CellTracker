@@ -84,8 +84,8 @@ function EditView(props) {
             experiment={props.experiment}
             zoom={props.settings.playbackZoom}
             zoomPoint={props.settings.zoomPoint}
-            traces={props.traces}
             frame={i}
+            stabilize={props.settings.stabilize}
             onKeyPress={handleKeyPress}
             onMouseWheel={handleMouseWheel}
             onSelectRegion={handleSelectRegion}
@@ -106,8 +106,8 @@ function EditView(props) {
           experiment={props.experiment}
           zoom={props.settings.playbackZoom}
           zoomPoint={props.settings.zoomPoint}
-          traces={props.traces}
           frame={props.playback.frame}
+          stabilize={props.settings.stabilize}
           onKeyPress={handleKeyPress}
           onMouseWheel={handleMouseWheel}
           onSelectRegion={handleSelectRegion}
@@ -130,7 +130,6 @@ function EditView(props) {
           experiment={props.experiment}
           zoom={props.settings.editZoom}
           zoomPoint={props.settings.zoomPoint}
-          traces={props.traces}
           frame={props.experiment.editFrame}
           editMode={props.settings.editMode}
           onKeyPress={handleKeyPress}
@@ -146,8 +145,7 @@ function EditView(props) {
 EditView.propTypes = {
   experiment: PropTypes.object,
   settings: PropTypes.object,
-  playback: PropTypes.object,
-  traces: PropTypes.arrayOf(PropTypes.object).isRequired
+  playback: PropTypes.object
 };
 
 module.exports = EditView;

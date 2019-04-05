@@ -37,12 +37,9 @@ var settings = {
   editZoom: 1,
   playbackZoom: 1,
   zoomPoint: [0, 0],
-  editMode: "vertex"
+  editMode: "vertex",
+  stabilize: true
 };
-
-// Traces for this experiment
-var traces = [];
-var activeTrace = null;
 
 function setExperimentList(newList) {
   experimentList = newList;
@@ -62,7 +59,6 @@ function selectExperiment(newExperiment) {
 }
 
 function reset() {
-  // resetTraces();
   resetHistory();
 
   framesLoaded = 0;
@@ -165,7 +161,7 @@ function generateTrajectoryIds() {
     frame.regions.forEach(region => region.trajectory_id = null);
   });
 
-  // Use link id to generate trace ids
+  // Use link id to generate trajectory ids
   let counter = 0;
   experiment.segmentationData.forEach((frame, i, a) => {
     frame.regions.forEach(region => {
@@ -360,11 +356,13 @@ function setFrameRate(frameRate) {
 function selectRegion(frame, region) {
   if (region) {
     experiment.editFrame = frame;
+    experiment.centerRegion = region;
 
     setZoomLevels(region);
   }
   else {
     experiment.editFrame = null;
+    experiment.centerRegion = null;
   }
 
   pushHistory();
@@ -372,6 +370,7 @@ function selectRegion(frame, region) {
 
 function selectZoomPoint(frame, point) {
   experiment.editFrame = frame;
+  experiment.centerRegion = null;
 
   setZoomLevels(point)
 
@@ -484,6 +483,10 @@ function saveSegmentationData() {
   });
 }
 
+function toggleStabilize() {
+  settings.stabilize = !settings.stabilize;
+}
+
 function setZoomLevels(item) {
   // Default
   let s = 0.01;
@@ -552,36 +555,6 @@ function setEditMode(mode) {
   pushHistory();
 }
 
-function addTrace() {
-  traces.forEach(function (trace) {
-    trace.active = false;
-  });
-
-  traces.push({
-    name: "Trace " + (traces.length + 1),
-    points: [],
-    active: true
-  });
-
-  activeTrace = traces[traces.length - 1];
-}
-
-function resetTraces() {
-  traces = [];
-
-  addTrace();
-}
-
-function updateTrace(points) {
-  activeTrace.points = points;
-}
-
-function selectTrace(index) {
-  traces.forEach(function (trace, i) {
-    trace.active = i === index;
-  });
-}
-
 var DataStore = assign({}, EventEmitter.prototype, {
   emitChange: function () {
     this.emit(CHANGE_EVENT);
@@ -609,9 +582,6 @@ var DataStore = assign({}, EventEmitter.prototype, {
   },
   getPlayback: function () {
     return playback;
-  },
-  getTraces: function () {
-    return traces;
   }
 });
 
@@ -728,6 +698,11 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
       DataStore.emitChange();
       break;
 
+    case Constants.TOGGLE_STABILIZE:
+      toggleStabilize();
+      DataStore.emitChange();
+      break;
+
     case Constants.ZOOM:
       zoom(action.view, action.direction);
       DataStore.emitChange();
@@ -735,21 +710,6 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.SET_EDIT_MODE:
       setEditMode(action.mode);
-      DataStore.emitChange();
-      break;
-
-    case Constants.ADD_TRACE:
-      addTrace();
-      DataStore.emitChange();
-      break;
-
-    case Constants.UPDATE_TRACE:
-      updateTrace(action.points);
-      DataStore.emitChange();
-      break;
-
-    case Constants.SELECT_TRACE:
-      selectTrace(action.index);
       DataStore.emitChange();
       break;
   }
