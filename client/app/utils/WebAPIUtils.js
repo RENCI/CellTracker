@@ -97,12 +97,6 @@ function getFrames(experiment) {
 
   function segmentationCallback(i) {
     return function(data) {
-      // XXX: Sometimes returning a string instead of JSON...
-      if (typeof data === "string") {
-        console.log("Segmentation data " + i + " is in string format");        
-        data = JSON.parse(data);
-      }
-
       ServerActionCreators.receiveSegmentationFrame(i, data);
     }
   }
