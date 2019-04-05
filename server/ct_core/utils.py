@@ -311,7 +311,7 @@ def get_start_frame(user, exp_id):
         return 1
 
 
-def save_user_seg_data_to_db(user, eid, fno, json_data):
+def save_user_seg_data_to_db(user, eid, fno, udata):
     """
     Save user segmentation data for a specific experiment and frame to db
     :param user: requesting user
@@ -321,12 +321,12 @@ def save_user_seg_data_to_db(user, eid, fno, json_data):
     :return: raise exception if any
     """
 
-    udata = json.loads(json_data)
+    json_data = json.loads(udata)
     curr_time = timezone.now()
     obj, created = UserSegmentation.objects.get_or_create(user= user,
                                                           exp_id=eid,
                                                           frame_no=int(fno),
-                                                          defaults={'data': udata,
+                                                          defaults={'data': json_data,
                                                                     'update_time': curr_time})
 
     rel_path = get_path(obj)
@@ -335,7 +335,7 @@ def save_user_seg_data_to_db(user, eid, fno, json_data):
         obj.save()
     else:
         # UserSegmentation object already exists, update it with new json data
-        obj.data = udata
+        obj.data = json_data
         obj.update_time = curr_time
         obj.save()
     return
