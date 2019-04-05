@@ -335,7 +335,7 @@ def save_user_seg_data_to_db(user, eid, fno, json_data):
         obj.save()
     else:
         # UserSegmentation object already exists, update it with new json data
-        obj.data = json_data
+        obj.data = udata
         obj.update_time = curr_time
         obj.save()
     return
