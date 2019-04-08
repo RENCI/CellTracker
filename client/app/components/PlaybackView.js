@@ -2,6 +2,8 @@ var React = require("react");
 var PropTypes = require("prop-types");
 var TraceSketchWrapper = require("../p5/TraceSketchWrapper");
 var MediaControls = require("./MediaControls");
+var VisualizationContainer = require("../visualizations/VisualizationContainer");
+var TrajectoryGraphContainer = require("../visualizations/TrajectoryGraphContainer");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
 function handleKeyPress(keyCode) {
@@ -56,6 +58,9 @@ function PlaybackView(props) {
         onSelectZoomPoint={handleSelectZoomPoint}
         onUpdateTrace={handleUpdateTrace} />
       <MediaControls {...props} />
+      <VisualizationContainer>
+        <TrajectoryGraphContainer experiment={props.experiment} />
+      </VisualizationContainer>
     </div>
   );
 }
