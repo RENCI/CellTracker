@@ -199,36 +199,9 @@ function saveSegmentationData(id, data) {
   });
 }
 
-function saveTraces(id, traces) {
-  setupAjax();
-
-  // Only keep fields we need to send
-  var data = {
-    traces: JSON.stringify(traces.map(function (trace) {
-      return {
-        name: trace.name,
-        points: trace.points
-      };
-    }))
-  };
-
-  $.ajax({
-    type: "POST",
-    url: "/save_tracking_data/" + id,
-    data: data,
-    success: function (data) {
-      // Tracking saved action?
-    },
-    error: function (xhr, textStatus, errorThrown) {
-      console.log(textStatus + ": " + errorThrown);
-    }
-  });
-}
-
 module.exports = {
   getExperimentList: getExperimentList,
   getExperimentInfo: getExperimentInfo,
   getFrames: getFrames,
-  saveSegmentationData: saveSegmentationData,
-  saveTraces: saveTraces
+  saveSegmentationData: saveSegmentationData
 };
