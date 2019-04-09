@@ -80,7 +80,9 @@ def add_tracking(exp_id, username='', frm_idx=-1):
                 # updated as a result of region updates of the next frame
                 sys_seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=fi+1)
                 seg_obj = UserSegmentation(user=User.objects.get(username=username),
-                                           exp_id=exp_id, frame_no=fi+1, data=sys_seg_obj.data,
+                                           exp_id=exp_id, frame_no=fi+1,
+                                           data=sys_seg_obj.data,
+                                           num_edited=0,
                                            update_time=timezone.now())
                 rel_path = get_path(seg_obj)
                 seg_obj.file = rel_path
