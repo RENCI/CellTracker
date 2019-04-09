@@ -302,14 +302,14 @@ def get_frames_info(user, exp_id):
 
         try:
             user_edit_objs = UserSegmentation.objects.get(user=user, exp_id=exp_id, frame_no=fno)
-            is_edited = True
+            num_edited = user_edit_objs.num_edited
         except ObjectDoesNotExist:
-            is_edited = False
+            num_edited = 0
 
         frm_info_list.append({
             'frame_no': fno,
             'num_of_regions': region_cnt,
-            'is_edited': is_edited
+            'num_edited': num_edited
         })
     return frm_info_list
 
@@ -332,13 +332,14 @@ def get_start_frame(user, exp_id):
         return 1
 
 
-def save_user_seg_data_to_db(user, eid, fno, udata):
+def save_user_seg_data_to_db(user, eid, fno, udata, num_edited):
     """
     Save user segmentation data for a specific experiment and frame to db
     :param user: requesting user
     :param eid: experiment id
     :param fno: frame no
-    :param json_data: serialized dict data in String format sent via request.POST
+    :param udata: serialized dict data in String format sent via request.POST
+    :param num_edited: number of edited regions sent from client to be saved to DB
     :return: raise exception if any
     """
 
@@ -348,6 +349,7 @@ def save_user_seg_data_to_db(user, eid, fno, udata):
                                                           exp_id=eid,
                                                           frame_no=int(fno),
                                                           defaults={'data': json_data,
+                                                                    'num_edited': num_edited,
                                                                     'update_time': curr_time})
 
     rel_path = get_path(obj)
@@ -357,6 +359,7 @@ def save_user_seg_data_to_db(user, eid, fno, udata):
     else:
         # UserSegmentation object already exists, update it with new json data
         obj.data = json_data
+        obj.num_edited = num_edited
         obj.update_time = curr_time
         obj.save()
     return

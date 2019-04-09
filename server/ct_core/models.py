@@ -58,6 +58,7 @@ class UserSegmentation(models.Model):
     user = models.ForeignKey(User, related_name='segmentation_user')
     exp_id = models.CharField(max_length=50)
     frame_no = models.PositiveIntegerField()
+    num_edited = models.IntegerField(default=0)
     data = JSONField()
     file = models.FileField(upload_to=get_path, max_length=4096, null=True, blank=True,
                             storage=IrodsStorage())

@@ -339,12 +339,13 @@ def save_tracking_data(request, exp_id):
 @login_required
 def save_frame_seg_data(request, exp_id, frame_no):
     seg_data = request.POST.dict()
+    num_edited = request.POST.get('num_edited', 0)
     if 'regions' not in seg_data:
         return JsonResponse({'message': 'regions key not included in user edit segmentation data '
                                         'to be saved'},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     try:
-        save_user_seg_data_to_db(request.user, exp_id, frame_no, seg_data['regions'])
+        save_user_seg_data_to_db(request.user, exp_id, frame_no, seg_data['regions'], num_edited)
         task = add_tracking.apply_async((exp_id, request.user.username, int(frame_no)-1),
                                         countdown=1)
         return JsonResponse({'task_id': task.task_id}, status=status.HTTP_200_OK)
