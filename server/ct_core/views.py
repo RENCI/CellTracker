@@ -27,7 +27,7 @@ from irods.exception import CollectionDoesNotExist
 
 from ct_core.utils import get_experiment_list_util, read_video, extract_images_from_video, \
     read_image_frame, get_seg_collection, \
-    save_user_seg_data_to_db, get_start_frame, get_exp_image
+    save_user_seg_data_to_db, get_start_frame, get_exp_image, get_frames_info
 from ct_core.task_utils import get_exp_frame_no
 from ct_core.forms import SignUpForm, UserProfileForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
@@ -185,6 +185,8 @@ def get_experiment_info(request, exp_id):
         # check if user has saved edit segmentation to a certain frame, and if so, return the
         # latest frame the user has worked on so that the user can pick up from where he left off
         exp_info['start_frame'] = get_start_frame(request.user, exp_id)
+
+        exp_info['frameInfo'] = get_frames_info(request.user, exp_id)
 
         return HttpResponse(json.dumps(exp_info), content_type='application/json')
     else:

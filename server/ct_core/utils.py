@@ -293,6 +293,27 @@ def sync_seg_data_to_db(eid):
                     obj.save()
 
 
+def get_frames_info(user, exp_id):
+    filter_objs = Segmentation.objects.filter(exp_id=exp_id)
+    frm_info_list = []
+    for obj in filter_objs:
+        fno = int(obj.frame_no)
+        region_cnt = len(obj.data)
+
+        try:
+            user_edit_objs = UserSegmentation.objects.get(user=user, exp_id=exp_id, frame_no=fno)
+            is_edited = True
+        except ObjectDoesNotExist:
+            is_edited = False
+
+        frm_info_list.append({
+            'frame_no': fno,
+            'num_of_regions': region_cnt,
+            'is_edited': is_edited
+        })
+    return frm_info_list
+
+
 def get_start_frame(user, exp_id):
     """
     check if user has saved edit segmentation to a certain frame, and if so, return the
