@@ -96,9 +96,19 @@ module.exports = function() {
     });
 
     // Convert each node frame to arrays after linking
-    nodes = nodes.map(d => {
+    nodes = nodes.map((d, i) => {
       return d3.values(d).sort((a, b) => {
-        return d3.ascending(a.region.trajectory_id, b.region.trajectory_id);
+        if (i === nodes.length - 1) {
+          return d3.ascending(a.region.trajectory_id, b.region.trajectory_id);
+        }
+
+        const a_link = nodes[i + 1][a.region.link_id];
+        const b_link = nodes[i + 1][b.region.link_id];
+
+        const a_id = a_link ? a_link.region.trajectory_id : a.region.trajectory_id;
+        const b_id = b_link ? b_link.region.trajectory_id : b.region.trajectory_id;
+
+        return d3.ascending(a_id, b_id);
       });
     });
 
