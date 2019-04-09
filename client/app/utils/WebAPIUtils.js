@@ -170,7 +170,7 @@ function saveSegmentationData(id, data) {
   data.filter(frame => frame.edited).forEach(frame => {
     console.log("Saving frame " + frame.frame);
 
-    let regions = JSON.stringify(frame.regions.map(region => {
+    const regions = JSON.stringify(frame.regions.map(region => {
       const sendRegion = {
         id: region.id,
         vertices: region.vertices
@@ -181,11 +181,14 @@ function saveSegmentationData(id, data) {
       return sendRegion;
     }));
 
+    const numEdited = frame.regions.reduce((p, c) => c.edited || c.unsavedEdit ? p + 1 : p, 0);
+
     $.ajax({
       type: "POST",
       url: "/save_segmentation_data/" + id + "/" + frame.frame,
       data: {
-        regions: regions
+        regions: regions,
+        num_edited: numEdited
       },
       success: function (data) {
         if (data.task_id) {
