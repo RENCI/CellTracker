@@ -119,14 +119,20 @@ module.exports = function (sketch) {
     if (experiment) {
       segmentationData = experiment.segmentationData;
 
+      let trajectories = new Set();
+
       // Update color map domain
       // XXX: Could move to DataStore and share same color map
       segmentationData.forEach(frame => {
         frame.regions.forEach(region => {
-          strokeColorMap(region.trajectory_id);
-          fillColorMap(region.trajectory_id);
+          trajectories.add(region.trajectory_id);
         });
       });
+
+      trajectories = Array.from(trajectories).sort();
+
+      strokeColorMap.domain(trajectories);
+      fillColorMap.domain(trajectories);
     }
 
     highlight();
