@@ -76,7 +76,7 @@ function setExperiment(newExperiment) {
     })[0].name;
     experiment.images = [];
 
-    if (experiment.hasSegmentation) {
+    if (experiment.has_segmentation) {
       // Empty array to be filled in
       experiment.segmentationData = [];
     }
@@ -217,7 +217,7 @@ function updateLoading() {
     return;
   }
 
-  var numSegFrames = experiment.hasSegmentation ? experiment.frames : 0;
+  var numSegFrames = experiment.has_segmentation ? experiment.frames : 0;
   var total = experiment.frames + numSegFrames;
 
   loading = framesLoaded + segFramesLoaded < total ? {

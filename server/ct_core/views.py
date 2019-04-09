@@ -162,7 +162,7 @@ def get_experiment_info(request, exp_id):
     {
         frames: number,
         id: exp_id,
-        hasSegmentation: 'true' or 'false'
+        has_segmentation: 'true' or 'false'
         start_frame: number
     }
 
@@ -176,9 +176,9 @@ def get_experiment_info(request, exp_id):
     if exp_frame_no > 0:
         _, coll, _ = get_seg_collection(exp_id)
         if coll:
-            exp_info['hasSegmentation'] = 'true'
+            exp_info['has_segmentation'] = 'true'
         else:
-            exp_info['hasSegmentation'] = 'false'
+            exp_info['has_segmentation'] = 'false'
         exp_info['frames'] = exp_frame_no
         exp_info['id'] = exp_id
 
@@ -186,7 +186,7 @@ def get_experiment_info(request, exp_id):
         # latest frame the user has worked on so that the user can pick up from where he left off
         exp_info['start_frame'] = get_start_frame(request.user, exp_id)
 
-        exp_info['frameInfo'] = get_frames_info(request.user, exp_id)
+        exp_info['frame_info'] = get_frames_info(request.user, exp_id)
 
         return HttpResponse(json.dumps(exp_info), content_type='application/json')
     else:

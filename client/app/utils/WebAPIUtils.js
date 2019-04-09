@@ -58,7 +58,7 @@ function getExperimentInfo(experiment) {
     type: "POST",
     url: "/get_experiment_info/" + experiment.id,
     success: function (data) {
-      data.hasSegmentation = data.hasSegmentation === "true";
+      data.has_segmentation = data.has_segmentation === "true";
 
       // Number of frames
       const n = Math.min(data.frames, 10);
@@ -108,7 +108,7 @@ function getFrames(experiment) {
     loadingSketch.loadImage("/display-image/" + experiment.id + "/" + imageType + "/" + frame, imageCallback(i));
 
     // Load segmentation frame
-    if (experiment.hasSegmentation) {
+    if (experiment.has_segmentation) {
       $.ajax({
         type: "POST",
         url: "/get_frame_seg_data/" + experiment.id + "/" + frame,
