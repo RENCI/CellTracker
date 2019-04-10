@@ -166,7 +166,8 @@ function generateTrajectoryIds() {
   experiment.segmentationData.forEach((frame, i, a) => {
     frame.regions.forEach(region => {
       if (!region.trajectory_id || region.trajectory_id === "collision") {
-        region.trajectory_id = "trajectory" + counter++;          
+        let id = ("" + counter++).padStart(4, "0");
+        region.trajectory_id = "trajectory_" + id;          
       }
 
       if (i < a.length - 1 && region.link_id) {

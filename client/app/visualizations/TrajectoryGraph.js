@@ -1,6 +1,5 @@
 var d3 = require("d3");
 var d3ScaleChromatic = require("d3-scale-chromatic");
-var d3Sankey = require("d3-sankey");
 
 module.exports = function() {
       // Size
@@ -14,11 +13,15 @@ module.exports = function() {
       data,
       graph = {},
 
+      // Appearance
+      nodeSize = 0,
+      nodeStrokeWidth = 0,
+
       // Start with empty selection
       svg = d3.select(),
 
       // Event dispatcher
-      dispatcher = d3.dispatch("selectPhase", "selectSpecies");
+      dispatcher = d3.dispatch("selectRegion");
 
   function trajectoryGraph(selection) {
     selection.each(function(d) {
@@ -103,70 +106,85 @@ module.exports = function() {
         }
         else {
           let end = a[i - 1][node.region.link_id];
-          node.end_id = end ? end.region.trajectory_id : node.region.trajectory_id;
+          node.end_id = end ? end.end_id : node.region.trajectory_id;
         }
       });
     });
 
     // Convert each node frame to arrays and sort
     nodes = nodes.map((d, i) => {
-      return d3.values(d).sort((a, b) => d3.ascending(a.end_id, b.end_id));
+      return d3.values(d).sort((a, b) => {
+        return a.end_id === b.end_id ? 
+          d3.ascending(a.region.trajectory_id, b.region.trajectory_id) :
+          d3.ascending(a.end_id, b.end_id);
+      });
     });
 
-    // Position nodes in x
-    const nodeWidth = 24;
-
-    const xScale = d3.scaleLinear()
-        .domain([0, nodes.length - 1])
-        .range([0, innerWidth() - nodeWidth]);
-
+    // Initialize some node data
     nodes.forEach((frameNodes, i, a) => {
       frameNodes.forEach(node => {
-        const x = xScale(i);
-
         node.value = Math.max(d3.sum(node.targetLinks, link => link.value), 1);
         node.depth = i;
         node.height = a.length - 1 - i;
-        node.x0 = x;
-        node.x1 = x + nodeWidth;
       });
     });
 
-    // Position nodes in y
-    const padding = 4;
-    const nodeHeight = d3.min(nodes, frameNodes => {
+    // Position nodes       
+    const padding = 0.5;
+    nodeSize = d3.min(nodes, frameNodes => {
       const padTotal = (frameNodes.length - 1) * padding;
-      return (innerHeight() - padTotal) / d3.sum(frameNodes, node => node.value);
+      return innerHeight() / (d3.sum(frameNodes, node => node.value) + padTotal);
     });
+    nodeStrokeWidth = nodeSize / 6;
 
-    nodes.forEach(frameNodes => {
+    const xScale = d3.scaleLinear()
+        .domain([0, nodes.length - 1])
+        .range([0, innerWidth() - nodeSize]);
+
+    nodes.forEach((frameNodes, i) => {
+      const x = xScale(i);
       let y = 0;
 
       frameNodes.forEach(node => {
+        node.x0 = x;
+        node.x1 = x + nodeSize
         node.y0 = y;
-        node.y1 = y + node.value * nodeHeight;
-        y = node.y1 + padding;
+        node.y1 = y + node.value * nodeSize;
+
+        y = node.y1 + nodeSize * padding;
       });
     });
 
+    // Flatten node array
     nodes = d3.merge(nodes);
 
+    // Position links
     nodes.forEach(node => {
-      let startY = node.y0 + nodeHeight / 2;
+      const x = (node.x0 + node.x1) / 2,
+            startY = node.y0 + nodeSize / 2;
 
       let y = startY;
 
       node.sourceLinks.forEach(link => {
-        link.y0 = y;
-        y += nodeHeight;
+        link.point0 = {
+          x: x,
+          y: y
+        };
+
+        y += nodeSize;
       });
 
       y = startY;
 
       node.targetLinks.forEach(link => {
-        link.y1 = y;
-        link.width = nodeHeight;
-        y += nodeHeight;
+        link.point1 = {
+          x: x,
+          y: y
+        };
+        
+        link.width = nodeSize;
+
+        y += nodeSize;
       });
     });
 
@@ -206,6 +224,13 @@ module.exports = function() {
     drawNodes();
 
     function drawLinks() {
+      let linkShape = d3.linkHorizontal()
+          .source(d => d.point0)
+          .target(d => d.point1)
+          .x(d => d.x)
+          .y(d => d.y);
+
+
       // Bind data for links
       let link = svg.select(".links").selectAll(".link")
           .data(links, d => d.source.id + "_" + d.target.id);
@@ -215,9 +240,9 @@ module.exports = function() {
           .attr("class", "link")
           .style("fill", "none")
         .merge(link)
-          .attr("d", d3Sankey.sankeyLinkHorizontal())
+          .attr("d", linkShape)
           .style("stroke", stroke)
-          .style("stroke-width", strokeWidth);
+          .style("stroke-width", linkWidth);
 
       // Link exit
       link.exit().remove();
@@ -226,14 +251,12 @@ module.exports = function() {
         return colorMap(d.source.region.trajectory_id);
       }
 
-      function strokeWidth(d) {
-        return d.width / 2;
+      function linkWidth(d) {
+        return d.width * 0.8;
       }
     }
 
     function drawNodes() {
-      const r = 3;
-
       // Bind nodes
       let node = svg.select(".nodes").selectAll(".node")
           .data(nodes, d => d.id);
@@ -241,17 +264,23 @@ module.exports = function() {
       // Node enter + update
       node.enter().append("rect")
           .attr("class", "node")
-          .attr("rx", r)
-          .attr("ry", r)
-          .style("stroke-width", 2)
-          //.on("mouseover", d => console.log(d))
+          .on("mouseover", function(d) {
+            //d.region.highlight = true;
+            //d3.select(this).style(stroke);
+          })
+          .on("click", d => {
+
+          })
         .merge(node)
+          .attr("rx", nodeSize / 2)
+          .attr("ry", nodeSize / 2)
           .attr("x", x)
           .attr("y", y)
           .attr("width", width)
           .attr("height", height)
           .style("fill", fill)
-          .style("stroke", stroke);
+          .style("stroke", stroke)
+          .style("stroke-width", nodeStrokeWidth);
 
       // Node exit
       node.exit().remove();
@@ -273,12 +302,12 @@ module.exports = function() {
       }
 
       function fill(d) {
-        return colorMap(d.region.trajectory_id);
+        //return d.region.highlight ? "#666" : "#fff";
+        return "#fff";
       }
 
       function stroke(d) {
-        //return d.region.highlight ? "#000" : "#fff";
-        return "#fff";
+        return colorMap(d.region.trajectory_id);
       }
     }
   }
