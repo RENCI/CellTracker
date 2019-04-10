@@ -95,21 +95,22 @@ module.exports = function() {
       })
     });
 
-    // Convert each node frame to arrays after linking
-    nodes = nodes.map((d, i) => {
-      return d3.values(d).sort((a, b) => {
-        if (i === nodes.length - 1) {
-          return d3.ascending(a.region.trajectory_id, b.region.trajectory_id);
+    // Set end ids for sorting
+    nodes.slice().reverse().forEach((frameNodes, i, a) => {
+      d3.values(frameNodes).forEach(node => {
+        if (i === 0) {
+          node.end_id = node.region.trajectory_id;
         }
-
-        const a_link = nodes[i + 1][a.region.link_id];
-        const b_link = nodes[i + 1][b.region.link_id];
-
-        const a_id = a_link ? a_link.region.trajectory_id : a.region.trajectory_id;
-        const b_id = b_link ? b_link.region.trajectory_id : b.region.trajectory_id;
-
-        return d3.ascending(a_id, b_id);
+        else {
+          let end = a[i - 1][node.region.link_id];
+          node.end_id = end ? end.region.trajectory_id : node.region.trajectory_id;
+        }
       });
+    });
+
+    // Convert each node frame to arrays and sort
+    nodes = nodes.map((d, i) => {
+      return d3.values(d).sort((a, b) => d3.ascending(a.end_id, b.end_id));
     });
 
     // Position nodes in x
@@ -176,7 +177,7 @@ module.exports = function() {
 
     function id(frameIndex, regionId) {
       return "frame" + frameIndex + "_" + regionId;
-    } 
+    }
   }
 
   function draw() {
@@ -186,9 +187,9 @@ module.exports = function() {
 
     const {nodes, links} = graph;
 
-    // Set color map as it is set in sketch. Should probably do this elsewhere and pass in   
+    // Set color map as it is set in sketch. Should probably do this elsewhere and pass in
     let trajectories = new Set();
-    
+
     data.segmentationData.forEach(frame => {
       frame.regions.forEach(region => {
         trajectories.add(region.trajectory_id);
@@ -244,7 +245,7 @@ module.exports = function() {
           .attr("ry", r)
           .style("stroke-width", 2)
           //.on("mouseover", d => console.log(d))
-        .merge(node) 
+        .merge(node)
           .attr("x", x)
           .attr("y", y)
           .attr("width", width)
