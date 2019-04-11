@@ -3,7 +3,7 @@ var d3ScaleChromatic = require("d3-scale-chromatic");
 
 module.exports = function() {
       // Size
-  let margin = { top: 5, left: 5, bottom: 5, right: 5 },
+  let margin = { top: 10, left: 10, bottom: 10, right: 10 },
       width = 200,
       height = 200,
       innerWidth = function() { return width - margin.left - margin.right; },
@@ -12,6 +12,7 @@ module.exports = function() {
       // Data
       data,
       graph = {},
+      currentFrame = 0,
 
       // Appearance
       nodeSize = 0,
@@ -40,6 +41,7 @@ module.exports = function() {
           .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
       // Groups for layout
+      g.append("g").attr("class", "frames");
       g.append("g").attr("class", "links");
       g.append("g").attr("class", "nodes");
 
@@ -129,17 +131,19 @@ module.exports = function() {
       });
     });
 
-    // Position nodes       
+    // Compute node size
     const padding = 0.5;
-    nodeSize = d3.min(nodes, frameNodes => {
+    const maxHeight = d3.min(nodes, frameNodes => {
       const padTotal = (frameNodes.length - 1) * padding;
-      return innerHeight() / (d3.sum(frameNodes, node => node.value) + padTotal);
+      return d3.sum(frameNodes, node => node.value) + padTotal;
     });
 
-    nodeSize = Math.min(nodeSize, innerHeight() / (nodes.length - 1) / 2);
+    nodeSize = innerHeight() / maxHeight;
+    nodeSize = Math.min(nodeSize, innerWidth() / (nodes.length - 1) / 4);
 
     nodeStrokeWidth = nodeSize / 6;
 
+    // Position nodes
     const xScale = d3.scaleLinear()
         .domain([0, nodes.length - 1])
         .range([0, innerWidth() - nodeSize]);
@@ -191,6 +195,9 @@ module.exports = function() {
       });
     });
 
+    // Update height based on node size
+    height = d3.max(nodes, d => d.y1) + margin.top + margin.bottom;
+
     graph = {
       nodes: nodes,
       links: links
@@ -225,6 +232,7 @@ module.exports = function() {
     // Draw the visualization
     drawLinks();
     drawNodes();
+    drawFrames();
 
     function drawLinks() {
       let linkShape = d3.linkHorizontal()
@@ -262,7 +270,7 @@ module.exports = function() {
     function drawNodes() {
       // Bind nodes
       let node = svg.select(".nodes").selectAll(".node")
-          .data(nodes);//, d => d.id);
+          .data(nodes, d => d.id);
 
       // Node enter + update
       node.enter().append("rect")
@@ -314,6 +322,47 @@ module.exports = function() {
         return colorMap(d.region.trajectory_id);
       }
     }
+
+    function drawFrames() {
+      const frameSize = nodeSize * 0.5;
+      const diff = (frameSize - nodeSize) / 2;
+
+      const frames = data.segmentationData;
+
+      const xScale = d3.scaleLinear()
+          .domain([0, frames.length - 1])
+          .range([-diff, innerWidth() - nodeSize - diff]);
+
+      // Bind frames
+      let frame = svg.select(".frames").selectAll(".frame")
+          .data(frames);
+
+      // Frame enter + update
+      frame.enter().append("rect")
+          .attr("class", "frame")
+          .style("stroke", "none")
+          .style("fill", fill)
+        .merge(frame)
+          .attr("rx", frameSize / 2)
+          .attr("ry", frameSize / 2)
+          .attr("x", x)
+          .attr("y", -diff)
+          .attr("width", frameSize)
+          .attr("height", innerHeight() + diff)
+          .style("fill", fill);
+
+      // Frame exit
+      frame.exit().remove();
+
+      function x(d, i) {
+        return xScale(i);
+      }
+
+      function fill(d, i) {
+        //return d.region.highlight ? "#666" : "#fff";
+        return i === currentFrame ? "#aaa" : "#ddd";
+      }
+    }
   }
 
   trajectoryGraph.width = function(_) {
@@ -325,6 +374,12 @@ module.exports = function() {
   trajectoryGraph.height = function(_) {
     if (!arguments.length) return height;
     height = _;
+    return trajectoryGraph;
+  };
+
+  trajectoryGraph.currentFrame = function(_) {
+    if (!arguments.length) return currentFrame;
+    currentFrame = _;
     return trajectoryGraph;
   };
 

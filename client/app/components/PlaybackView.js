@@ -59,7 +59,7 @@ function PlaybackView(props) {
         onUpdateTrace={handleUpdateTrace} />
       <MediaControls {...props} />
       <VisualizationContainer>
-        <TrajectoryGraphContainer experiment={props.experiment} />
+        <TrajectoryGraphContainer {...props} />
       </VisualizationContainer>
     </div>
   );

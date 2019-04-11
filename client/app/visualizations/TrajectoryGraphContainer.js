@@ -29,7 +29,8 @@ class TrajectoryGraphContainer extends React.Component {
   drawVisualization(props, state) {
     this.trajectoryGraph
         .width(props.width)
-        .height(props.width / 2);
+        .height(props.width / 2)
+        .currentFrame(props.playback.frame);
 
     d3.select(this.div)
         .datum(props.experiment)
@@ -45,7 +46,8 @@ class TrajectoryGraphContainer extends React.Component {
 // if using React.cloneElement, as in VisualizationContainer
 TrajectoryGraphContainer.propTypes = {
   width: PropTypes.number,
-  experiment: PropTypes.object
+  experiment: PropTypes.object,
+  playback: PropTypes.object
 };
 
 module.exports = TrajectoryGraphContainer;
