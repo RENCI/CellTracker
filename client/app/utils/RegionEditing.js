@@ -11,9 +11,9 @@ function right(i, a) {
 
 function generateId(regions) {
   const s = "object";
-  const ids = regions.map(d => +d.id.replace(s, "")).sort(d3.ascending);
+  const maxId = d3.max(regions, d => +d.id.replace(s, ""));
 
-  return s + (ids[ids.length - 1] + 1);
+  return s + (maxId + 1);
 } 
 
 function setVertices(region, vertices) {
