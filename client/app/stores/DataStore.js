@@ -156,7 +156,7 @@ function receiveSegmentationFrame(frame, regions) {
 }
 
 function generateTrajectoryIds() {
-  // Sanity check
+  // Sanity check for object ids
   experiment.segmentationData.forEach(frame => {
     const ids = frame.regions.map(region => region.id);
     

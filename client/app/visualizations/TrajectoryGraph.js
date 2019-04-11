@@ -135,6 +135,9 @@ module.exports = function() {
       const padTotal = (frameNodes.length - 1) * padding;
       return innerHeight() / (d3.sum(frameNodes, node => node.value) + padTotal);
     });
+
+    nodeSize = Math.min(nodeSize, innerHeight() / (nodes.length - 1) / 2);
+
     nodeStrokeWidth = nodeSize / 6;
 
     const xScale = d3.scaleLinear()
