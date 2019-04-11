@@ -156,6 +156,19 @@ function receiveSegmentationFrame(frame, regions) {
 }
 
 function generateTrajectoryIds() {
+  // Sanity check
+  experiment.segmentationData.forEach(frame => {
+    const ids = frame.regions.map(region => region.id);
+    
+    const duplicates = ids.filter((id, i, a) => a.indexOf(id) !== i)
+
+    if (duplicates.length > 0) {
+      console.log("ERROR: DUPLICATE OBJECT IDS!");
+      console.log(frame);
+      console.log(duplicates);
+    }
+  });
+
   // Remove any existing ids
   experiment.segmentationData.forEach(frame => {
     frame.regions.forEach(region => region.trajectory_id = null);

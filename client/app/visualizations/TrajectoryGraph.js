@@ -259,7 +259,7 @@ module.exports = function() {
     function drawNodes() {
       // Bind nodes
       let node = svg.select(".nodes").selectAll(".node")
-          .data(nodes, d => d.id);
+          .data(nodes);//, d => d.id);
 
       // Node enter + update
       node.enter().append("rect")
@@ -267,6 +267,7 @@ module.exports = function() {
           .on("mouseover", function(d) {
             //d.region.highlight = true;
             //d3.select(this).style(stroke);
+            console.log(d.region.id, d.region.link_id, d.region.trajectory_id);
           })
           .on("click", d => {
             dispatcher.call("selectRegion", this, d.frameIndex, d.region);

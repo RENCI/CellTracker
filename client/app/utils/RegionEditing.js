@@ -9,6 +9,13 @@ function right(i, a) {
   return i === a.length - 1 ? 0 : i + 1;
 }
 
+function generateId(regions) {
+  const s = "object";
+  const ids = regions.map(d => +d.id.replace(s, "")).sort(d3.ascending);
+
+  return s + (ids[ids.length - 1] + 1);
+} 
+
 function setVertices(region, vertices) {
   region.vertices = vertices;
 
@@ -277,7 +284,7 @@ function splitRegion(region, line, offset, regionArray) {
 
   // Set vertices on original region and add new one
   const newRegion = {
-    id: "object" + regionArray.length,
+    id: generateId(regionArray),
     selected: false
   };
 
@@ -375,7 +382,7 @@ function addRegion(point, radius, regionArray) {
 
   let region = {
     center: point,
-    id: "object" + regionArray.length,
+    id: generateId(regionArray),
     min: [point[0] - radius, point[1] - radius],
     max: [point[0] + radius, point[1] + radius],
     selected: false,

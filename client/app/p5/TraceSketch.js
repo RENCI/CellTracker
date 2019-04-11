@@ -736,6 +736,10 @@ module.exports = function (sketch) {
       case "trim":
         break;
     }
+
+    
+
+    if (currentRegion) console.log(currentRegion.id, currentRegion.link_id, currentRegion.trajectory_id);
   }
 
   function innerWidth(element) {
