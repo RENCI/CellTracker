@@ -1,14 +1,23 @@
 const React = require("react");
-var PropTypes = require("prop-types");
+const PropTypes = require("prop-types");
 const d3 = require("d3");
 const TrajectoryGraph = require("./TrajectoryGraph");
+const ViewActionCreators = require("../actions/ViewActionCreators");
 
 class TrajectoryGraphContainer extends React.Component {
   constructor() {
     super();
 
+    this.onSelectRegion = this.onSelectRegion.bind(this);
+
     // Create visualization function
-    this.trajectoryGraph = TrajectoryGraph();
+    this.trajectoryGraph = TrajectoryGraph()
+        .on("selectRegion", this.onSelectRegion);
+  }
+
+  onSelectRegion(frame, region) {
+    ViewActionCreators.setFrame(frame);
+    ViewActionCreators.selectRegion(frame, region);
   }
 
   shouldComponentUpdate(props, state) {

@@ -269,7 +269,7 @@ module.exports = function() {
             //d3.select(this).style(stroke);
           })
           .on("click", d => {
-
+            dispatcher.call("selectRegion", this, d.frameIndex, d.region);
           })
         .merge(node)
           .attr("rx", nodeSize / 2)
