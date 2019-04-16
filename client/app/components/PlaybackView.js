@@ -29,8 +29,8 @@ function handleMouseWheel(delta) {
   ViewActionCreators.frameDelta(delta);
 }
 
-function handleUpdateFrame(frame) {
-  ViewActionCreators.updateFrame(frame);
+function handleHighlightRegion(frame, region) {
+  ViewActionCreators.highlightRegion(frame, region);
 }
 
 function handleSelectRegion(frame, region) {
@@ -39,10 +39,6 @@ function handleSelectRegion(frame, region) {
 
 function handleSelectZoomPoint(frame, point) {
   ViewActionCreators.selectZoomPoint(frame, point);
-}
-
-function handleUpdateTrace(points) {
-  ViewActionCreators.updateTrace(points);
 }
 
 function PlaybackView(props) {
@@ -54,9 +50,9 @@ function PlaybackView(props) {
         frame={props.playback.frame}
         onKeyPress={handleKeyPress}
         onMouseWheel={handleMouseWheel}
+        onHighlightRegion={handleHighlightRegion}
         onSelectRegion={handleSelectRegion}
-        onSelectZoomPoint={handleSelectZoomPoint}
-        onUpdateTrace={handleUpdateTrace} />
+        onSelectZoomPoint={handleSelectZoomPoint} />
       <MediaControls {...props} />
       <VisualizationContainer>
         <TrajectoryGraphContainer {...props} />

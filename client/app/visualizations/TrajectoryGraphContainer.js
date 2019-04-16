@@ -22,7 +22,6 @@ class TrajectoryGraphContainer extends React.Component {
   }
 
   onSetFrame(frame) {
-    console.log(frame);
     ViewActionCreators.setFrame(frame);
   }
 

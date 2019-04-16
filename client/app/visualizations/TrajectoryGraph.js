@@ -318,8 +318,8 @@ module.exports = function() {
         return "#fff";
       }
 
-      function stroke(d) {
-        return d.highlight ? "black" : colorMap(d.region.trajectory_id);
+      function stroke(d) {;
+        return d.region.highlight ? "black" : colorMap(d.region.trajectory_id);
       }
     }
 

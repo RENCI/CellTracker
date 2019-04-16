@@ -371,6 +371,16 @@ function setFrameRate(frameRate) {
   }
 }
 
+function highlightRegion(frame, region) {
+  experiment.segmentationData.forEach(frame => {
+    frame.regions.forEach(region => region.highlight = false);
+  });
+
+  if (region) region.highlight = true;
+
+  pushHistory();
+}
+
 function selectRegion(frame, region) {
   if (region) {
     experiment.editFrame = frame;
@@ -683,6 +693,11 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
 
     case Constants.SELECT_FRAME_RATE:
       setFrameRate(action.frameRate);
+      DataStore.emitChange();
+      break;
+
+    case Constants.HIGHLIGHT_REGION:
+      highlightRegion(action.frame, action.region);
       DataStore.emitChange();
       break;
 

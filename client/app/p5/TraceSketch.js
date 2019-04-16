@@ -35,9 +35,10 @@ module.exports = function (sketch) {
       }));
 
   // Callbacks
-  var onSelectRegion = null,
-  onSelectZoomPoint = null,
-  onEditRegion = null;
+  var onHighlightRegion = null,
+      onSelectRegion = null,
+      onSelectZoomPoint = null,
+      onEditRegion = null;
 
   // Editing
   var editView = false,
@@ -45,6 +46,7 @@ module.exports = function (sketch) {
       handle = null,
       currentRegion = null,
       mergeRegion = null,
+      activeRegions = null,
       moveHandle = false,
       moveMouse = false,
       // XXX: Need to keep the previous mouse position because mouse moved is firing on mouse pressed
@@ -88,6 +90,7 @@ module.exports = function (sketch) {
     stabilize = props.stabilize;
     onKeyPress = props.onKeyPress;
     onMouseWheel = props.onMouseWheel;
+    onHighlightRegion = props.onHighlightRegion;
     onSelectRegion = props.onSelectRegion;
     onSelectZoomPoint = props.onSelectZoomPoint;
     onEditRegion = props.onEditRegion;
@@ -337,6 +340,8 @@ module.exports = function (sketch) {
 
     const regions = segmentationData[frame].regions;
 
+    activeRegions = [];
+
     // Check mouse position
     if (sketch.mouseX === oldMouseX && sketch.mouseY === oldMouseY) return;
     oldMouseX = sketch.mouseX;
@@ -375,10 +380,10 @@ module.exports = function (sketch) {
           // Highlight based on intersections with split line
           regions.forEach(region => {
             const intersections = regionLineSegmentIntersections(region, splitLine);
-            region.highlight = intersections > 0 && intersections % 2 === 0;
+            if (intersections > 0 && intersections % 2 === 0) activeRegions.push(region);
           });
 
-          const numRegions = regions.filter(region => region.highlight).length;
+          const numRegions = activeRegions.length;
 
           if (numRegions > 0) {
             actionString = editMode === "split" ? "Split region" : "Trim region";
@@ -486,7 +491,7 @@ module.exports = function (sketch) {
 
       case "split":
         if (splitLine) {
-          regions.filter(region => region.highlight).forEach(region => {
+          activeRegions.forEach(region => {
             const newRegion = RegionEditing.splitRegion(region, splitLine, 0.5 / images[0].width, regions);
             
             if (newRegion) {
@@ -502,7 +507,7 @@ module.exports = function (sketch) {
 
       case "trim":
         if (splitLine) {
-          regions.filter(region => region.highlight).forEach(region => {
+          activeRegions.forEach(region => {
             if (RegionEditing.trimRegion(region, splitLine)) {
               onEditRegion(frame, region);
             }
@@ -641,12 +646,6 @@ module.exports = function (sketch) {
 
     const regions = segmentationData[frame].regions;
 
-    regions.forEach(function(region) {
-      region.highlight = false;
-    });
-
-    if (mergeRegion) mergeRegion.highlight = true;
-
     sketch.cursor(sketch.ARROW);
 
     switch (editMode) {
@@ -668,7 +667,6 @@ module.exports = function (sketch) {
 
           if (MathUtils.insidePolygon(normalizePoint(m), region.vertices)) {
             currentRegion = region;
-            region.highlight = true;
 
             sketch.cursor(sketch.HAND);
 
@@ -716,8 +714,6 @@ module.exports = function (sketch) {
         });
 
         if (currentRegion) {
-          currentRegion.highlight = true;
-
           actionString = "Add vertex";
 
           if (closestVertexDistance < r) {
@@ -737,9 +733,9 @@ module.exports = function (sketch) {
         break;
     }
 
-    
-
-    if (currentRegion) console.log(currentRegion.id, currentRegion.link_id, currentRegion.trajectory_id);
+    if (currentRegion) {
+      setTimeout(() => { onHighlightRegion(frame, currentRegion); }, 0);
+    }
   }
 
   function innerWidth(element) {

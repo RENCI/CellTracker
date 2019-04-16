@@ -74,6 +74,13 @@ module.exports = {
     });
   },
 
+  highlightRegion: function (frame, region) {
+    AppDispatcher.dispatch({
+      actionType: Constants.HIGHLIGHT_REGION,
+      frame: frame,
+      region: region
+    });
+  },
   selectRegion: function (frame, region) {
     AppDispatcher.dispatch({
       actionType: Constants.SELECT_REGION,

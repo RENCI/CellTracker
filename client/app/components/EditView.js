@@ -30,8 +30,8 @@ function handleMouseWheel(delta) {
   ViewActionCreators.frameDelta(delta);
 }
 
-function handleUpdateFrame(frame) {
-  ViewActionCreators.updateFrame(frame);
+function handleHighlightRegion(frame, region) {
+  ViewActionCreators.highlightRegion(frame, region);
 }
 
 function handleSelectRegion(frame, region) {
@@ -40,10 +40,6 @@ function handleSelectRegion(frame, region) {
 
 function handleEditRegion(frame, region) {
   ViewActionCreators.editRegion(frame, region);
-}
-
-function handleUpdateTrace(points) {
-  ViewActionCreators.updateTrace(points);
 }
 
 var frameDivStyle = {
@@ -88,8 +84,8 @@ function EditView(props) {
             stabilize={props.settings.stabilize}
             onKeyPress={handleKeyPress}
             onMouseWheel={handleMouseWheel}
-            onSelectRegion={handleSelectRegion}
-            onUpdateTrace={handleUpdateTrace} />
+            onHighlightRegion={handleHighlightRegion}
+            onSelectRegion={handleSelectRegion} />
         </div>
       );
     }
@@ -110,8 +106,8 @@ function EditView(props) {
           stabilize={props.settings.stabilize}
           onKeyPress={handleKeyPress}
           onMouseWheel={handleMouseWheel}
-          onSelectRegion={handleSelectRegion}
-          onUpdateTrace={handleUpdateTrace} />       
+          onHighlightRegion={handleHighlightRegion}
+          onSelectRegion={handleSelectRegion} />       
           {frames.map((frames, i) => {
             return (
               <div style={frameDivStyle} key={i}>
@@ -135,8 +131,8 @@ function EditView(props) {
           onKeyPress={handleKeyPress}
           onMouseWheel={handleMouseWheel}
           onSelectRegion={handleSelectRegion}
-          onEditRegion={handleEditRegion}
-          onUpdateTrace={handleUpdateTrace} />
+          onHighlightRegion={handleHighlightRegion}
+          onEditRegion={handleEditRegion} />
       </div>
     </div>
   );
