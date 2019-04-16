@@ -22,7 +22,7 @@ module.exports = function() {
       svg = d3.select(),
 
       // Event dispatcher
-      dispatcher = d3.dispatch("selectRegion");
+      dispatcher = d3.dispatch("selectRegion", "setFrame");
 
   function trajectoryGraph(selection) {
     selection.each(function(d) {
@@ -250,6 +250,7 @@ module.exports = function() {
       link.enter().append("path")
           .attr("class", "link")
           .style("fill", "none")
+          .style("pointer-events", "none")
         .merge(link)
           .attr("d", linkShape)
           .style("stroke", stroke)
@@ -280,7 +281,7 @@ module.exports = function() {
             //d3.select(this).style(stroke);
             console.log(d.region.id, d.region.link_id, d.region.trajectory_id);
           })
-          .on("click", d => {
+          .on("click", function(d) {
             dispatcher.call("selectRegion", this, d.frameIndex, d.region);
           })
         .merge(node)
@@ -314,12 +315,11 @@ module.exports = function() {
       }
 
       function fill(d) {
-        //return d.region.highlight ? "#666" : "#fff";
         return "#fff";
       }
 
       function stroke(d) {
-        return colorMap(d.region.trajectory_id);
+        return d.highlight ? "black" : colorMap(d.region.trajectory_id);
       }
     }
 
@@ -333,16 +333,43 @@ module.exports = function() {
           .domain([0, frames.length - 1])
           .range([-diff, innerWidth() - nodeSize - diff]);
 
+      const backWidth = xScale(1) - xScale(0);
+
+      const backXScale = d3.scaleLinear()
+          .domain([0, frames.length - 1])
+          .range([nodeSize / 2 - backWidth / 2, innerWidth() - nodeSize / 2 - backWidth / 2]);
+
       // Bind frames
       let frame = svg.select(".frames").selectAll(".frame")
           .data(frames);
 
-      // Frame enter + update
-      frame.enter().append("rect")
+      // Frame enter
+      let frameEnter = frame.enter().append("g")
           .attr("class", "frame")
+          .on("mouseover", function(d, i) {
+            dispatcher.call("setFrame", this, i);
+          });
+
+      frameEnter.append("rect")
+          .attr("class", "background")
+          .style("fill", "none")
           .style("stroke", "none")
-          .style("fill", fill)
-        .merge(frame)
+          .style("pointer-events", "all");
+
+      frameEnter.append("rect")
+          .attr("class", "foreground")
+          .style("stroke", "none");
+
+      // Frame enter + update
+      let frameUpdate = frameEnter.merge(frame);
+
+      frameUpdate.select(".background")
+          .attr("x", backX)
+          .attr("y", 0)
+          .attr("width", backWidth)
+          .attr("height", innerHeight())
+
+      frameUpdate.select(".foreground")
           .attr("rx", frameSize / 2)
           .attr("ry", frameSize / 2)
           .attr("x", x)
@@ -359,8 +386,11 @@ module.exports = function() {
       }
 
       function fill(d, i) {
-        //return d.region.highlight ? "#666" : "#fff";
-        return i === currentFrame ? "#aaa" : "#ddd";
+        return i === currentFrame ? "#aaa" : "#eee";
+      }
+
+      function backX(d, i) {
+        return backXScale(i);
       }
     }
   }

@@ -9,15 +9,21 @@ class TrajectoryGraphContainer extends React.Component {
     super();
 
     this.onSelectRegion = this.onSelectRegion.bind(this);
+    this.onSetFrame = this.onSetFrame.bind(this);
 
     // Create visualization function
     this.trajectoryGraph = TrajectoryGraph()
-        .on("selectRegion", this.onSelectRegion);
+        .on("selectRegion", this.onSelectRegion)
+        .on("setFrame", this.onSetFrame);
   }
 
   onSelectRegion(frame, region) {
-    ViewActionCreators.setFrame(frame);
     ViewActionCreators.selectRegion(frame, region);
+  }
+
+  onSetFrame(frame) {
+    console.log(frame);
+    ViewActionCreators.setFrame(frame);
   }
 
   shouldComponentUpdate(props, state) {
