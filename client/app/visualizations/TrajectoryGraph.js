@@ -249,8 +249,12 @@ module.exports = function() {
       // Link enter + update
       link.enter().append("path")
           .attr("class", "link")
-          .style("fill", "none")
-          .style("pointer-events", "none")
+          .style("fill", "none")          
+          .on("mouseover", mousemove)
+          .on("mousemove", mousemove)
+          .on("mouseout", function(d) {
+            dispatcher.call("highlightRegion", this, null, null);
+          })
         .merge(link)
           .attr("d", linkShape)
           .style("stroke", stroke)
@@ -265,6 +269,15 @@ module.exports = function() {
 
       function linkWidth(d) {
         return d.width * 0.8;
+      }
+
+      function mousemove(d) {
+        const x = d3.mouse(this)[0],
+              s = x - d.point0.x,
+              t = d.point1.x - x;
+
+        if (s < t) dispatcher.call("highlightRegion", this, d.source.frameIndex, d.source.region);
+        else dispatcher.call("highlightRegion", this, d.target.frameIndex, d.target.region);
       }
     }
 
