@@ -22,7 +22,7 @@ module.exports = function() {
       svg = d3.select(),
 
       // Event dispatcher
-      dispatcher = d3.dispatch("selectRegion", "setFrame");
+      dispatcher = d3.dispatch("highlightRegion", "selectRegion", "setFrame");
 
   function trajectoryGraph(selection) {
     selection.each(function(d) {
@@ -277,9 +277,10 @@ module.exports = function() {
       node.enter().append("rect")
           .attr("class", "node")
           .on("mouseover", function(d) {
-            //d.region.highlight = true;
-            //d3.select(this).style(stroke);
-            console.log(d.region.id, d.region.link_id, d.region.trajectory_id);
+            dispatcher.call("highlightRegion", this, d.frameIndex, d.region);
+          })
+          .on("mouseout", function(d) {
+            dispatcher.call("highlightRegion", this, null, null);
           })
           .on("click", function(d) {
             dispatcher.call("selectRegion", this, d.frameIndex, d.region);
@@ -319,7 +320,7 @@ module.exports = function() {
       }
 
       function stroke(d) {;
-        return d.region.highlight ? "black" : colorMap(d.region.trajectory_id);
+        return d.region.highlight ? "#333" : colorMap(d.region.trajectory_id);
       }
     }
 

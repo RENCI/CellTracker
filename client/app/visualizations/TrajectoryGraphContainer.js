@@ -13,8 +13,13 @@ class TrajectoryGraphContainer extends React.Component {
 
     // Create visualization function
     this.trajectoryGraph = TrajectoryGraph()
+        .on("highlightRegion", this.onHighlightRegion)
         .on("selectRegion", this.onSelectRegion)
         .on("setFrame", this.onSetFrame);
+  }
+
+  onHighlightRegion(frame, region) {
+    ViewActionCreators.highlightRegion(frame, region);
   }
 
   onSelectRegion(frame, region) {
