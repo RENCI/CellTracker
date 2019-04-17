@@ -5,6 +5,8 @@ var PlaybackControls = require("./PlaybackControls");
 var MediaControls = require("./MediaControls");
 var EditControls = require("./EditControls");
 var TooltipContainer = require("../containers/TooltipContainer");
+var VisualizationContainer = require("../visualizations/VisualizationContainer");
+var TrajectoryGraphContainer = require("../visualizations/TrajectoryGraphContainer");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
 function handleKeyPress(keyCode) {
@@ -92,47 +94,56 @@ function EditView(props) {
   }
 
   return (
-    <div className="row">
-      <div className="col-md-5">
-        <h4>Playback</h4>
-        <TooltipContainer>
-          <PlaybackControls />
-        </TooltipContainer>
-        <TraceSketchWrapper
-          experiment={props.experiment}
-          zoom={props.settings.playbackZoom}
-          zoomPoint={props.settings.zoomPoint}
-          frame={props.playback.frame}
-          stabilize={props.settings.stabilize}
-          onKeyPress={handleKeyPress}
-          onMouseWheel={handleMouseWheel}
-          onHighlightRegion={handleHighlightRegion}
-          onSelectRegion={handleSelectRegion} />       
-          {frames.map((frames, i) => {
-            return (
-              <div style={frameDivStyle} key={i}>
-                {frames}
-              </div>          
-            );
-          })}         
-        <MediaControls {...props} />
+    <div>
+      <div className="row">
+        <div className="col-md-5">
+          <h4>Playback</h4>
+          <TooltipContainer>
+            <PlaybackControls />
+          </TooltipContainer>
+          <TraceSketchWrapper
+            experiment={props.experiment}
+            zoom={props.settings.playbackZoom}
+            zoomPoint={props.settings.zoomPoint}
+            frame={props.playback.frame}
+            stabilize={props.settings.stabilize}
+            onKeyPress={handleKeyPress}
+            onMouseWheel={handleMouseWheel}
+            onHighlightRegion={handleHighlightRegion}
+            onSelectRegion={handleSelectRegion} />       
+            {frames.map((frames, i) => {
+              return (
+                <div style={frameDivStyle} key={i}>
+                  {frames}
+                </div>          
+              );
+            })}         
+          <MediaControls {...props} />
+        </div>
+        <div className="col-md-7">
+          <h4>Edit</h4>
+          <TooltipContainer>
+            <EditControls editMode={props.settings.editMode} />
+          </TooltipContainer>
+          <TraceSketchWrapper
+            experiment={props.experiment}
+            zoom={props.settings.editZoom}
+            zoomPoint={props.settings.zoomPoint}
+            frame={props.experiment.editFrame}
+            editMode={props.settings.editMode}
+            onKeyPress={handleKeyPress}
+            onMouseWheel={handleMouseWheel}
+            onSelectRegion={handleSelectRegion}
+            onHighlightRegion={handleHighlightRegion}
+            onEditRegion={handleEditRegion} />
+        </div>
       </div>
-      <div className="col-md-7">
-        <h4>Edit</h4>
-        <TooltipContainer>
-          <EditControls editMode={props.settings.editMode} />
-        </TooltipContainer>
-        <TraceSketchWrapper
-          experiment={props.experiment}
-          zoom={props.settings.editZoom}
-          zoomPoint={props.settings.zoomPoint}
-          frame={props.experiment.editFrame}
-          editMode={props.settings.editMode}
-          onKeyPress={handleKeyPress}
-          onMouseWheel={handleMouseWheel}
-          onSelectRegion={handleSelectRegion}
-          onHighlightRegion={handleHighlightRegion}
-          onEditRegion={handleEditRegion} />
+      <div className="row">
+        <div className="col-md-12">
+          <VisualizationContainer>
+            <TrajectoryGraphContainer {...props} />
+          </VisualizationContainer>
+        </div>
       </div>
     </div>
   );

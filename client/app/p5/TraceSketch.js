@@ -46,7 +46,7 @@ module.exports = function (sketch) {
       handle = null,
       currentRegion = null,
       mergeRegion = null,
-      activeRegions = null,
+      activeRegions = [],
       moveHandle = false,
       moveMouse = false,
       // XXX: Need to keep the previous mouse position because mouse moved is firing on mouse pressed
@@ -139,7 +139,6 @@ module.exports = function (sketch) {
     }
 
     highlight();
-    actionString = "";
     sketch.redraw();
   }
 
@@ -201,7 +200,11 @@ module.exports = function (sketch) {
 
     if (regions) {
       regions.forEach(function(region, i, a) {
-        let weight = region.highlight ? lineHighlightWeight : lineWeight;
+        const highlightRegion = region.highlight || 
+              region === currentRegion || 
+              activeRegions.indexOf(region) !== -1;
+        let weight = highlightRegion ? lineHighlightWeight : lineWeight;
+
         weight /= zoom;        
 
         // Draw outline background
@@ -634,7 +637,10 @@ module.exports = function (sketch) {
 
     if (x < 0 || x >= sketch.width ||
         y < 0 || y >= sketch.height ||
-        !segmentationData) return;
+        !segmentationData) {          
+      actionString = "";
+      return;
+    }
 
     // Mouse position
     const m = applyZoom([sketch.mouseX, sketch.mouseY]);
@@ -734,7 +740,9 @@ module.exports = function (sketch) {
     }
 
     if (currentRegion) {
-      setTimeout(() => { onHighlightRegion(frame, currentRegion); }, 0);
+      const f = editView ? null : frame;
+
+      setTimeout(() => { onHighlightRegion(f, currentRegion); }, 0);
     }
   }
 
