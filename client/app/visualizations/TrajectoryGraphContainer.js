@@ -39,7 +39,7 @@ class TrajectoryGraphContainer extends React.Component {
   drawVisualization(props, state) {
     this.trajectoryGraph
         .width(props.width)
-        .height(props.width / 2)
+        .height(props.width / 4)
         .currentFrame(props.playback.frame);
 
     d3.select(this.div)

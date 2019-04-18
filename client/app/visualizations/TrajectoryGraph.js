@@ -132,16 +132,10 @@ module.exports = function() {
     });
 
     // Compute node size
-    const padding = 0.5;
-    const maxHeight = d3.min(nodes, frameNodes => {
-      const padTotal = (frameNodes.length - 1) * padding;
-      return d3.sum(frameNodes, node => node.value) + padTotal;
-    });
-
-    nodeSize = innerHeight() / maxHeight;
-    nodeSize = Math.min(nodeSize, innerWidth() / (nodes.length - 1) / 4);
-
+    nodeSize = innerWidth() / nodes.length / 8;
     nodeStrokeWidth = nodeSize / 6;
+
+    const padding = 0.5;
 
     // Position nodes
     const xScale = d3.scaleLinear()

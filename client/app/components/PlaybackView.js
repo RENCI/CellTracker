@@ -44,16 +44,19 @@ function handleSelectZoomPoint(frame, point) {
 function PlaybackView(props) {
   return (
     <div>
-      <h4>Overview</h4>
-      <TraceSketchWrapper
-        experiment={props.experiment}
-        frame={props.playback.frame}
-        onKeyPress={handleKeyPress}
-        onMouseWheel={handleMouseWheel}
-        onHighlightRegion={handleHighlightRegion}
-        onSelectRegion={handleSelectRegion}
-        onSelectZoomPoint={handleSelectZoomPoint} />
-      <MediaControls {...props} />
+      <div className="mb-3">
+        <h4>Overview</h4>
+        <TraceSketchWrapper
+          experiment={props.experiment}
+          frame={props.playback.frame}
+          onKeyPress={handleKeyPress}
+          onMouseWheel={handleMouseWheel}
+          onHighlightRegion={handleHighlightRegion}
+          onSelectRegion={handleSelectRegion}
+          onSelectZoomPoint={handleSelectZoomPoint} />
+        <MediaControls {...props} />
+      </div>
+      <h4>Trajectory Graph</h4>
       <VisualizationContainer>
         <TrajectoryGraphContainer {...props} />
       </VisualizationContainer>

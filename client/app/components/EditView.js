@@ -95,7 +95,7 @@ function EditView(props) {
 
   return (
     <div>
-      <div className="row">
+      <div className="row mb-3">
         <div className="col-md-5">
           <h4>Playback</h4>
           <TooltipContainer>
@@ -140,6 +140,7 @@ function EditView(props) {
       </div>
       <div className="row">
         <div className="col-md-12">
+          <h4>Trajectory Graph</h4>
           <VisualizationContainer>
             <TrajectoryGraphContainer {...props} />
           </VisualizationContainer>
