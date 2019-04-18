@@ -2,6 +2,7 @@
 
 var React = require("react");
 var MainSection = require("../components/MainSection");
+var ResizeContainer = require("./ResizeContainer");
 var DataStore = require("../stores/DataStore");
 var ViewActionCreators = require("../actions/ViewActionCreators");
 
@@ -24,6 +25,7 @@ class AppContainer extends React.Component {
 
     // Need to bind this to callback functions here
     this.onDataChange = this.onDataChange.bind(this);
+    this.onResize = this.onResize.bind(this);
   }
 
   componentDidMount() {
@@ -44,10 +46,15 @@ class AppContainer extends React.Component {
     this.setState(getStateFromStore());
   }
 
+  onResize() {
+    this.forceUpdate();
+  }
+
   render() {
     return (
       <div className="container-fluid">
         <MainSection {...this.state} />
+        <ResizeContainer onResize={this.onResize} />
       </div>
     );
   }
