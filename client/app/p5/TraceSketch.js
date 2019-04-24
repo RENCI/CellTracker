@@ -1,6 +1,5 @@
-var d3Scale = require("d3-scale");
+var d3 = require("d3");
 var d3ScaleChromatic = require("d3-scale-chromatic");
-var d3Color = require("d3-color");
 var MathUtils = require("../utils/MathUtils");
 var RegionEditing = require("../utils/RegionEditing");
 
@@ -23,13 +22,13 @@ module.exports = function (sketch) {
   // Segmentation
   var segmentationData = null,
       colors = d3ScaleChromatic.schemeDark2.slice(0, -1),
-      strokeColorMap = d3Scale.scaleOrdinal(colors.map(c => {
-        const color = d3Color.color(c);
+      strokeColorMap = d3.scaleOrdinal(colors.map(c => {
+        const color = d3.color(c);
         color.opacity = 0.75;
         return color.toString();
       })),
-      fillColorMap = d3Scale.scaleOrdinal(colors.map(c => {
-        const color = d3Color.color(c);
+      fillColorMap = d3.scaleOrdinal(colors.map(c => {
+        const color = d3.color(c);
         color.opacity = 0.25;
         return color.toString();
       }));
@@ -572,7 +571,7 @@ module.exports = function (sketch) {
   }
 
   function createLut(colors) {
-    var colorScale = d3Scale.scaleSequential(colors),
+    var colorScale = d3.scaleSequential(colors),
         lut = [];
 
     for (var i = 0; i < 256; i++) {
