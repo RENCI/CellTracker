@@ -1,10 +1,8 @@
-// Controller-view for the application that stores the current dataset
-
-var React = require("react");
-var MainSection = require("../components/MainSection");
-var ResizeContainer = require("./ResizeContainer");
-var DataStore = require("../stores/DataStore");
-var ViewActionCreators = require("../actions/ViewActionCreators");
+import React, { Component } from 'react';
+import MainSection from "../components/MainSection";
+import ResizeContainer from "./ResizeContainer";
+import DataStore from "../stores/DataStore";
+import ViewActionCreators from "../actions/ViewActionCreators";
 
 function getStateFromStore() {
   return {
@@ -17,9 +15,9 @@ function getStateFromStore() {
   };
 }
 
-class AppContainer extends React.Component {
-  constructor() {
-    super();
+class AppContainer extends Component {
+  constructor(props) {
+    super(props);
 
     this.state = getStateFromStore();
 
@@ -60,4 +58,4 @@ class AppContainer extends React.Component {
   }
 }
 
-module.exports = AppContainer;
+export default AppContainer;
