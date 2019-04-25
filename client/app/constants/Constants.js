@@ -1,6 +1,6 @@
-var keyMirror = require("keymirror");
+import keyMirror from "keymirror";
 
-module.exports = keyMirror({
+export default keyMirror({
   RECEIVE_EXPERIMENT_LIST: null,
   SELECT_EXPERIMENT: null,
   RECEIVE_EXPERIMENT: null,

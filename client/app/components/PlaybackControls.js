@@ -1,9 +1,9 @@
-var React = require("react");
-var IconButton = require("./IconButton");
-var ViewActionCreators = require("../actions/ViewActionCreators");
+import React from "react";
+import IconButton from "./IconButton";
+import * as ViewActionCreators from "../actions/ViewActionCreators";
 
 function button(iconName, callback, active) {
-  var classes = "btn btn-outline-secondary";
+  const classes = "btn btn-outline-secondary";
   if (active) classes += " active";
 
   return (
@@ -35,4 +35,4 @@ function PlaybackControls() {
   );
 }
 
-module.exports = PlaybackControls;
+export default PlaybackControls;

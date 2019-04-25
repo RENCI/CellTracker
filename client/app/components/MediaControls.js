@@ -1,7 +1,7 @@
-var React = require("react");
-var PropTypes = require("prop-types");
-var IconButton = require("./IconButton");
-var ViewActionCreators = require("../actions/ViewActionCreators");
+import React from "react";
+import PropTypes from "prop-types";
+import IconButton from "./IconButton";
+import * as ViewActionCreators from "../actions/ViewActionCreators";
 
 function onLoopClick() {
   ViewActionCreators.cycleLoop();
@@ -35,7 +35,7 @@ function onRangeChange(e) {
   ViewActionCreators.setFrame(+e.target.value);
 }
 
-var frameRateOptions = [0.25, 0.5, 1, 2, 4, 8, 16].map(function (frameRate, i) {
+const frameRateOptions = [0.25, 0.5, 1, 2, 4, 8, 16].map(function (frameRate, i) {
   return (
     <option key={i} value={frameRate}>
       {frameRate + "x"}
@@ -43,20 +43,20 @@ var frameRateOptions = [0.25, 0.5, 1, 2, 4, 8, 16].map(function (frameRate, i) {
   );
 });
 
-var rangeStyle = {
+const rangeStyle = {
   marginLeft: 5
 };
 
 function MediaControls(props) {
-  var playIcon = props.playback.play ? "oi-media-pause" : "oi-media-play";
-  var loopIcon = props.playback.loop === "rock" ? "oi-resize-width" : "oi-loop";
-  var looping = props.playback.loop === "loop" || props.playback.loop === "rock";
+  const playIcon = props.playback.play ? "oi-media-pause" : "oi-media-play";
+  const loopIcon = props.playback.loop === "rock" ? "oi-resize-width" : "oi-loop";
+  const looping = props.playback.loop === "loop" || props.playback.loop === "rock";
 
-  var numFrames = props.experiment.frames;
-  var frame = props.playback.frame;
+  const numFrames = props.experiment.frames;
+  const frame = props.playback.frame;
 
   // Use maximum digits with 'em' as a conservative estimate of label length
-  var maxDigits = ("" + numFrames).length * 2 + 1;
+  const maxDigits = ("" + numFrames).length * 2 + 1;
 
   return (
     <div className="input-group input-group-sm">
@@ -94,4 +94,4 @@ MediaControls.propTypes = {
   playback: PropTypes.object.isRequired
 };
 
-module.exports = MediaControls;
+export default MediaControls;

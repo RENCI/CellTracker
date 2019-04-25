@@ -1,13 +1,13 @@
-var React = require("react");
-var PropTypes = require("prop-types");
+import React from "react";
+import PropTypes from "prop-types";
 
-function LoadingProgress(props) {
-  var style1 = {
+const LoadingProgress = props => {
+  const style1 = {
     width: props.value1 / props.max1 * 50 + "%",
     transition: props.value1 === props.max1 ? "none" : null
   };
 
-  var style2 = {
+  const style2 = {
     width: props.value2 / props.max2 * 50 + "%",
     transition: props.value2 === props.max2 ? "none" : null
   };
@@ -40,4 +40,4 @@ LoadingProgress.defaultProps = {
   subHeading: ""
 };
 
-module.exports = LoadingProgress;
+export default LoadingProgress;

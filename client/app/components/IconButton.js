@@ -1,7 +1,7 @@
-var React = require("react");
-var PropTypes = require("prop-types");
+import React from "react";
+import PropTypes from "prop-types";
 
-function IconButton(props) {
+const IconButton = props => {
   let classes = props.classes;
   if (props.active) classes += " active";
   if (props.dropDown) classes += " dropdown-toggle";
@@ -42,4 +42,4 @@ IconButton.defaultProps = {
   dropDown: false
 };
 
-module.exports = IconButton;
+export default IconButton;

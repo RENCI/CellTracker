@@ -1,10 +1,9 @@
-var React = require("react");
-var PropTypes = require("prop-types");
-var ViewActionCreators = require("../actions/ViewActionCreators");
+import  React from "react";
+import  PropTypes from "prop-types";
+import  ViewActionCreators from "../actions/ViewActionCreators";
 
-function TraceWidget(props) {
-  var classes = "btn btn-outline-secondary btn-sm btn-block";
-
+const TraceWidget = props => {
+  const classes = "btn btn-outline-secondary btn-sm btn-block";
   if (props.trace.active) classes += " active";
 
   return (
@@ -22,4 +21,4 @@ TraceWidget.propTypes = {
   onClick: PropTypes.func.isRequired
 };
 
-module.exports = TraceWidget;
+export default TraceWidget;

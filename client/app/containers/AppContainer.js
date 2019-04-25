@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import MainSection from "../components/MainSection";
 import ResizeContainer from "./ResizeContainer";
 import DataStore from "../stores/DataStore";
-import ViewActionCreators from "../actions/ViewActionCreators";
+import { getExperimentList } from "../actions/ViewActionCreators";
 
 function getStateFromStore() {
   return {
@@ -30,7 +30,7 @@ class AppContainer extends Component {
     DataStore.addChangeListener(this.onDataChange);
 
     // Bootstrap the application by getting the experiment list here
-    ViewActionCreators.getExperimentList();
+    getExperimentList();
 
     // Initialize dropdown menu
     $(".dropdown-toggle").dropdown();

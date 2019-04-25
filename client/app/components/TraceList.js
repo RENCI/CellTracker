@@ -1,14 +1,14 @@
-var React = require("react");
-var PropTypes = require("prop-types");
-var TraceWidget = require("./TraceWidget");
-var ViewActionCreators = require("../actions/ViewActionCreators");
+import  React from "react";
+import  PropTypes from "prop-types";
+import  TraceWidget from "./TraceWidget";
+import  ViewActionCreators from "../actions/ViewActionCreators";
 
 function onAddTraceClick() {
   ViewActionCreators.addTrace();
 }
 
-function TraceList(props) {
-  var widgets = props.traces.map(function (trace, i) {
+const TraceList = props => {
+  const widgets = props.traces.map(function (trace, i) {
     function handleClick() {
       ViewActionCreators.selectTrace(i);
     }
@@ -45,4 +45,4 @@ TraceList.propTypes = {
   traces: PropTypes.arrayOf(PropTypes.object).isRequired
 };
 
-module.exports = TraceList;
+export default TraceList;

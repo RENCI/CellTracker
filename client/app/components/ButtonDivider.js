@@ -1,6 +1,6 @@
-const React = require("react");
+import React from "react";
 
-function ButtonDivider() {
+const ButtonDivider = () => {
   return (
     <div className="mr-2" style={{
         height: "auto",
@@ -12,4 +12,4 @@ function ButtonDivider() {
   );
 }
 
-module.exports = ButtonDivider;
+export default ButtonDivider;

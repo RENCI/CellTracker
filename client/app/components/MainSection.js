@@ -1,11 +1,11 @@
-var React = require("react");
-var PropTypes = require("prop-types");
-var DataControls = require("./DataControls");
-var LoadingProgress = require("./LoadingProgress");
-var PlaybackView = require("./PlaybackView");
-var EditView = require("./EditView");
+import React from "react";
+import PropTypes from "prop-types";
+import DataControls from "./DataControls";
+import LoadingProgress from "./LoadingProgress";
+import PlaybackView from "./PlaybackView";
+import EditView from "./EditView";
 
-function MainSection(props) {
+const MainSection = props => {
   const edit = props.experiment && Number.isInteger(props.experiment.editFrame);
 
   const divClass = edit ?
@@ -55,4 +55,4 @@ MainSection.propTypes = {
   playback: PropTypes.object
 };
 
-module.exports = MainSection;
+export default MainSection;

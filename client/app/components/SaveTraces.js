@@ -1,7 +1,7 @@
-var React = require("react");
-var PropTypes = require("prop-types");
+import React from "react";
+import PropTypes from "prop-types";
 
-function SaveTraces(props) {
+const SaveTraces = props => {
   return (
     <div className="card">
       <h6 className="card-header">
@@ -25,4 +25,4 @@ SaveTraces.propTypes = {
   onSaveTracesClick: PropTypes.func.isRequired
 };
 
-module.exports = SaveTraces;
+export default SaveTraces;

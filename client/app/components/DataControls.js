@@ -1,8 +1,8 @@
-const React = require("react");
-const PropTypes = require("prop-types");
-const IconButton = require("./IconButton");
-const ButtonDivider = require("./ButtonDivider");
-const ViewActionCreators = require("../actions/ViewActionCreators");
+import React from "react";
+import PropTypes from "prop-types";
+import IconButton from "./IconButton";
+import ButtonDivider from "./ButtonDivider";
+import * as ViewActionCreators from "../actions/ViewActionCreators";
 
 function onBackClick() {
   ViewActionCreators.reverseFrames();
@@ -24,7 +24,7 @@ function onStabilizeClick() {
   ViewActionCreators.toggleStabilize();
 }
 
-function DataControls(props) {
+const DataControls = props => {
   function onExperimentSelectChange(e) {
     const index = props.experimentList.map(e => e.id).indexOf(e.target.value);
 
@@ -143,4 +143,4 @@ DataControls.propTypes = {
   history: PropTypes.object
 };
 
-module.exports = DataControls;
+export default DataControls;

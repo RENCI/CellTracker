@@ -1,10 +1,10 @@
-var React = require("react");
-var PropTypes = require("prop-types");
-var TraceSketchWrapper = require("../p5/TraceSketchWrapper");
-var MediaControls = require("./MediaControls");
-var VisualizationContainer = require("../visualizations/VisualizationContainer");
-var TrajectoryGraphContainer = require("../visualizations/TrajectoryGraphContainer");
-var ViewActionCreators = require("../actions/ViewActionCreators");
+import React from "react";
+import PropTypes from "prop-types";
+import TraceSketchWrapper from "../p5/TraceSketchWrapper";
+import MediaControls from "./MediaControls";
+import VisualizationContainer from "../visualizations/VisualizationContainer";
+import TrajectoryGraphContainer from "../visualizations/TrajectoryGraphContainer";
+import * as ViewActionCreators from "../actions/ViewActionCreators";
 
 function handleKeyPress(keyCode) {
   switch (keyCode) {
@@ -41,7 +41,7 @@ function handleSelectZoomPoint(frame, point) {
   ViewActionCreators.selectZoomPoint(frame, point);
 }
 
-function PlaybackView(props) {
+const PlaybackView = props => {
   return (
     <div>
       <div className="mb-3">
@@ -69,4 +69,4 @@ PlaybackView.propTypes = {
   playback: PropTypes.object
 };
 
-module.exports = PlaybackView;
+export default PlaybackView;

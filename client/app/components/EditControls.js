@@ -1,7 +1,7 @@
-var React = require("react");
-var PropTypes = require("prop-types");
-var IconButton = require("./IconButton");
-var ViewActionCreators = require("../actions/ViewActionCreators");
+import React from "react" ;
+import PropTypes from "prop-types" ;
+import IconButton from "./IconButton" ;
+import * as ViewActionCreators from "../actions/ViewActionCreators";
 
 function onVertexEditClick() {
   ViewActionCreators.setEditMode("vertex");
@@ -35,7 +35,7 @@ function onZoomOutClick() {
   ViewActionCreators.zoom("edit", "out");
 }
 
-function EditControls(props) {
+const EditControls = props => {
   return (
     <div className="form-inline">
       <div className="btn-group-sm mr-2">
@@ -66,4 +66,4 @@ EditControls.propTypes = {
   editMode: PropTypes.string.isRequired
 };
 
-module.exports = EditControls;
+export default EditControls;

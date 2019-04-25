@@ -1,7 +1,7 @@
-var AppDispatcher = require("../dispatcher/AppDispatcher");
-var EventEmitter = require("events").EventEmitter;
-var assign = require("object-assign");
-var Constants = require("../constants/Constants");
+import AppDispatcher from "../dispatcher/AppDispatcher";
+import { EventEmitter }from "events";
+import assign from "object-assign";
+import Constants from "../constants/Constants";
 
 var CHANGE_EVENT = "change";
 
@@ -749,4 +749,4 @@ DataStore.dispatchToken = AppDispatcher.register(function (action) {
   }
 });
 
-module.exports = DataStore;
+export default DataStore;

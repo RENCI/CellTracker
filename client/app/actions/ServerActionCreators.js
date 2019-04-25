@@ -1,37 +1,39 @@
-var AppDispatcher = require("../dispatcher/AppDispatcher");
-var Constants = require("../constants/Constants");
+import AppDispatcher from "../dispatcher/AppDispatcher";
+import Constants from "../constants/Constants";
 
-module.exports = {
-  receiveExperimentList: function (experimentList) {
-    AppDispatcher.dispatch({
-      actionType: Constants.RECEIVE_EXPERIMENT_LIST,
-      experimentList: experimentList
-    });
-  },
-  receiveExperiment: function (experiment) {
-    AppDispatcher.dispatch({
-      actionType: Constants.RECEIVE_EXPERIMENT,
-      experiment: experiment
-    });
-  },
-  receiveFrame: function (frame, image) {
-    AppDispatcher.dispatch({
-      actionType: Constants.RECEIVE_FRAME,
-      frame: frame,
-      image: image
-    });
-  },
-  receiveSegmentationFrame: function (frame, segmentations) {
-    AppDispatcher.dispatch({
-      actionType: Constants.RECEIVE_SEGMENTATION_FRAME,
-      frame: frame,
-      segmentations: segmentations
-    });
-  },
-  updateTracking: function (trackingData) {
-    AppDispatcher.dispatch({
-      actionType: Constants.UPDATE_TRACKING,
-      trackingData: trackingData
-    });
-  }
+export const receiveExperimentList = experimentList => {
+  AppDispatcher.dispatch({
+    actionType: Constants.RECEIVE_EXPERIMENT_LIST,
+    experimentList: experimentList
+  });
+};
+
+export const receiveExperiment = experiment => {
+  AppDispatcher.dispatch({
+    actionType: Constants.RECEIVE_EXPERIMENT,
+    experiment: experiment
+  });
+};
+
+export const receiveFrame = (frame, image) => {
+  AppDispatcher.dispatch({
+    actionType: Constants.RECEIVE_FRAME,
+    frame: frame,
+    image: image
+  });
+};
+
+export const receiveSegmentationFrame = (frame, segmentations) => {
+  AppDispatcher.dispatch({
+    actionType: Constants.RECEIVE_SEGMENTATION_FRAME,
+    frame: frame,
+    segmentations: segmentations
+  });
+};
+
+export const updateTracking = trackingData => {
+  AppDispatcher.dispatch({
+    actionType: Constants.UPDATE_TRACKING,
+    trackingData: trackingData
+  });
 };

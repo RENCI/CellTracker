@@ -1,4 +1,4 @@
-var ServerActionCreators = require("../actions/ServerActionCreators");
+import * as ServerActionCreators from "../actions/ServerActionCreators";
 
 // Create p5 instance for loading images
 var loadingSketch = new p5(function (sketch) {});
@@ -35,7 +35,7 @@ function setupAjax() {
   });
 }
 
-function getExperimentList() {
+export const getExperimentList = () => {
   setupAjax();
 
   $.ajax({
@@ -51,7 +51,7 @@ function getExperimentList() {
   });
 }
 
-function getExperimentInfo(experiment) {
+export const getExperimentInfo = experiment => {
   setupAjax();
 
   $.ajax({
@@ -84,7 +84,7 @@ function getExperimentInfo(experiment) {
   });
 }
 
-function getFrames(experiment) {
+export const getFrames = experiment => {
   setupAjax();
 
   var imageType = "jpg";
@@ -163,7 +163,7 @@ function pollUpdatedTracking(taskId) {
   });
 }
 
-function saveSegmentationData(id, data) {
+export const saveSegmentationData = (id, data) => {
   setupAjax();
 
   // Send each edited frame
@@ -201,10 +201,3 @@ function saveSegmentationData(id, data) {
     });
   });
 }
-
-module.exports = {
-  getExperimentList: getExperimentList,
-  getExperimentInfo: getExperimentInfo,
-  getFrames: getFrames,
-  saveSegmentationData: saveSegmentationData
-};
