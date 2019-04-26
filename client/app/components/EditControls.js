@@ -1,7 +1,8 @@
-import React from "react" ;
+import React, { useRef } from "react";
 import PropTypes from "prop-types" ;
 import IconButton from "./IconButton" ;
 import * as ViewActionCreators from "../actions/ViewActionCreators";
+import useTooltip from "../hooks/useTooltip";
 
 function onVertexEditClick() {
   ViewActionCreators.setEditMode("vertex");
@@ -36,8 +37,11 @@ function onZoomOutClick() {
 }
 
 const EditControls = props => {
+  const ref = useRef(null);
+  useTooltip(ref); 
+
   return (
-    <div className="form-inline">
+    <div className="form-inline" ref={ref}>
       <div className="btn-group-sm mr-2">
         <IconButton 
           iconName="oi-pencil" callback={onVertexEditClick} active={props.editMode === "vertex"} tooltip="Vertex edit" />

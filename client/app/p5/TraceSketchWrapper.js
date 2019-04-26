@@ -1,6 +1,6 @@
-var React = require("react");
-var PropTypes = require("prop-types");
-var TraceSketch = require("./TraceSketch");
+import React from "react";
+import PropTypes from "prop-types";
+import TraceSketch from "./TraceSketch";
 
 class TraceSketchWrapper extends React.Component {
   constructor() {
@@ -52,4 +52,4 @@ TraceSketchWrapper.defaultProps = {
   stabilize: false
 };
 
-module.exports = TraceSketchWrapper;
+export default TraceSketchWrapper;

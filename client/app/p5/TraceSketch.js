@@ -1,9 +1,8 @@
-var d3 = require("d3");
-var d3ScaleChromatic = require("d3-scale-chromatic");
-var MathUtils = require("../utils/MathUtils");
-var RegionEditing = require("../utils/RegionEditing");
+import * as d3 from "d3";
+import MathUtils from "../utils/MathUtils";
+import RegionEditing from "../utils/RegionEditing";
 
-module.exports = function (sketch) {
+export default sketch => {
   // Current experiment
   var experiment = null;
 
@@ -12,7 +11,7 @@ module.exports = function (sketch) {
       colorImages = [],
       contrastImages = [],
       frame = 0,
-      lut = createLut(d3ScaleChromatic.interpolateInferno),
+      lut = createLut(d3.interpolateInferno),
       onUpdateLoading = null;
 
   // Interaction
@@ -21,7 +20,7 @@ module.exports = function (sketch) {
 
   // Segmentation
   var segmentationData = null,
-      colors = d3ScaleChromatic.schemeDark2.slice(0, -1),
+      colors = d3.schemeDark2.slice(0, -1),
       strokeColorMap = d3.scaleOrdinal(colors.map(c => {
         const color = d3.color(c);
         color.opacity = 0.75;

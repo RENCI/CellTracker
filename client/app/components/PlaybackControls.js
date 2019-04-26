@@ -1,20 +1,7 @@
-import React from "react";
+import React, { useRef } from "react";
 import IconButton from "./IconButton";
 import * as ViewActionCreators from "../actions/ViewActionCreators";
-
-function button(iconName, callback, active) {
-  const classes = "btn btn-outline-secondary";
-  if (active) classes += " active";
-
-  return (
-    <button
-      type="button"
-      className={classes}
-      onClick={callback}>
-        <span className={"oi " + iconName}></span>
-    </button>
-  );
-}
+import useTooltip from "../hooks/useTooltip";
 
 function onZoomInClick() {
   ViewActionCreators.zoom("playback", "in");
@@ -25,8 +12,11 @@ function onZoomOutClick() {
 }
 
 function PlaybackControls() {
+  const ref = useRef(null);
+  useTooltip(ref); 
+
   return (
-    <div className="form-inline">
+    <div className="form-inline" ref={ref}>
       <div className="btn-group-sm">
         <IconButton iconName="oi-zoom-in" callback={onZoomInClick} tooltip="Zoom in" />
         <IconButton iconName="oi-zoom-out" callback={onZoomOutClick} tooltip="Zoom out" />

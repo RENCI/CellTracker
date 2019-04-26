@@ -4,7 +4,6 @@ import TraceSketchWrapper from "../p5/TraceSketchWrapper";
 import PlaybackControls from "./PlaybackControls";
 import MediaControls from "./MediaControls";
 import EditControls from "./EditControls";
-import TooltipContainer from "../containers/TooltipContainer";
 import VisualizationContainer from "../visualizations/VisualizationContainer";
 import TrajectoryGraphContainer from "../visualizations/TrajectoryGraphContainer";
 import * as ViewActionCreators from "../actions/ViewActionCreators";
@@ -97,9 +96,7 @@ const EditView = props => {
       <div className="row mb-3">
         <div className="col-md-5">
           <h4>Playback</h4>
-          <TooltipContainer>
-            <PlaybackControls />
-          </TooltipContainer>
+          <PlaybackControls />
           <TraceSketchWrapper
             experiment={props.experiment}
             zoom={props.settings.playbackZoom}
@@ -121,9 +118,7 @@ const EditView = props => {
         </div>
         <div className="col-md-7">
           <h4>Edit</h4>
-          <TooltipContainer>
-            <EditControls editMode={props.settings.editMode} />
-          </TooltipContainer>
+          <EditControls editMode={props.settings.editMode} />
           <TraceSketchWrapper
             experiment={props.experiment}
             zoom={props.settings.editZoom}
