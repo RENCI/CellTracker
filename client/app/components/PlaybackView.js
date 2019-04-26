@@ -2,8 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import TraceSketchWrapper from "../p5/TraceSketchWrapper";
 import MediaControls from "./MediaControls";
-import VisualizationContainer from "../visualizations/VisualizationContainer";
-import TrajectoryGraphContainer from "../visualizations/TrajectoryGraphContainer";
+import TrajectoryGraphWrapper from "../visualizations/TrajectoryGraphWrapper";
 import * as ViewActionCreators from "../actions/ViewActionCreators";
 
 function handleKeyPress(keyCode) {
@@ -57,9 +56,7 @@ const PlaybackView = props => {
         <MediaControls {...props} />
       </div>
       <h4>Trajectory Graph</h4>
-      <VisualizationContainer>
-        <TrajectoryGraphContainer {...props} />
-      </VisualizationContainer>
+      <TrajectoryGraphWrapper {...props} />
     </div>
   );
 }

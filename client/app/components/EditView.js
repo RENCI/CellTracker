@@ -4,8 +4,7 @@ import TraceSketchWrapper from "../p5/TraceSketchWrapper";
 import PlaybackControls from "./PlaybackControls";
 import MediaControls from "./MediaControls";
 import EditControls from "./EditControls";
-import VisualizationContainer from "../visualizations/VisualizationContainer";
-import TrajectoryGraphContainer from "../visualizations/TrajectoryGraphContainer";
+import TrajectoryGraphWrapper from "../visualizations/TrajectoryGraphWrapper";
 import * as ViewActionCreators from "../actions/ViewActionCreators";
 
 function handleKeyPress(keyCode) {
@@ -135,9 +134,7 @@ const EditView = props => {
       <div className="row">
         <div className="col-md-12">
           <h4>Trajectory Graph</h4>
-          <VisualizationContainer>
-            <TrajectoryGraphContainer {...props} />
-          </VisualizationContainer>
+          <TrajectoryGraphWrapper {...props} />
         </div>
       </div>
     </div>

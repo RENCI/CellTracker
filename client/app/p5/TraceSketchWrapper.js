@@ -10,7 +10,7 @@ class TraceSketchWrapper extends React.Component {
   }
 
   componentDidMount() {
-    this.sketch = new p5(TraceSketch, this.div);
+    this.sketch = new p5(TraceSketch, this.ref);
     this.sketch.updateProps(this.props);
   }
 
@@ -26,7 +26,7 @@ class TraceSketchWrapper extends React.Component {
   }
 
   render() {
-    return <div ref={div => this.div = div} />
+    return <div ref={ref => this.ref = ref} />
   }
 }
 
