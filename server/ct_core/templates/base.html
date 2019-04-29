@@ -39,6 +39,15 @@
             </div>
             <div>Have fun and when you are done, you can <a href="{% url 'logout' %}">logout</a></div>
           </div>
+        {% elif user.is_superuser %}
+            <div class="card p-3">
+            <h5>Welcome to TRACE!</h5>
+            <div>
+              Your username is <strong>{{ user.username }}. You are a data manager who can perform
+            data management tasks.</strong>.
+            </div>
+            <div>When you are done with your data management tasks, you can <a href="{% url 'logout' %}">logout</a></div>
+          </div>
         {% endif %}
       </div>
       <div class="col-sm-3 text-center">
@@ -59,6 +68,8 @@
   </div>
 </body>
 {% block react_js %}
-  <script type="text/javascript" src="{% static 'ct_core/js/index_bundle.js' %}"></script>
+    {% if user.is_authenticated and initial_login %}
+        <script type="text/javascript" src="{% static 'ct_core/js/index_bundle.js' %}"></script>
+    {% endif %}
 {% endblock %}
 </html>

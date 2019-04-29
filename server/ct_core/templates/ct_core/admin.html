@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% load staticfiles %}
+
+{% block content %}
+    {% csrf_token %}
+    <div class="col-xs-12">
+        <label for="exp_select_list" class="col-form-label">
+            <strong>Select an experiment with segmentation data: </strong>
+        </label>
+        <select id="exp_select_list">
+        </select>
+    </div>
+    {% block extra_js %}
+        <script type="text/javascript" src="{% static 'ct_core/js/data_ajax.js' %}"></script>
+    {% endblock %}
+{% endblock %}

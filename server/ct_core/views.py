@@ -46,15 +46,21 @@ def index(request):
     #pydevd.settrace('172.17.0.1', port=21000, suspend=False)
 
     if request.user.is_authenticated():
-        template = loader.get_template('ct_core/index.html')
-        if 'just_signed_up' in request.session:
-            context = {'just_signed_up': True,
-                       'initial_login': True}
-            del request.session['just_signed_up']
+        if request.user.is_superuser:
+            # go to data management page
+            template = loader.get_template('ct_core/admin.html')
+            context = {}
+            return HttpResponse(template.render(context, request))
         else:
-            context = {'initial_login': True,
-                       'just_signed_up': False}
-        return HttpResponse(template.render(context, request))
+            template = loader.get_template('ct_core/index.html')
+            if 'just_signed_up' in request.session:
+                context = {'just_signed_up': True,
+                           'initial_login': True}
+                del request.session['just_signed_up']
+            else:
+                context = {'initial_login': True,
+                           'just_signed_up': False}
+            return HttpResponse(template.render(context, request))
     else:
         template = loader.get_template('ct_core/home.html')
         context = {}
