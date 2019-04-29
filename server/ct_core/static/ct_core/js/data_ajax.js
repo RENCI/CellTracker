@@ -51,4 +51,9 @@ function request_exp_list_ajax() {
 
 $(document).ready(function() {
    request_exp_list_ajax();
+
+   $('#exp_select_list').change(function() {
+
+      console.log('selected value: ' + this.value + ' name: ' + $('#exp_select_list').val());
+   });
 });
