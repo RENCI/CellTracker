@@ -1,7 +1,6 @@
-var d3 = require("d3");
-var d3ScaleChromatic = require("d3-scale-chromatic");
+import * as d3 from "d3";
 
-module.exports = function() {
+export default function() {
       // Size
   let margin = { top: 10, left: 10, bottom: 10, right: 10 },
       width = 200,
@@ -220,7 +219,7 @@ module.exports = function() {
 
     trajectories = Array.from(trajectories).sort();
 
-    const colorMap = d3.scaleOrdinal(d3ScaleChromatic.schemeDark2.slice(0, -1))
+    const colorMap = d3.scaleOrdinal(d3.schemeDark2.slice(0, -1))
         .domain(trajectories);
 
     // Draw the visualization

@@ -3,11 +3,11 @@ import Constants from "../constants/Constants";
 import * as WebAPIUtils from "../utils/WebAPIUtils";
 import DataStore from "../stores/DataStore";
 
-export const getExperimentList = () => {
+export function getExperimentList() {
   WebAPIUtils.getExperimentList();
 };
 
-export const selectExperiment = experiment => {
+export function selectExperiment(experiment) {
   AppDispatcher.dispatch({
     actionType: Constants.SELECT_EXPERIMENT,
     experiment: experiment
@@ -16,7 +16,7 @@ export const selectExperiment = experiment => {
   WebAPIUtils.getExperimentInfo(experiment);
 };
 
-export const advanceFrames = () => {
+export function advanceFrames() {
   AppDispatcher.dispatch({
     actionType: Constants.ADVANCE_FRAMES
   });
@@ -24,7 +24,7 @@ export const advanceFrames = () => {
   WebAPIUtils.getFrames(DataStore.getExperiment());
 };
   
-export const reverseFrames = () => {
+export function reverseFrames() {
   AppDispatcher.dispatch({
     actionType: Constants.REVERSE_FRAMES
   });
@@ -32,58 +32,58 @@ export const reverseFrames = () => {
   WebAPIUtils.getFrames(DataStore.getExperiment());
 };
 
-export const cycleLoop = () => {
+export function cycleLoop() {
   AppDispatcher.dispatch({
     actionType: Constants.CYCLE_LOOP
   });
 };
 
-export const skipBackward = () => {
+export function skipBackward() {
   AppDispatcher.dispatch({
     actionType: Constants.SKIP_BACKWARD
   });
 };
 
-export const togglePlay = () => {
+export function togglePlay() {
   AppDispatcher.dispatch({
     actionType: Constants.TOGGLE_PLAY
   });
 };
 
-export const skipForward = () => {
+export function skipForward() {
   AppDispatcher.dispatch({
     actionType: Constants.SKIP_FORWARD
   });
 };
 
-export const setFrame = frame => {
+export function setFrame(frame) {
   AppDispatcher.dispatch({
     actionType: Constants.SET_FRAME,
     frame: frame
   });
 };
 
-export const frameDelta = delta => {
+export function frameDelta(delta) {
   AppDispatcher.dispatch({
     actionType: Constants.FRAME_DELTA,
     delta: delta
   });
 };
 
-export const fastForward = () => {
+export function fastForward() {
   AppDispatcher.dispatch({
     actionType: Constants.FAST_FORWARD
   });
 };
 
-export const selectFrameRate = frameRate => {
+export function selectFrameRate(frameRate) {
   AppDispatcher.dispatch({
     actionType: Constants.SELECT_FRAME_RATE,
     frameRate: frameRate
   });
 };
 
-export const highlightRegion = (frame, region) => {
+export function highlightRegion(frame, region) {
   AppDispatcher.dispatch({
     actionType: Constants.HIGHLIGHT_REGION,
     frame: frame,
@@ -91,7 +91,7 @@ export const highlightRegion = (frame, region) => {
   });
 };
 
-export const selectRegion = (frame, region) => {
+export function selectRegion(frame, region) {
   AppDispatcher.dispatch({
     actionType: Constants.SELECT_REGION,
     frame: frame,
@@ -99,7 +99,7 @@ export const selectRegion = (frame, region) => {
   });
 };
 
-export const selectZoomPoint = (frame, point) => {
+export function selectZoomPoint(frame, point) {
   AppDispatcher.dispatch({
     actionType: Constants.SELECT_ZOOM_POINT,
     frame: frame,
@@ -107,7 +107,7 @@ export const selectZoomPoint = (frame, point) => {
   });
 };
 
-export const editRegion = (frame, region) => {
+export function editRegion(frame, region) {
   AppDispatcher.dispatch({
     actionType: Constants.EDIT_REGION,
     frame: frame,
@@ -115,7 +115,7 @@ export const editRegion = (frame, region) => {
   });
 };
 
-export const saveSegmentationData = (id, segmentationData) => {
+export function saveSegmentationData(id, segmentationData) {
   WebAPIUtils.saveSegmentationData(id, segmentationData);
 
   AppDispatcher.dispatch({
@@ -123,25 +123,25 @@ export const saveSegmentationData = (id, segmentationData) => {
   });
 };
 
-export const undoHistory = () => {
+export function undoHistory() {
   AppDispatcher.dispatch({
     actionType: Constants.UNDO_HISTORY
   });
 };
 
-export const redoHistory = () => {
+export function redoHistory() {
   AppDispatcher.dispatch({
     actionType: Constants.REDO_HISTORY
   });
 };
 
-export const toggleStabilize = () => {
+export function toggleStabilize() {
   AppDispatcher.dispatch({
     actionType: Constants.TOGGLE_STABILIZE
   });
 };
 
-export const zoom = (view, direction) => {
+export function zoom(view, direction) {
   AppDispatcher.dispatch({
     actionType: Constants.ZOOM,
     view: view,
@@ -149,7 +149,7 @@ export const zoom = (view, direction) => {
   });
 };
 
-export const setEditMode = mode => {
+export function setEditMode(mode) {
   AppDispatcher.dispatch({
     actionType: Constants.SET_EDIT_MODE,
     mode: mode

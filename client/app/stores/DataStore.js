@@ -1,39 +1,39 @@
 import AppDispatcher from "../dispatcher/AppDispatcher";
-import { EventEmitter }from "events";
+import { EventEmitter } from "events";
 import assign from "object-assign";
 import Constants from "../constants/Constants";
 
-var CHANGE_EVENT = "change";
+const CHANGE_EVENT = "change";
 
 // List of available experiments
-var experimentList = [];
+let experimentList = [];
 
 // Active experiment
-var experiment = null;
+let experiment = null;
 
 // User edit history
-var history = {
+let history = {
   index: -1,
   edits: []
 };
 
 // Loading information
-var framesLoaded = 0;
-var segFramesLoaded = 0;
-var loading = null;
+let framesLoaded = 0;
+let segFramesLoaded = 0;
+let loading = null;
 
 // Playback
-var playback = {
+let playback = {
   play: false,
   loop: "none",
   frame: 0,
   frameRate: 4,
   direction: 1
 };
-var timer = null;
+let timer = null;
 
 // Settings
-var settings = {
+let settings = {
   editZoom: 1,
   playbackZoom: 1,
   zoomPoint: [0, 0],
@@ -106,7 +106,7 @@ function receiveSegmentationFrame(frame, regions) {
   if (Array.isArray(regions)) {
     // Process vertices
     regions.forEach(function (region) {
-      var vertices = region.vertices;
+      const vertices = region.vertices;
 
       // Convert to numbers
       vertices.forEach(function (vertex) {
@@ -231,8 +231,8 @@ function updateLoading() {
     return;
   }
 
-  var numSegFrames = experiment.has_segmentation ? experiment.frames : 0;
-  var total = experiment.frames + numSegFrames;
+  const numSegFrames = experiment.has_segmentation ? experiment.frames : 0;
+  const total = experiment.frames + numSegFrames;
 
   loading = framesLoaded + segFramesLoaded < total ? {
     frame: Math.min(experiment.frames, framesLoaded + 1),
@@ -559,18 +559,18 @@ function setZoomLevels(item) {
 
 function zoom(view, direction) {
   // Min and max zoom values
-  var minZoom = 1;
-  var maxZoom = 50;
+  const minZoom = 1;
+  const maxZoom = 50;
 
   // Set the key for the parameter to adjust
-  var key = view === "playback" ? "playbackZoom" : "editZoom";
+  const key = view === "playback" ? "playbackZoom" : "editZoom";
 
   // Zoom in or out
-  var s = 1.5;
+  let s = 1.5;
   if (direction === "out") s = 1 / s;
 
   // Calculate the zoom
-  var newZoom = settings[key] * s;
+  const newZoom = settings[key] * s;
 
   // Check for valid zoom amount
   if (newZoom >= minZoom && newZoom <= maxZoom) {
@@ -584,7 +584,7 @@ function setEditMode(mode) {
   pushHistory();
 }
 
-var DataStore = assign({}, EventEmitter.prototype, {
+const DataStore = assign({}, EventEmitter.prototype, {
   emitChange: function () {
     this.emit(CHANGE_EVENT);
   },
@@ -614,7 +614,7 @@ var DataStore = assign({}, EventEmitter.prototype, {
   }
 });
 
-DataStore.dispatchToken = AppDispatcher.register(function (action) {
+DataStore.dispatchToken = AppDispatcher.register(action => {
   switch (action.actionType) {
     case Constants.RECEIVE_EXPERIMENT_LIST:
       setExperimentList(action.experimentList);

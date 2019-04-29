@@ -1,13 +1,13 @@
 import * as d3 from "d3";
-import MathUtils from "../utils/MathUtils";
-import RegionEditing from "../utils/RegionEditing";
+import { lineSegmentIntersection, insidePolygon, pointLineSegmentDistance } from "../utils/MathUtils";
+import { addVertex, removeVertex, mergeRegions, splitRegion, trimRegion, removeRegion, addRegion } from "../utils/RegionEditing";
 
 export default sketch => {
   // Current experiment
-  var experiment = null;
+  let experiment = null;
 
   // Images
-  var images = [],
+  let images = [],
       colorImages = [],
       contrastImages = [],
       frame = 0,
@@ -15,11 +15,11 @@ export default sketch => {
       onUpdateLoading = null;
 
   // Interaction
-  var onKeyPress = null,
+  let onKeyPress = null,
       onMouseWheel = null;
 
   // Segmentation
-  var segmentationData = null,
+  let segmentationData = null,
       colors = d3.schemeDark2.slice(0, -1),
       strokeColorMap = d3.scaleOrdinal(colors.map(c => {
         const color = d3.color(c);
@@ -33,13 +33,13 @@ export default sketch => {
       }));
 
   // Callbacks
-  var onHighlightRegion = null,
+  let onHighlightRegion = null,
       onSelectRegion = null,
       onSelectZoomPoint = null,
       onEditRegion = null;
 
   // Editing
-  var editView = false,
+  let editView = false,
       editMode = "playback",
       handle = null,
       currentRegion = null,
@@ -53,18 +53,18 @@ export default sketch => {
       actionString = "";
 
   // Settings
-  var stabilize = true;
+  let stabilize = true;
 
   // Transform
-  var zoom = 1,
+  let zoom = 1,
       zoomPoint = null,
       translation = [0, 0];
 
   // Appearance
-  var lineWeight = 2;
-  var lineHighlightWeight = 3;
-  var handleRadius = 3;
-  var handleHighlightRadius = 5;
+  let lineWeight = 2,
+      lineHighlightWeight = 3,
+      handleRadius = 3,
+      handleHighlightRadius = 5;
 
   sketch.setup = function() {
     // Create canvas with default size
@@ -410,7 +410,7 @@ export default sketch => {
         const v1 = vertices[i],
               v2 = vertices[i === vertices.length - 1 ? 0 : i + 1];
 
-        const p = MathUtils.lineSegmentIntersection(line[0], line[1], v1, v2);
+        const p = lineSegmentIntersection(line[0], line[1], v1, v2);
 
         if (p) intersections++;
       }
@@ -452,13 +452,13 @@ export default sketch => {
 
         if (!moveMouse) {
           if (handle) {
-            if (RegionEditing.removeVertex(currentRegion, handle)) {
+            if (removeVertex(currentRegion, handle)) {
               onEditRegion(frame, currentRegion);
             }
           }
           else {
             // Add handle at mouse position
-            RegionEditing.addVertex(currentRegion, normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])));
+            addVertex(currentRegion, normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])));
             onEditRegion(frame, currentRegion);
           }
         }
@@ -476,7 +476,7 @@ export default sketch => {
       case "merge":
         if (!moveMouse) {
           if (mergeRegion && currentRegion && mergeRegion !== currentRegion) {
-            RegionEditing.mergeRegions(mergeRegion, currentRegion, regions);
+            mergeRegions(mergeRegion, currentRegion, regions);
             onEditRegion(frame, mergeRegion);
             mergeRegion = null;
           }
@@ -493,7 +493,7 @@ export default sketch => {
       case "split":
         if (splitLine) {
           activeRegions.forEach(region => {
-            const newRegion = RegionEditing.splitRegion(region, splitLine, 0.5 / images[0].width, regions);
+            const newRegion = splitRegion(region, splitLine, 0.5 / images[0].width, regions);
             
             if (newRegion) {
               onEditRegion(frame, region);
@@ -509,7 +509,7 @@ export default sketch => {
       case "trim":
         if (splitLine) {
           activeRegions.forEach(region => {
-            if (RegionEditing.trimRegion(region, splitLine)) {
+            if (trimRegion(region, splitLine)) {
               onEditRegion(frame, region);
             }
           });
@@ -523,7 +523,7 @@ export default sketch => {
         if (moveMouse) return;
 
         if (currentRegion) {
-          RegionEditing.removeRegion(currentRegion, regions);
+          removeRegion(currentRegion, regions);
           onEditRegion(frame, currentRegion);
         }
         else {
@@ -531,7 +531,7 @@ export default sketch => {
             return p + c.max[0] - c.min[0];
           }, 0) / regions.length / 2;
 
-          const newRegion = RegionEditing.addRegion(
+          const newRegion = addRegion(
             normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])),
             radius, regions
           );
@@ -669,7 +669,7 @@ export default sketch => {
         for (var i = 0; i < regions.length; i++) {
           const region = regions[i];
 
-          if (MathUtils.insidePolygon(normalizePoint(m), region.vertices)) {
+          if (insidePolygon(normalizePoint(m), region.vertices)) {
             currentRegion = region;
 
             sketch.cursor(sketch.HAND);
@@ -703,7 +703,7 @@ export default sketch => {
             const p2 = scalePoint(a[i === a.length - 1 ? 0 : i + 1]);
 
             const dVertex = sketch.dist(m[0], m[1], p1[0], p1[1]);
-            const dSegment = MathUtils.pointLineSegmentDistance(m, p1, p2);
+            const dSegment = pointLineSegmentDistance(m, p1, p2);
 
             if (!closestVertexDistance || dVertex < closestVertexDistance) {
               closestVertex = v1;

@@ -1,26 +1,26 @@
-function distance(p1, p2) {
+function vectorMagnitude(v) {
+  return Math.sqrt(v[0] * v[0] + v[1] * v[1]);
+}
+
+export function normalizeVector(v) {
+  var mag = vectorMagnitude(v);
+
+  return mag === 0 ? [0, 0] : [v[0] / mag, v[1] / mag];
+}
+
+export function distance(p1, p2) {
   return Math.sqrt(distance2(p1, p2));
 }
 
-function distance2(p1, p2) {
+export function distance2(p1, p2) {
   var x = p1[0] - p2[0];
   var y = p1[1] - p2[1];
 
   return x * x + y * y;
 }
 
-function vectorMagnitude(v) {
-  return Math.sqrt(v[0] * v[0] + v[1] * v[1]);
-}
-
-function normalizeVector(v) {
-  var mag = vectorMagnitude(v);
-
-  return mag === 0 ? [0, 0] : [v[0] / mag, v[1] / mag];
-}
-
 // Adapted from: http://paulbourke.net/geometry/polygonmesh/
-function insidePolygon(p, polygon) {
+export function insidePolygon(p, polygon) {
   var n = polygon.length,
       counter = 0;
 
@@ -50,7 +50,7 @@ function insidePolygon(p, polygon) {
 
 // Return the distance between a point p and a line segment p1p2
 // Based on technique described here: http://paulbourke.net/geometry/pointlineplane/
-function pointLineSegmentDistance(p, p1, p2) {
+export function pointLineSegmentDistance(p, p1, p2) {
   // Check for coincident p1 and p2
   if (p1[0] === p2[0] && p1[1] === p2[1]) {
     // Return distance to one of the points
@@ -77,7 +77,7 @@ function pointLineSegmentDistance(p, p1, p2) {
 
 // Return intersection point of two line segments
 // Based on technique described here: http://paulbourke.net/geometry/pointlineplane/
-function lineSegmentIntersection(p1, p2, p3, p4) {
+export function lineSegmentIntersection(p1, p2, p3, p4) {
   // Check that none of the lines are of length 0
 	if ((p1[0] === p2[0] && p1[1] === p2[1]) || (p3[0] === p4[0] && p3[1] === p4[1])) {
 		return false;
@@ -104,12 +104,3 @@ function lineSegmentIntersection(p1, p2, p3, p4) {
 
 	return [x, y];
 }
-
-module.exports = {
-  normalizeVector: normalizeVector,
-  distance: distance,
-  distance2: distance2,
-  insidePolygon: insidePolygon,
-  pointLineSegmentDistance: pointLineSegmentDistance,
-  lineSegmentIntersection: lineSegmentIntersection
-};

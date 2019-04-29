@@ -1,28 +1,28 @@
 import * as ServerActionCreators from "../actions/ServerActionCreators";
 
 // Create p5 instance for loading images
-var loadingSketch = new p5(function (sketch) {});
+const loadingSketch = new p5(function (sketch) {});
 
 // Get a cookie for cross site request forgery (CSRF) protection
 function getCookie(name) {
-    var cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        var cookies = document.cookie.split(';');
-        for (var i = 0; i < cookies.length; i++) {
-            var cookie = jQuery.trim(cookies[i]);
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+      let cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+          let cookie = jQuery.trim(cookies[i]);
+          // Does this cookie string begin with the name we want?
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+          }
+      }
+  }
+  return cookieValue;
 }
 
 function csrfSafeMethod(method) {
-    // These HTTP methods do not require CSRF protection
-    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+  // These HTTP methods do not require CSRF protection
+  return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
 
 function setupAjax() {
@@ -35,29 +35,29 @@ function setupAjax() {
   });
 }
 
-export const getExperimentList = () => {
+export function getExperimentList() {
   setupAjax();
 
   $.ajax({
     type: "POST",
     url: "/get_experiment_list/",
-    success: function (data) {
+    success: data => {
       // Create an action
       ServerActionCreators.receiveExperimentList(data);
     },
-    error: function (xhr, textStatus, errorThrown) {
+    error: (xhr, textStatus, errorThrown) => {
       console.log(textStatus + ": " + errorThrown);
     }
   });
 }
 
-export const getExperimentInfo = experiment => {
+export function getExperimentInfo(experiment) {
   setupAjax();
 
   $.ajax({
     type: "POST",
     url: "/get_experiment_info/" + experiment.id,
-    success: function (data) {
+    success: data => {
       data.has_segmentation = data.has_segmentation === "true";
 
       // Number of frames
@@ -78,31 +78,31 @@ export const getExperimentInfo = experiment => {
 
       getFrames(data);
     },
-    error: function (xhr, textStatus, errorThrown) {
+    error: (xhr, textStatus, errorThrown) => {
       console.log(textStatus + ": " + errorThrown);
     }
   });
 }
 
-export const getFrames = experiment => {
+export function getFrames(experiment) {
   setupAjax();
 
-  var imageType = "jpg";
+  const imageType = "jpg";
 
-  function imageCallback(i) {
-    return function(data) {
+  const imageCallback = i => {
+    return data => {
       ServerActionCreators.receiveFrame(i, data);
     }
   }
 
-  function segmentationCallback(i) {
-    return function(data) {
+  const segmentationCallback = i => {
+    return data => {
       ServerActionCreators.receiveSegmentationFrame(i, data);
     }
   }
 
-  for (var i = 0; i < experiment.frames; i++) {
-    var frame = experiment.start + i;
+  for (let i = 0; i < experiment.frames; i++) {
+    const frame = experiment.start + i;
 
     // Load image frame
     loadingSketch.loadImage("/display-image/" + experiment.id + "/" + imageType + "/" + frame, imageCallback(i));
@@ -113,7 +113,7 @@ export const getFrames = experiment => {
         type: "POST",
         url: "/get_frame_seg_data/" + experiment.id + "/" + frame,
         success: segmentationCallback(i),
-        error: function (xhr, textStatus, errorThrown) {
+        error: (xhr, textStatus, errorThrown) => {
           console.log(textStatus + ": " + errorThrown);
         }
       });
@@ -122,7 +122,7 @@ export const getFrames = experiment => {
 }
 
 function pollUpdatedTracking(taskId) {
-  var timeOutStatusId = -1;
+  let timeOutStatusId = -1;
 
   $.ajax({
     dataType: "json",
@@ -133,7 +133,7 @@ function pollUpdatedTracking(taskId) {
     data: {
       task_id: taskId
     },
-    success: function(data) {
+    success: data => {
       if (data.error) {
         if (timeOutStatusId > -1) {
           clearTimeout(timeOutStatusId);
@@ -148,12 +148,12 @@ function pollUpdatedTracking(taskId) {
         ServerActionCreators.updateTracking(data.result);
       }
       else {
-        timeOutStatusId = setTimeout(function () {
+        timeOutStatusId = setTimeout(() => {
           pollUpdatedTracking(taskId);
         }, 1000);
       }
     },
-    error: function (xhr, textStatus, errorThrown) {
+    error: (xhr, textStatus, errorThrown) => {
       if (timeOutStatusId > -1) {
         clearTimeout(timeOutStatusId);
       }
@@ -163,7 +163,7 @@ function pollUpdatedTracking(taskId) {
   });
 }
 
-export const saveSegmentationData = (id, data) => {
+export function saveSegmentationData(id, data) {
   setupAjax();
 
   // Send each edited frame
@@ -190,12 +190,12 @@ export const saveSegmentationData = (id, data) => {
         regions: regions,
         num_edited: numEdited
       },
-      success: function (data) {
+      success: data => {
         if (data.task_id) {
           pollUpdatedTracking(data.task_id);
         }
       },
-      error: function (xhr, textStatus, errorThrown) {
+      error: (xhr, textStatus, errorThrown) => {
         console.log(textStatus + ": " + errorThrown);
       }
     });

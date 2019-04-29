@@ -1,5 +1,8 @@
-let MathUtils = require("./MathUtils");
-let d3 = require("d3");
+import * as d3 from "d3";
+import { 
+  distance, distance2, normalizeVector, 
+  lineSegmentIntersection, pointLineSegmentDistance 
+} from "./MathUtils";
 
 function left(i, a) {
   return i === 0 ? a.length - 1 : i - 1;
@@ -20,17 +23,17 @@ function setVertices(region, vertices) {
   region.vertices = vertices;
 
   // Get extent
-  let x = vertices.map(function (vertex) { return vertex[0]; });
-  let y = vertices.map(function (vertex) { return vertex[1]; });
+  let x = vertices.map(vertex => vertex[0]);
+  let y = vertices.map(vertex => vertex[1]);
 
   region.min = [
-    x.reduce(function(p, c) { return Math.min(p, c); }),
-    y.reduce(function(p, c) { return Math.min(p, c); })
+    x.reduce((p, c) => Math.min(p, c)),
+    y.reduce((p, c) => Math.min(p, c))
   ];
 
   region.max = [
-    x.reduce(function(p, c) { return Math.max(p, c); }),
-    y.reduce(function(p, c) { return Math.max(p, c); })
+    x.reduce((p, c) => Math.max(p, c)),
+    y.reduce((p, c) => Math.max(p, c))
   ];
 
   region.center = [
@@ -39,7 +42,7 @@ function setVertices(region, vertices) {
   ];
 }
 
-function removeVertex(region, vertex) {
+export function removeVertex(region, vertex) {
   let vertices = region.vertices;
 
   if (vertices.length <= 3) return false;
@@ -54,19 +57,19 @@ function removeVertex(region, vertex) {
   return false;
 }
 
-function addVertex(region, point) {
+export function addVertex(region, point) {
   let vertices = region.vertices;
 
   // Get indeces for pairs of vertices
-  let segments = vertices.reduce(function(p, c, i, a) {
+  let segments = vertices.reduce((p, c, i, a) => {
     if (i === a.length - 1) p.push([i, 0]);
     else p.push([i, i + 1]);
     return p;
   }, []);
 
   // Find closest line segment to this point
-  let segment = segments.reduce(function(p, c, i) {
-    let d = MathUtils.pointLineSegmentDistance(point, vertices[c[0]], vertices[c[1]]);
+  let segment = segments.reduce((p, c, i) => {
+    let d = pointLineSegmentDistance(point, vertices[c[0]], vertices[c[1]]);
     return d < p.d ? { d: d, i: i } : p;
   }, { d: 1.0, i: -1 });
 
@@ -74,7 +77,7 @@ function addVertex(region, point) {
   vertices.splice(segments[segment.i][1], 0, point);
 }
 
-function mergeRegions(region1, region2, regionArray) {
+export function mergeRegions(region1, region2, regionArray) {
   // Keep track of minimum distance for each vertex in region 1
   const vertices1 = region1.vertices;
   const vertices2 = region2.vertices;
@@ -88,7 +91,7 @@ function mergeRegions(region1, region2, regionArray) {
         v2: v2,
         i: i,
         j: j,
-        dist: MathUtils.distance(v1, v2)
+        dist: distance(v1, v2)
       });
     });
   });
@@ -151,7 +154,7 @@ function mergeRegions(region1, region2, regionArray) {
       if (p1 !== p2) midPairs.push({
         p1: p1,
         p2: p2,
-        dist2: MathUtils.distance2(p1.midPoint, p2.midPoint)
+        dist2: distance2(p1.midPoint, p2.midPoint)
       });
     });
   });
@@ -218,7 +221,7 @@ function mergeRegions(region1, region2, regionArray) {
   }
 }
 
-function splitRegion(region, line, offset, regionArray) {
+export function splitRegion(region, line, offset, regionArray) {
   // Find intersections with region line segments
   const vertices = region.vertices;
   let intersections = [];
@@ -227,7 +230,7 @@ function splitRegion(region, line, offset, regionArray) {
     const v1 = vertices[i],
         v2 = vertices[i === vertices.length - 1 ? 0 : i + 1];
 
-    const p = MathUtils.lineSegmentIntersection(line[0], line[1], v1, v2);
+    const p = lineSegmentIntersection(line[0], line[1], v1, v2);
 
     if (p) {
       intersections.push({
@@ -253,7 +256,7 @@ function splitRegion(region, line, offset, regionArray) {
 
       if (i === ix.index) {
         // Compute offset from intersection point
-        const x = MathUtils.normalizeVector([ix.point[0] - v[0], ix.point[1] - v[1]]);
+        const x = normalizeVector([ix.point[0] - v[0], ix.point[1] - v[1]]);
         x[0] *= offset;
         x[1] *= offset;
 
@@ -296,7 +299,7 @@ function splitRegion(region, line, offset, regionArray) {
   return newRegion;
 }
 
-function trimRegion(region, line) {
+export function trimRegion(region, line) {
   // Find intersections with region line segments
   const vertices = region.vertices;
   let intersections = [];
@@ -305,7 +308,7 @@ function trimRegion(region, line) {
     const v1 = vertices[i],
         v2 = vertices[i === vertices.length - 1 ? 0 : i + 1];
 
-    const p = MathUtils.lineSegmentIntersection(line[0], line[1], v1, v2);
+    const p = lineSegmentIntersection(line[0], line[1], v1, v2);
 
     if (p) {
       intersections.push({
@@ -347,7 +350,7 @@ function trimRegion(region, line) {
   // Get longest section
   const longest = sections.reduce((p, c, i) => {
     const length = c.reduce((p, c, i, a) => {
-      return p + MathUtils.distance(c, a[right(i, a)]);
+      return p + distance(c, a[right(i, a)]);
     }, 0);
 
     return !p || length > p.length ? {
@@ -370,11 +373,11 @@ function trimRegion(region, line) {
   return true;
 }
 
-function removeRegion(region, regionArray) {
+export function removeRegion(region, regionArray) {
   regionArray.splice(regionArray.indexOf(region), 1);
 }
 
-function addRegion(point, radius, regionArray) {
+export function addRegion(point, radius, regionArray) {
   // Equilateral triangle
   const a = Math.PI / 6;
   const x = Math.cos(a) * radius;
@@ -397,13 +400,3 @@ function addRegion(point, radius, regionArray) {
 
   return region;
 }
-
-module.exports = {
-  removeVertex: removeVertex,
-  addVertex: addVertex,
-  mergeRegions: mergeRegions,
-  splitRegion: splitRegion,
-  trimRegion: trimRegion,
-  removeRegion: removeRegion,
-  addRegion: addRegion
-};
