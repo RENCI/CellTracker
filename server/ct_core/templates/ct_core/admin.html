@@ -6,10 +6,25 @@
     {% csrf_token %}
     <div class="col-xs-12">
         <label for="exp_select_list" class="col-form-label">
-            <strong>Select an experiment with segmentation data: </strong>
+            <strong>Select an experiment: </strong>
         </label>
         <select id="exp_select_list">
         </select>
+    </div>
+    <div class="col-xs-12">
+        <div id="seg_info"></div>
+        <div id="user_edit" class="col-xs-12">
+            <label for="user_list" class="col-form-label">
+                <strong>Select an user who has edit segmentation data for this experiment: </strong>
+            </label>
+            <select id="user_list">
+            </select>
+            &nbsp;&nbsp;
+            Download:
+            <a id='edit_download' href='/download/'>
+                <span class="glyphicon glyphicon-download-alt" style="margin-left: 4px"></span>
+            </a>
+        </div>
     </div>
     {% block extra_js %}
         <script type="text/javascript" src="{% static 'ct_core/js/data_ajax.js' %}"></script>

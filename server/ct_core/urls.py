@@ -28,4 +28,5 @@ urlpatterns = [
     url(r'^save_segmentation_data/(?P<exp_id>.*)/(?P<frame_no>[0-9]+)$', views.save_frame_seg_data,
         name='save_frame_seg_data'),
     url(r'^check_task_status/$', views.check_task_status, name='check_task_status'),
+    url(r'^download/(?P<exp_id>.*)/(?P<username>.*)$', views.download, name='download'),
 ]

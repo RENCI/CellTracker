@@ -314,6 +314,20 @@ def get_frames_info(user, exp_id):
     return frm_info_list
 
 
+def get_all_edit_users(exp_id):
+    """
+    return all users who have edit segmentation data for the experiment
+    :param exp_id: experiment id
+    :return: list of usernames
+    """
+    user_list = []
+    filter_objs = UserSegmentation.objects.filter(exp_id=exp_id)
+    for obj in filter_objs:
+        if obj.user.username not in user_list:
+            user_list.append(obj.user.username)
+    return user_list
+
+
 def get_start_frame(user, exp_id):
     """
     check if user has saved edit segmentation to a certain frame, and if so, return the

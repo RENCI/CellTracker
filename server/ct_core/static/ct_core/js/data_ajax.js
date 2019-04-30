@@ -34,11 +34,55 @@ function request_exp_list_ajax() {
             exp_res = json_response;
             if (exp_res.length > 0) {
                 var select = document.getElementById("exp_select_list");
-                if (select.options.length == 0) {
+                if (select.options.length <= 0) {
                     $.each(exp_res, function(i, v) {
-                       select.options[select.options.length] = new Option(v['name'], i);
+                       sel_idx =  select.options.length;
+                       select.options[sel_idx] = new Option(v['name'], v['id']);
                     });
+                    $('#exp_select_list').trigger('change');
                 }
+            }
+            return true;
+        },
+        error: function (xhr, errmsg, err) {
+            console.log(xhr.status + ": " + xhr.responseText + ". Error message: " + errmsg);
+            return false;
+        }
+    });
+}
+
+function request_exp_info_ajax(exp_id) {
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        }
+    });
+    $.ajax({
+        type: "POST",
+        url: "/get_experiment_info/" + exp_id,
+        success: function (json_response) {
+            data = json_response;
+            frm_no = data.frames;
+            if (data.has_segmentation == 'true') {
+                $('#seg_info').html('This experiment has ' + frm_no + ' frames and has segmentation data.');
+                $('#user_edit').show();
+                user_lists = data.edit_users;
+                if (user_lists.length > 0) {
+                    var select = document.getElementById("user_list");
+                    if (select.options.length <= 0) {
+                        $.each(user_lists, function(i, v) {
+                           sel_idx =  select.options.length;
+                           select.options[sel_idx] = new Option(v);
+                        });
+                    }
+                    $('#user_list').trigger('change');
+                }
+            }
+            else {
+                $('#seg_info').html('This experiment has ' + frm_no + ' frames and does not has segmentation data.');
+                $('#user_edit').hide();
             }
             return true;
         },
@@ -51,9 +95,11 @@ function request_exp_list_ajax() {
 
 $(document).ready(function() {
    request_exp_list_ajax();
-
+   $('#seg_info').html('');
    $('#exp_select_list').change(function() {
-
-      console.log('selected value: ' + this.value + ' name: ' + $('#exp_select_list').val());
+       request_exp_info_ajax(this.value);
+   });
+   $('#user_list').change(function() {
+       $('#edit_download').attr("href", '/download/' + $('#exp_select_list').val() + '/' + this.value);
    });
 });

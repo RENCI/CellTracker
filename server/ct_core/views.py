@@ -7,12 +7,13 @@ import shutil
 import json
 from uuid import uuid4
 import logging
+import mimetypes
 
 from django.contrib.auth.models import User
 from django.template import loader
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseServerError, StreamingHttpResponse, \
-    HttpResponseBadRequest, JsonResponse, HttpResponseForbidden, HttpResponseRedirect
+    HttpResponseBadRequest, JsonResponse, HttpResponseForbidden, HttpResponseRedirect, FileResponse
 from django.views.decorators import gzip
 from django.contrib.auth import login, authenticate
 from django.shortcuts import render, redirect
@@ -27,7 +28,7 @@ from irods.exception import CollectionDoesNotExist
 
 from ct_core.utils import get_experiment_list_util, read_video, extract_images_from_video, \
     read_image_frame, get_seg_collection, \
-    save_user_seg_data_to_db, get_start_frame, get_exp_image, get_frames_info
+    save_user_seg_data_to_db, get_start_frame, get_exp_image, get_frames_info, get_all_edit_users
 from ct_core.task_utils import get_exp_frame_no
 from ct_core.forms import SignUpForm, UserProfileForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
@@ -187,7 +188,7 @@ def get_experiment_info(request, exp_id):
             exp_info['has_segmentation'] = 'false'
         exp_info['frames'] = exp_frame_no
         exp_info['id'] = exp_id
-
+        exp_info['edit_users'] = get_all_edit_users(exp_id)
         # check if user has saved edit segmentation to a certain frame, and if so, return the
         # latest frame the user has worked on so that the user can pick up from where he left off
         exp_info['start_frame'] = get_start_frame(request.user, exp_id)
@@ -391,3 +392,22 @@ def check_task_status(request):
     else:
         return JsonResponse({"result": None},
                             status=status.HTTP_200_OK)
+
+
+def download(request, exp_id, username):
+    file_full_path = os.path.join(exp_id, username)
+
+    # obtain mime_type to set content_type
+    mtype = 'application-x/octet-stream'
+    mime_type = mimetypes.guess_type(username)
+    if mime_type[0] is not None:
+        mtype = mime_type[0]
+
+    # obtain file size
+    stat_info = os.stat(file_full_path)
+    flen = stat_info.st_size
+    f = open(file_full_path, 'r')
+    response = FileResponse(f, content_type=mtype)
+    response['Content-Disposition'] = 'attachment; filename="{name}"'.format(name=username)
+    response['Content-Lengtsh'] = flen
+    return response
