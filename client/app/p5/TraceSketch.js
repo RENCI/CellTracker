@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import { lineSegmentIntersection, insidePolygon, pointLineSegmentDistance } from "../utils/MathUtils";
 import { addVertex, removeVertex, mergeRegions, splitRegion, trimRegion, removeRegion, addRegion } from "../utils/RegionEditing";
 
-export default sketch => {
+export default function(sketch) {
   // Current experiment
   let experiment = null;
 
@@ -666,10 +666,12 @@ export default sketch => {
           editMode === "playback" && zoom !== 1 ? "Reset view" : ""; 
 
         // Test regions
-        for (var i = 0; i < regions.length; i++) {
-          const region = regions[i];
+        const p = normalizePoint(m);
 
-          if (insidePolygon(normalizePoint(m), region.vertices)) {
+        for (var i = 0; i < regions.length; i++) {
+          const region = regions[i];        
+
+          if (insidePolygon(p, region.vertices, [region.min, region.max])) {
             currentRegion = region;
 
             sketch.cursor(sketch.HAND);

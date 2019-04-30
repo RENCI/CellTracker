@@ -383,7 +383,7 @@ export function addRegion(point, radius, regionArray) {
   const x = Math.cos(a) * radius;
   const y = Math.sin(a) * radius;
 
-  let region = {
+  const region = {
     center: point,
     id: generateId(regionArray),
     min: [point[0] - radius, point[1] - radius],
