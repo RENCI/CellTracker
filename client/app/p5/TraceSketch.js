@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import { lineSegmentIntersection, insidePolygon, pointLineSegmentDistance } from "../utils/MathUtils";
 import { addVertex, removeVertex, mergeRegions, splitRegion, trimRegion, removeRegion, addRegion } from "../utils/RegionEditing";
 
-export default sketch => {
+export default function(sketch) {
   // Current experiment
   let experiment = null;
 
