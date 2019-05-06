@@ -65,18 +65,22 @@ function request_exp_info_ajax(exp_id) {
         success: function (json_response) {
             data = json_response;
             frm_no = data.frames;
+            info_msg = 'This experiment has ' + frm_no + ' frames and has segmentation data.';
             if (data.has_segmentation == 'true') {
-                $('#seg_info').html('This experiment has ' + frm_no + ' frames and has segmentation data.');
-                $('#user_edit').show();
                 user_lists = data.edit_users;
                 if (user_lists.length > 0) {
+                    $('#seg_info').html(info_msg);
+                    $('#user_edit').show();
+                    $('#user_list').empty();
                     var select = document.getElementById("user_list");
-                    if (select.options.length <= 0) {
-                        $.each(user_lists, function(i, v) {
-                           select.options[i] = new Option(v);
-                        });
-                    }
+                    $.each(user_lists, function(i, v) {
+                       select.options[i] = new Option(v);
+                    });
                     $('#user_list').trigger('change');
+                }
+                else {
+                    $('#seg_info').html(info_msg + ' However, there is not yet user edit data for this experiment.');
+                    $('#user_edit').hide();
                 }
             }
             else {
