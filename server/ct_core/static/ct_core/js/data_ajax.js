@@ -73,8 +73,7 @@ function request_exp_info_ajax(exp_id) {
                     var select = document.getElementById("user_list");
                     if (select.options.length <= 0) {
                         $.each(user_lists, function(i, v) {
-                           sel_idx =  select.options.length;
-                           select.options[sel_idx] = new Option(v);
+                           select.options[i] = new Option(v);
                         });
                     }
                     $('#user_list').trigger('change');

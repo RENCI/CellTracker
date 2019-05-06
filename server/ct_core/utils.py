@@ -4,6 +4,7 @@ import os
 import shutil
 import csv
 import json
+import errno
 import numpy as np
 
 from irods.session import iRODSSession
@@ -16,10 +17,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django_irods.storage import IrodsStorage
 
 from ct_core.models import Segmentation, UserSegmentation, get_path
-from ct_core.task_utils  import get_exp_frame_no
-
-
-frame_no_key = 'frame_no'
+from ct_core.task_utils  import get_exp_frame_no, validate_user
 
 
 def get_experiment_list_util():
@@ -392,6 +390,12 @@ def compute_time_series_and_put_in_irods(exp_id, username=''):
         username = str(username)
 
     fno = get_exp_frame_no(exp_id)
+    if fno < 0:
+        # the experiment does not exist
+        return "Experiment " + exp_id + " does not exist"
+    if not validate_user(username):
+        return username + " is not valid"
+
     min_f = 0
     max_f = fno
 
@@ -526,3 +530,59 @@ def compute_time_series_and_put_in_irods(exp_id, username=''):
     istorage.saveFile(output_file_with_path, irods_path, True)
 
     os.remove(output_file_with_path)
+
+
+def create_user_segmentation_data_for_download(exp_id, username):
+    """
+    Create a zipped user segmentation data for downloading. It contains user edit frames along
+    with system default frames for frames the user has not editted to form a complete segmentation
+    data set for an experiment
+    :param exp_id: the experiment id for which the user has editted
+    :param username: the edit user's username
+    :return: the path of the zipped file being created
+    """
+    # verify exp_id and username are all valid
+    if not validate_user(username):
+        return None
+
+    fno = get_exp_frame_no(exp_id)
+    if fno <= 0:
+        return None
+
+    local_dir_path = os.path.join(settings.IRODS_ROOT, exp_id, 'download', username)
+    if os.path.exists(local_dir_path):
+        shutil.rmtree(local_dir_path)
+
+    local_data_path = os.path.join(local_dir_path, 'edit_data')
+    try:
+        os.makedirs(local_data_path)
+    except OSError as ex:
+        # TODO: there might be concurrent operations.
+        if ex.errno == errno.EEXIST:
+            shutil.rmtree(local_data_path)
+            os.makedirs(local_data_path)
+        else:
+            raise Exception(ex.message)
+
+    min_f = 0
+    max_f = fno
+    for i in range(min_f, max_f):
+        try:
+            seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user__username=username,
+                                                   frame_no=i + 1)
+        except ObjectDoesNotExist:
+            # check system Segmentation if the frame of user segmentation does not exist
+            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=i + 1)
+
+        filename = os.path.basename(seg_obj.file.name)
+        out_file_name = os.path.join(local_data_path, filename)
+        with open(out_file_name, 'w') as json_file:
+            json.dump(seg_obj.data, json_file, indent=2)
+
+    # create the zip file
+    zip_filename_base = username + '_edit_data'
+    zip_with_path = os.path.join(local_dir_path, zip_filename_base)
+    ret_filename = shutil.make_archive(zip_with_path, 'zip', local_data_path)
+    shutil.rmtree(local_data_path)
+
+    return ret_filename

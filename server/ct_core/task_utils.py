@@ -9,28 +9,56 @@ from scipy.spatial import distance
 import logging
 
 from irods.session import iRODSSession
+from irods.exception import CollectionDoesNotExist
 
 from django.conf import settings
+from django.contrib.auth.models import User
 from django_irods.storage import IrodsStorage
+from django.core.exceptions import ObjectDoesNotExist
 
 
 frame_no_key = 'frame_no'
 logger = logging.getLogger(__name__)
 
 
+def validate_user(username):
+    """
+    validate whether the username is a valid user or not
+    :param username:
+    :return: True for a valid user, False otherwise
+    """
+    try:
+        u = User.objects.get(username=username)
+        return True
+    except ObjectDoesNotExist:
+        return False
+
+
 def get_exp_frame_no(exp_id):
+    """
+    get the total number of frames for an experiment; return -1 if requesting experiement
+    does not exist
+    :param exp_id: requesting experiment id
+    :return: total number of frames for an experiment or -1 if the experiment does not exist
+    """
     fno = -1
     with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
                       password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
         epath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id)
-        coll = session.collections.get(epath)
+        try:
+            coll = session.collections.get(epath)
+        except CollectionDoesNotExist:
+            return fno
         key = str(frame_no_key)
         try:
             col_md = coll.metadata.get_one(key)
             fno = int(col_md.value)
         except KeyError:
             ipath = epath + '/data/image/jpg'
-            icoll = session.collections.get(ipath)
+            try:
+                icoll = session.collections.get(ipath)
+            except CollectionDoesNotExist:
+                return fno
             fno = len(icoll.data_objects)
             coll.metadata.add(key, str(fno))
 

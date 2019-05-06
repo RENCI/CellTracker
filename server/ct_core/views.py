@@ -28,7 +28,8 @@ from irods.exception import CollectionDoesNotExist
 
 from ct_core.utils import get_experiment_list_util, read_video, extract_images_from_video, \
     read_image_frame, get_seg_collection, \
-    save_user_seg_data_to_db, get_start_frame, get_exp_image, get_frames_info, get_all_edit_users
+    save_user_seg_data_to_db, get_start_frame, get_exp_image, get_frames_info, get_all_edit_users, \
+    create_user_segmentation_data_for_download
 from ct_core.task_utils import get_exp_frame_no
 from ct_core.forms import SignUpForm, UserProfileForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
@@ -395,19 +396,21 @@ def check_task_status(request):
 
 
 def download(request, exp_id, username):
-    file_full_path = os.path.join(exp_id, username)
+    zip_data = create_user_segmentation_data_for_download(exp_id, username)
+    if not zip_data:
+        return JsonResponse(status=status.HTTP_400_BAD_REQUEST)
 
+    zip_fname = os.path.basename(zip_data)
     # obtain mime_type to set content_type
     mtype = 'application-x/octet-stream'
-    mime_type = mimetypes.guess_type(username)
+    mime_type = mimetypes.guess_type(zip_data)
     if mime_type[0] is not None:
         mtype = mime_type[0]
-
     # obtain file size
-    stat_info = os.stat(file_full_path)
+    stat_info = os.stat(zip_data)
     flen = stat_info.st_size
-    f = open(file_full_path, 'r')
+    f = open(zip_data, 'r')
     response = FileResponse(f, content_type=mtype)
-    response['Content-Disposition'] = 'attachment; filename="{name}"'.format(name=username)
+    response['Content-Disposition'] = 'attachment; filename="{name}"'.format(name=zip_fname)
     response['Content-Lengtsh'] = flen
     return response
