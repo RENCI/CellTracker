@@ -16,9 +16,10 @@ class Command(BaseCommand):
     or
     docker exec -ti celltracker python manage.py clean_user_edit_seg_data <username>
     For example:
-    docker exec -ti celltracker python manage.py clean_user_edit_seg_data --exp_id '18061934100' 'hongyi'
+    docker exec -ti celltracker python manage.py clean_user_edit_seg_data --exp_id '18061934100' --username 'hongyi'
+    docker exec -ti celltracker python manage.py clean_user_edit_seg_data --exp_id '18061934100' --username 'hongyi' --frame_no 1
     or
-    docker exec -ti celltracker python manage.py clean_user_edit_seg_data 'hongyi'
+    docker exec -ti celltracker python manage.py clean_user_edit_seg_data --username 'hongyi'
     """
     help = "clean user edit segmentation data for debugging cleanup purpose for specified " \
            "experiment and user and frames"
@@ -26,8 +27,8 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         # experiment id
         parser.add_argument('--exp_id', default=None, help='experiment id')
-        parser.add_argument('username', help='username')
-        parser.add_argument('frame_no', help='frame number starting from 1')
+        parser.add_argument('--username', help='username')
+        parser.add_argument('--frame_no', help='frame number starting from 1')
 
     def handle(self, *args, **options):
         if options['username']:
