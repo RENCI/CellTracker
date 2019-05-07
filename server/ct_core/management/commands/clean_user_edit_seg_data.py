@@ -21,12 +21,13 @@ class Command(BaseCommand):
     docker exec -ti celltracker python manage.py clean_user_edit_seg_data 'hongyi'
     """
     help = "clean user edit segmentation data for debugging cleanup purpose for specified " \
-           "experiment and user"
+           "experiment and user and frames"
 
     def add_arguments(self, parser):
         # experiment id
         parser.add_argument('--exp_id', default=None, help='experiment id')
         parser.add_argument('username', help='username')
+        parser.add_argument('frame_no', help='frame number starting from 1')
 
     def handle(self, *args, **options):
         if options['username']:
@@ -34,15 +35,27 @@ class Command(BaseCommand):
             del_objs = []
             if options['exp_id']:
                 exp_id = str(options['exp_id'])
-                filter_objs = UserSegmentation.objects.filter(exp_id=exp_id,
-                                                              user__username=username)
+                if options['frame_no']:
+                    fno = int(options['frame_no'])
+                    filter_objs = UserSegmentation.objects.filter(exp_id=exp_id,
+                                                                  user__username=username,
+                                                                  frame_no=fno)
+                else:
+                    filter_objs = UserSegmentation.objects.filter(exp_id=exp_id,
+                                                                  user__username=username)
                 del_objs.append(filter_objs)
             else:
                 exp_list, err_msg = get_experiment_list_util()
                 for exp in exp_list:
                     exp_id = exp['id']
-                    filter_objs = UserSegmentation.objects.filter(exp_id=exp_id,
-                                                                  user__username=username)
+                    if options['frame_no']:
+                        fno = int(options['frame_no'])
+                        filter_objs = UserSegmentation.objects.filter(exp_id=exp_id,
+                                                                      user__username=username,
+                                                                      frame_no=fno)
+                    else:
+                        filter_objs = UserSegmentation.objects.filter(exp_id=exp_id,
+                                                                      user__username=username)
                     del_objs.append(filter_objs)
 
             # delete irods file if any
