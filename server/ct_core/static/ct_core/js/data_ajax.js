@@ -74,7 +74,8 @@ function request_exp_info_ajax(exp_id) {
                     $('#user_list').empty();
                     var select = document.getElementById("user_list");
                     $.each(user_lists, function(i, v) {
-                       select.options[i] = new Option(v);
+                        sel_idx =  select.options.length;
+                        select.options[sel_idx] = new Option(v['name'], v['username']);
                     });
                     $('#user_list').trigger('change');
                 }

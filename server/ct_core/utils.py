@@ -319,10 +319,13 @@ def get_all_edit_users(exp_id):
     :return: list of usernames
     """
     user_list = []
+    user_username_list = []
     filter_objs = UserSegmentation.objects.filter(exp_id=exp_id)
     for obj in filter_objs:
-        if obj.user.username not in user_list:
-            user_list.append(obj.user.username)
+        if obj.user.username not in user_username_list:
+            user_username_list.append(obj.user.username)
+            user_list.append({'username': obj.user.username,
+                             'name': obj.user.get_full_name()})
     return user_list
 
 
