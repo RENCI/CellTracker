@@ -19,6 +19,13 @@ function csrfSafeMethod(method) {
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
 
+var images = [];
+var numImages;
+var imageIndex = 0;
+var numMaxLoadFrames = 10;
+// Create p5 instance for loading images
+var adminSketch = new p5(function (sk) {});
+
 function request_exp_list_ajax() {
     $.ajaxSetup({
         beforeSend: function(xhr, settings) {
@@ -64,8 +71,8 @@ function request_exp_info_ajax(exp_id) {
         url: "/get_experiment_info/" + exp_id,
         success: function (json_response) {
             data = json_response;
-            frm_no = data.frames;
-            info_msg = 'This experiment has ' + frm_no + ' frames and has segmentation data.';
+            numImages = data.frames;
+            info_msg = 'This experiment has ' + numImages + ' frames and has segmentation data.';
             if (data.has_segmentation == 'true') {
                 user_lists = data.edit_users;
                 if (user_lists.length > 0) {
@@ -85,9 +92,20 @@ function request_exp_info_ajax(exp_id) {
                 }
             }
             else {
-                $('#seg_info').html('This experiment has ' + frm_no + ' frames and does not has segmentation data.');
+                $('#seg_info').html('This experiment has ' + numImages + ' frames and does not has segmentation data.');
                 $('#user_edit').hide();
             }
+            if(numImages <= numMaxLoadFrames)
+                loadNumImages = numImages;
+            else
+                loadNumImages = numMaxLoadFrames;
+            for(var i=1; i <= loadNumImages; i++) {
+                images.push(adminSketch.loadImage("/display-image/" + exp_id + "/jpg/" + i,
+                    img => {
+                    adminSketch.image(img, 0, 0);
+                    }));
+            }
+            resize();
             return true;
         },
         error: function (xhr, errmsg, err) {
@@ -97,11 +115,30 @@ function request_exp_info_ajax(exp_id) {
     });
 }
 
+function setup() {
+    var canvas = adminSketch.createCanvas(400, 400);
+    canvas.parent('frame-visualizer');
+    adminSketch.frameRate(5);
+    adminSketch.noLoop();
+}
+
+function resize() {
+    if (images.length === 0) return;
+
+    // Size canvas to image aspect ratio
+    var im = images[0];
+
+    var w = im.width;
+    var h = im.height;
+
+    adminSketch.resizeCanvas(w, h);
+  }
+
 $(document).ready(function() {
-   request_exp_list_ajax();
-   $('#seg_info').html('');
-   $('#exp_select_list').change(function() {
-       request_exp_info_ajax(this.value);
+    request_exp_list_ajax();
+    $('#seg_info').html('');
+    $('#exp_select_list').change(function() {
+        request_exp_info_ajax(this.value);
    });
    $('#user_list').change(function() {
        $('#edit_download').attr("href", '/download/' + $('#exp_select_list').val() + '/' + this.value);

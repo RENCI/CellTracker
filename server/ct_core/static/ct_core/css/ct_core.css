@@ -201,3 +201,8 @@ float the buttons inside it. This prevents collapsing. */
 .btn-save-profile {
     margin-left: 10px;
 }
+
+#frame-visualizer {
+    padding-left: 15px;
+    padding-right: 15px;
+}
