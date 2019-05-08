@@ -162,8 +162,7 @@ float the buttons inside it. This prevents collapsing. */
   clear: both;
 }
 
-.noclose .ui-dialog-titlebar-close
-{
+.hid-element {
     display:none;
 }
 

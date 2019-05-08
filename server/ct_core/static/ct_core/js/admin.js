@@ -21,7 +21,7 @@ function csrfSafeMethod(method) {
 
 var images = [];
 var numImages;
-var imageIndex = 0;
+var frame = 0;
 var numMaxLoadFrames = 10;
 // Create p5 instance for loading images
 var adminSketch = new p5(function (sk) {});
@@ -41,13 +41,14 @@ function request_exp_list_ajax() {
             exp_res = json_response;
             if (exp_res.length > 0) {
                 var select = document.getElementById("exp_select_list");
-                if (select.options.length <= 0) {
+                select.options[0] = new Option('-- Select --', 'null');
+                if (select.options.length <= 1) {
                     $.each(exp_res, function(i, v) {
                        sel_idx =  select.options.length;
                        select.options[sel_idx] = new Option(v['name'], v['id']);
                     });
-                    $('#exp_select_list').trigger('change');
                 }
+                $('#exp_select_list').val('null');
             }
             return true;
         },
@@ -73,6 +74,7 @@ function request_exp_info_ajax(exp_id) {
             data = json_response;
             numImages = data.frames;
             info_msg = 'This experiment has ' + numImages + ' frames and has segmentation data.';
+            $('frame-visualizer').show();
             if (data.has_segmentation == 'true') {
                 user_lists = data.edit_users;
                 if (user_lists.length > 0) {
@@ -99,11 +101,10 @@ function request_exp_info_ajax(exp_id) {
                 loadNumImages = numImages;
             else
                 loadNumImages = numMaxLoadFrames;
+
+            images.length = 0;
             for(var i=1; i <= loadNumImages; i++) {
-                images.push(adminSketch.loadImage("/display-image/" + exp_id + "/jpg/" + i,
-                    img => {
-                    adminSketch.image(img, 0, 0);
-                    }));
+                images.push(adminSketch.loadImage("/display-image/" + exp_id + "/jpg/" + i));
             }
             resize();
             return true;
@@ -116,7 +117,7 @@ function request_exp_info_ajax(exp_id) {
 }
 
 function setup() {
-    var canvas = adminSketch.createCanvas(400, 400);
+    var canvas = adminSketch.createCanvas(windowWidth, windowHeight);
     canvas.parent('frame-visualizer');
     adminSketch.frameRate(5);
     adminSketch.noLoop();
@@ -128,17 +129,33 @@ function resize() {
     // Size canvas to image aspect ratio
     var im = images[0];
 
-    var w = im.width;
-    var h = im.height;
-
+    var aspect = im.width / im.height;
+    var w = windowWidth-40;
+    var h = w / aspect;
     adminSketch.resizeCanvas(w, h);
   }
 
+function draw() {
+    if (images.length === 0) {
+        adminSketch.clear();
+        return;
+    }
+    admin_im = images[frame];
+    adminSketch.image(admin_im, 0, 0);
+}
+
 $(document).ready(function() {
+    frame = 0;
     request_exp_list_ajax();
     $('#seg_info').html('');
     $('#exp_select_list').change(function() {
-        request_exp_info_ajax(this.value);
+        if(this.value != 'null')
+            request_exp_info_ajax(this.value);
+        else {
+            $('#seg_info').html('');
+            $('#user_edit').hide();
+            $('frame-visualizer').hide();
+        }
    });
    $('#user_list').change(function() {
        $('#edit_download').attr("href", '/download/' + $('#exp_select_list').val() + '/' + this.value);
