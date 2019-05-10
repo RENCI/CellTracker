@@ -20,8 +20,9 @@ function csrfSafeMethod(method) {
 }
 
 var images = [];
+var segdata = [];
 var numImages;
-var frame = 0;
+var frame = 1;
 var numMaxLoadFrames = 10;
 var lastSelExpId = '';
 // Create p5 instance for loading images
@@ -60,6 +61,39 @@ function request_exp_list_ajax() {
     });
 }
 
+function normalizePoint(p) {
+return [p[0] / adminSketch.width, p[1] / adminSketch.height];
+}
+
+function scalePoint(p) {
+return [p[0] * adminSketch.width, p[1] * adminSketch.height];
+}
+
+function request_user_seg_data_ajax(exp_id, username) {
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        }
+    });
+    $.ajax({
+        type: "POST",
+        url: "/get_frame_seg_data/" + exp_id + "/" + frame,
+        data: {'username': username},
+        success: function (json_response) {
+            segdata.length = 0;
+            segdata.push(json_response);
+            return true;
+        },
+        error: function (xhr, errmsg, err) {
+            console.log(xhr.status + ": " + xhr.responseText + ". Error message: " + errmsg);
+            return false;
+        }
+    });
+};
+
+
 function request_exp_info_ajax(exp_id) {
     $.ajaxSetup({
         beforeSend: function(xhr, settings) {
@@ -76,6 +110,7 @@ function request_exp_info_ajax(exp_id) {
             numImages = data.frames;
             info_msg = 'This experiment has ' + numImages + ' frames and has segmentation data.';
             $('frame-visualizer').show();
+            segdata.length = 0;
             if (data.has_segmentation == 'true') {
                 user_lists = data.edit_users;
                 if (user_lists.length > 0) {
@@ -92,6 +127,7 @@ function request_exp_info_ajax(exp_id) {
                 else {
                     $('#seg_info').html(info_msg + ' However, there is not yet user edit data for this experiment.');
                     $('#user_edit').hide();
+                    request_user_seg_data_ajax(exp_id, '');
                 }
             }
             else {
@@ -112,6 +148,7 @@ function request_exp_info_ajax(exp_id) {
                     images.push(im);
                     if (images.length === 1) {
                         resize();
+                        image_draw(frame);
                     }
                 });
             }
@@ -126,7 +163,7 @@ function request_exp_info_ajax(exp_id) {
 }
 
 function setup() {
-    frame = 0;
+    frame = 1;
     request_exp_list_ajax();
     $('#seg_info').html('');
     var canvas = adminSketch.createCanvas(100, 100);
@@ -144,18 +181,71 @@ function resize() {
         w = $('#frame-visualizer').width(),
         h = w / aspect;
     adminSketch.resizeCanvas(w, h);
-    sketch_draw();
   }
 
-function sketch_draw() {
+function draw() {
+    if (segdata.length > 0 && images.length > 0) {
+        segmentation_draw(frame);
+    }
+}
+
+function image_draw(frame) {
     if (images.length === 0) {
         adminSketch.clear();
         return;
     }
-    admin_im = images[frame];
-
+    admin_im = images[frame-1];
+    adminSketch.push();
     adminSketch.scale(adminSketch.width / admin_im.width, adminSketch.height / admin_im.height);
     adminSketch.image(admin_im, 0, 0);
+    adminSketch.pop();
+}
+
+function segmentation_draw(frame) {
+    if (segdata.length === 0) {
+        return;
+    }
+    regions = segdata[frame-1];
+    adminSketch.strokeJoin(adminSketch.ROUND);
+    if(regions) {
+        regions.forEach(function(region, i, a) {
+            let weight = 2;
+            let lineBackground = 0;
+            let strokeColor = 220;
+            // Draw outline background
+            adminSketch.stroke(lineBackground);
+            adminSketch.strokeWeight(weight+1);
+            adminSketch.noFill();
+
+            adminSketch.beginShape();
+            region.vertices.forEach(function(vertex) {
+              const v = scalePoint(vertex);
+              adminSketch.vertex(v[0], v[1]);
+            });
+            if (region.vertices.length > 0) {
+              const v = scalePoint(region.vertices[0]);
+              adminSketch.vertex(v[0], v[1]);
+            }
+            adminSketch.endShape();
+            // Draw outline
+            adminSketch.stroke(strokeColor);
+            adminSketch.strokeWeight(weight);
+
+            adminSketch.noFill();
+
+            // Draw outline
+            adminSketch.beginShape();
+            region.vertices.forEach(function(vertex) {
+              const v = scalePoint(vertex);
+              adminSketch.vertex(v[0], v[1]);
+            });
+            if (region.vertices.length > 0) {
+              const v = scalePoint(region.vertices[0]);
+              adminSketch.vertex(v[0], v[1]);
+            }
+            adminSketch.endShape();
+        });
+    }
 }
 
 $('#exp_select_list').change(function(e) {
@@ -175,5 +265,7 @@ $('#exp_select_list').change(function(e) {
 $('#user_list').change(function(e) {
     e.stopPropagation();
     e.preventDefault();
-    $('#edit_download').attr("href", '/download/' + $('#exp_select_list').val() + '/' + this.value);
+    let exp_id = $('#exp_select_list').val();
+    request_user_seg_data_ajax(exp_id, this.value);
+    $('#edit_download').attr("href", '/download/' + exp_id + '/' + this.value);
 });

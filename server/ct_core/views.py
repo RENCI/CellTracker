@@ -284,8 +284,10 @@ def read_image(request, exp_id, img_file_name):
 @login_required
 def get_frame_seg_data(request, exp_id, frame_no):
     # check if user edit segmentation is available and if yes, use that instead
+    uname = request.POST.get('username', '')
+    u = request.user if not uname else User.objects.get(username=uname)
     try:
-        seg_obj = UserSegmentation.objects.get(user=request.user, exp_id=exp_id,
+        seg_obj = UserSegmentation.objects.get(user=u, exp_id=exp_id,
                                                frame_no=int(frame_no))
     except UserSegmentation.DoesNotExist:
         try:
