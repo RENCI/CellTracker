@@ -23,6 +23,7 @@ var images = [];
 var numImages;
 var frame = 0;
 var numMaxLoadFrames = 10;
+var lastSelExpId = '';
 // Create p5 instance for loading images
 var adminSketch = new p5(function (sk) {});
 
@@ -101,12 +102,20 @@ function request_exp_info_ajax(exp_id) {
                 loadNumImages = numImages;
             else
                 loadNumImages = numMaxLoadFrames;
-
             images.length = 0;
-            for(var i=1; i <= loadNumImages; i++) {
-                images.push(adminSketch.loadImage("/display-image/" + exp_id + "/jpg/" + i));
+            var i;
+            for(i=1; i <= loadNumImages; i++) {
+                adminSketch.loadImage("/display-image/" + exp_id + "/jpg/" + i, img => {
+                    let w = img.width, h=img.height;
+                    im = adminSketch.createImage(w, h);
+                    im.copy(img, 0, 0, w, h, 0, 0, w, h);
+                    images.push(im);
+                    if (images.length === 1) {
+                        resize();
+                    }
+                });
             }
-            resize();
+
             return true;
         },
         error: function (xhr, errmsg, err) {
@@ -117,7 +126,10 @@ function request_exp_info_ajax(exp_id) {
 }
 
 function setup() {
-    var canvas = adminSketch.createCanvas(windowWidth, windowHeight);
+    frame = 0;
+    request_exp_list_ajax();
+    $('#seg_info').html('');
+    var canvas = adminSketch.createCanvas(100, 100);
     canvas.parent('frame-visualizer');
     adminSketch.frameRate(5);
     adminSketch.noLoop();
@@ -127,37 +139,41 @@ function resize() {
     if (images.length === 0) return;
 
     // Size canvas to image aspect ratio
-    var im = images[0];
-
-    var aspect = im.width / im.height;
-    var w = windowWidth-40;
-    var h = w / aspect;
+    let im = images[0],
+        aspect = im.width / im.height,
+        w = $('#frame-visualizer').width(),
+        h = w / aspect;
     adminSketch.resizeCanvas(w, h);
+    sketch_draw();
   }
 
-function draw() {
+function sketch_draw() {
     if (images.length === 0) {
         adminSketch.clear();
         return;
     }
     admin_im = images[frame];
+
+    adminSketch.scale(adminSketch.width / admin_im.width, adminSketch.height / admin_im.height);
     adminSketch.image(admin_im, 0, 0);
 }
 
-$(document).ready(function() {
-    frame = 0;
-    request_exp_list_ajax();
-    $('#seg_info').html('');
-    $('#exp_select_list').change(function() {
-        if(this.value != 'null')
-            request_exp_info_ajax(this.value);
-        else {
-            $('#seg_info').html('');
-            $('#user_edit').hide();
-            $('frame-visualizer').hide();
-        }
-   });
-   $('#user_list').change(function() {
-       $('#edit_download').attr("href", '/download/' + $('#exp_select_list').val() + '/' + this.value);
-   });
+$('#exp_select_list').change(function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    if(this.value != 'null' && this.val != lastSelExpId) {
+        request_exp_info_ajax(this.value);
+        lastSelExpId = this.value;
+    }
+    else {
+        $('#seg_info').html('');
+        $('#user_edit').hide();
+        $('frame-visualizer').hide();
+    }
+});
+
+$('#user_list').change(function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    $('#edit_download').attr("href", '/download/' + $('#exp_select_list').val() + '/' + this.value);
 });
