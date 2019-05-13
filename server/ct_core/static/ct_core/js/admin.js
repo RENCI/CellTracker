@@ -22,9 +22,12 @@ function csrfSafeMethod(method) {
 var images = [];
 var segdata = [];
 var numImages;
-var frame = 1;
 var numMaxLoadFrames = 10;
+var frame = 1; // current frame index within total frames
+var startFrame = 1; // start frame index with advancing and reversing frames
 var lastSelExpId = '';
+var hasSegmentation = false;
+
 // Create p5 instance for loading images
 var adminSketch = new p5(function (sk) {});
 
@@ -69,7 +72,7 @@ function scalePoint(p) {
 return [p[0] * adminSketch.width, p[1] * adminSketch.height];
 }
 
-function request_user_seg_data_ajax(exp_id, username) {
+function request_user_seg_data_ajax(exp_id, frm_idx, username) {
     $.ajaxSetup({
         beforeSend: function(xhr, settings) {
             if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
@@ -79,10 +82,9 @@ function request_user_seg_data_ajax(exp_id, username) {
     });
     $.ajax({
         type: "POST",
-        url: "/get_frame_seg_data/" + exp_id + "/" + frame,
+        url: "/get_frame_seg_data/" + exp_id + "/" + frm_idx,
         data: {'username': username},
         success: function (json_response) {
-            segdata.length = 0;
             segdata.push(json_response);
             return true;
         },
@@ -106,34 +108,13 @@ function request_exp_info_ajax(exp_id) {
         type: "POST",
         url: "/get_experiment_info/" + exp_id,
         success: function (json_response) {
+            $('#player-control').show();
             data = json_response;
             numImages = data.frames;
             info_msg = 'This experiment has ' + numImages + ' frames and has segmentation data.';
             $('frame-visualizer').show();
-            segdata.length = 0;
-            if (data.has_segmentation == 'true') {
-                user_lists = data.edit_users;
-                if (user_lists.length > 0) {
-                    $('#seg_info').html(info_msg);
-                    $('#user_edit').show();
-                    $('#user_list').empty();
-                    var select = document.getElementById("user_list");
-                    $.each(user_lists, function(i, v) {
-                        sel_idx =  select.options.length;
-                        select.options[sel_idx] = new Option(v['name'], v['username']);
-                    });
-                    $('#user_list').trigger('change');
-                }
-                else {
-                    $('#seg_info').html(info_msg + ' However, there is not yet user edit data for this experiment.');
-                    $('#user_edit').hide();
-                    request_user_seg_data_ajax(exp_id, '');
-                }
-            }
-            else {
-                $('#seg_info').html('This experiment has ' + numImages + ' frames and does not has segmentation data.');
-                $('#user_edit').hide();
-            }
+            frame = 1;
+            startFrame = 1;
             if(numImages <= numMaxLoadFrames)
                 loadNumImages = numImages;
             else
@@ -152,7 +133,34 @@ function request_exp_info_ajax(exp_id) {
                     }
                 });
             }
-
+            segdata.length = 0;
+            hasSegmentation = data.has_segmentation;
+            if (hasSegmentation == 'true') {
+                user_lists = data.edit_users;
+                if (user_lists.length > 0) {
+                    $('#seg_info').html(info_msg);
+                    $('#user_edit').show();
+                    $('#user_list').empty();
+                    var select = document.getElementById("user_list");
+                    $.each(user_lists, function(i, v) {
+                        sel_idx =  select.options.length;
+                        select.options[sel_idx] = new Option(v['name'], v['username']);
+                    });
+                    $('#user_list').trigger('change');
+                }
+                else {
+                    $('#seg_info').html(info_msg + ' However, there is not yet user edit data for this experiment.');
+                    $('#user_edit').hide();
+                    for (frm = 1; frm <= loadNumImages; frm++) {
+                        request_user_seg_data_ajax(exp_id, frm, '');
+                    }
+                }
+            }
+            else {
+                $('#seg_info').html('This experiment has ' + numImages + ' frames and does not has segmentation data.');
+                $('#user_edit').hide();
+            }
+            update_frame_info();
             return true;
         },
         error: function (xhr, errmsg, err) {
@@ -164,6 +172,7 @@ function request_exp_info_ajax(exp_id) {
 
 function setup() {
     frame = 1;
+    startFrame = 1;
     request_exp_list_ajax();
     $('#seg_info').html('');
     var canvas = adminSketch.createCanvas(100, 100);
@@ -194,10 +203,10 @@ function image_draw(frame) {
         adminSketch.clear();
         return;
     }
-    admin_im = images[frame-1];
+    let adminIm = images[frame-1];
     adminSketch.push();
-    adminSketch.scale(adminSketch.width / admin_im.width, adminSketch.height / admin_im.height);
-    adminSketch.image(admin_im, 0, 0);
+    adminSketch.scale(adminSketch.width / adminIm.width, adminSketch.height / adminIm.height);
+    adminSketch.image(adminIm, 0, 0);
     adminSketch.pop();
 }
 
@@ -205,6 +214,9 @@ function segmentation_draw(frame) {
     if (segdata.length === 0) {
         return;
     }
+    if (frame > segdata.length)
+        return;
+
     regions = segdata[frame-1];
     adminSketch.strokeJoin(adminSketch.ROUND);
     if(regions) {
@@ -248,6 +260,13 @@ function segmentation_draw(frame) {
     }
 }
 
+function update_frame_info() {
+    sidx = frame - startFrame + 1;
+    $('#frame_info').html(sidx + ' out of actively loaded ' + loadNumImages +
+        ' (' + frame + ' out of total ' + numImages + ')');
+}
+
+
 $('#exp_select_list').change(function(e) {
     e.stopPropagation();
     e.preventDefault();
@@ -258,6 +277,7 @@ $('#exp_select_list').change(function(e) {
     else {
         $('#seg_info').html('');
         $('#user_edit').hide();
+        $('#player-control').hide();
         $('frame-visualizer').hide();
     }
 });
@@ -265,7 +285,105 @@ $('#exp_select_list').change(function(e) {
 $('#user_list').change(function(e) {
     e.stopPropagation();
     e.preventDefault();
-    let exp_id = $('#exp_select_list').val();
-    request_user_seg_data_ajax(exp_id, this.value);
-    $('#edit_download').attr("href", '/download/' + exp_id + '/' + this.value);
+    let expId = $('#exp_select_list').val();
+    segdata.length = 0;
+    for(frm = 1; frm < startFrame + loadNumImages; frm++)
+        request_user_seg_data_ajax(expId, frm, this.value);
+    update_frame_info();
+    $('#edit_download').attr("href", '/download/' + expId + '/' + this.value);
+});
+
+$('#player-step-fwd').click(function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    if(frame < startFrame+loadNumImages-1) {
+        frame = frame + 1;
+        image_draw(frame);
+        adminSketch.redraw();
+        update_frame_info();
+    }
+});
+
+$('#player-step-bwd').click(function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    if(frame > startFrame)
+    {
+        frame = frame - 1;
+        image_draw(frame);
+        adminSketch.redraw();
+        update_frame_info();
+    }
+});
+
+$('#player-bwd').click(function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    if (frame != startFrame) {
+        frame = startFrame;
+        image_draw(frame);
+        adminSketch.redraw();
+        update_frame_info();
+    }
+});
+
+$('#player-fwd').click(function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    if (frame != startFrame + loadNumImages - 1) {
+        frame = startFrame + loadNumImages - 1;
+        image_draw(frame);
+        adminSketch.redraw();
+        update_frame_info();
+    }
+});
+
+$('#advance-frames').click(function (e) {
+    e.stopPropagation();
+    e.preventDefault();
+    let startFrmIdx = startFrame + loadNumImages;
+    let numLeftImgs = numImages - startFrmIdx + 1;
+    if (numLeftImgs > 0) {
+        if(numLeftImgs <= numMaxLoadFrames)
+                loadNumImages = numLeftImgs;
+        else
+            loadNumImages = numMaxLoadFrames;
+        startFrame = startFrmIdx;
+        frame = startFrmIdx;
+        let i;
+        let expId = $('#exp_select_list').val();
+        for(i=0; i < loadNumImages; i++) {
+            fno = startFrmIdx + i;
+            adminSketch.loadImage("/display-image/" + expId + "/jpg/" + fno, img => {
+                let w = img.width, h=img.height;
+                im = adminSketch.createImage(w, h);
+                im.copy(img, 0, 0, w, h, 0, 0, w, h);
+                images.push(im);
+                if (images.length === startFrmIdx) {
+                    resize();
+                    image_draw(frame);
+                }
+            });
+        }
+        if (hasSegmentation == 'true') {
+            let userName = $('#user_list').val();
+            for (frm = 0; frm < loadNumImages; frm++) {
+                fno = startFrmIdx + frm;
+                request_user_seg_data_ajax(expId, fno, userName);
+            }
+        }
+        update_frame_info();
+    }
+});
+
+$('#reverse-frames').click(function (e) {
+    e.stopPropagation();
+    e.preventDefault();
+    if(startFrame > numMaxLoadFrames) {
+        startFrame = startFrame - numMaxLoadFrames;
+        frame = startFrame;
+        image_draw(frame);
+        adminSketch.redraw();
+        update_frame_info();
+    }
 });
