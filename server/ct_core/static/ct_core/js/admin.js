@@ -262,7 +262,7 @@ function segmentation_draw(frame) {
 
 function update_frame_info() {
     sidx = frame - startFrame + 1;
-    $('#frame_info').html(sidx + ' out of actively loaded ' + loadNumImages +
+    $('#frame_info').html(sidx + ' out of loaded ' + loadNumImages +
         ' (' + frame + ' out of total ' + numImages + ')');
 }
 
