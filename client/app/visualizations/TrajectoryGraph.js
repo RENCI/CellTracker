@@ -131,7 +131,7 @@ export default function() {
     });
 
     // Compute node size
-    nodeSize = innerWidth() / nodes.length / 8;
+    nodeSize = innerWidth() / 80;
     nodeStrokeWidth = nodeSize / 6;
 
     const padding = 0.5;
@@ -147,16 +147,24 @@ export default function() {
 
       frameNodes.forEach(node => {
         node.x0 = x;
-        node.x1 = x + nodeSize
-        node.y0 = y;
-        node.y1 = y + node.value * nodeSize;
+        node.x1 = x + nodeSize;
+        node.y1 = y;
+        node.y0 = y - node.value * nodeSize;
 
-        y = node.y1 + nodeSize * padding;
+        y = node.y0 - nodeSize * padding;
       });
     });
 
     // Flatten node array
     nodes = d3.merge(nodes);
+
+    // Update height based on node size
+    height = -d3.min(nodes, d => d.y0) + margin.top + margin.bottom;
+    // Update y position
+    nodes.forEach(node => {
+      node.y0 += innerHeight();
+      node.y1 += innerHeight();
+    });
 
     // Position links
     nodes.forEach(node => {
@@ -187,9 +195,6 @@ export default function() {
         y += nodeSize;
       });
     });
-
-    // Update height based on node size
-    height = d3.max(nodes, d => d.y1) + margin.top + margin.bottom;
 
     graph = {
       nodes: nodes,
