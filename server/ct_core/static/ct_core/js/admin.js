@@ -27,6 +27,8 @@ var frame = 1; // current frame index within total frames
 var startFrame = 1; // start frame index with advancing and reversing frames
 var lastSelExpId = '';
 var hasSegmentation = false;
+var userFramesInfo = [];
+var userEditFrames = {};
 
 // Create p5 instance for loading images
 var adminSketch = new p5(function (sk) {});
@@ -65,11 +67,11 @@ function request_exp_list_ajax() {
 }
 
 function normalizePoint(p) {
-return [p[0] / adminSketch.width, p[1] / adminSketch.height];
+    return [p[0] / adminSketch.width, p[1] / adminSketch.height];
 }
 
 function scalePoint(p) {
-return [p[0] * adminSketch.width, p[1] * adminSketch.height];
+    return [p[0] * adminSketch.width, p[1] * adminSketch.height];
 }
 
 function request_user_seg_data_ajax(exp_id, frm_idx, username) {
@@ -93,7 +95,56 @@ function request_user_seg_data_ajax(exp_id, frm_idx, username) {
             return false;
         }
     });
-};
+}
+
+
+function request_user_frame_info_ajax(exp_id, frm_idx, username) {
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        }
+    });
+    $.ajax({
+        type: "POST",
+        url: "/get_user_frame_info/" + exp_id + "/" + username + "/" + frm_idx,
+        success: function (json_response) {
+            userFramesInfo.push(json_response);
+            if (userFramesInfo.length == 1)
+                update_user_edit_info();
+            return true;
+        },
+        error: function (xhr, errmsg, err) {
+            console.log(xhr.status + ": " + xhr.responseText + ". Error message: " + errmsg);
+            return false;
+        }
+    });
+}
+
+
+function request_user_total_edit_frames_ajax(exp_id, username) {
+    $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+            }
+        }
+    });
+    $.ajax({
+        type: "POST",
+        url: "/get_user_total_edit_frames/" + exp_id + "/" + username,
+        success: function (json_response) {
+            console.log(json_response.edit_frames);
+            userEditFrames[username] = json_response.edit_frames;
+            return true;
+        },
+        error: function (xhr, errmsg, err) {
+            console.log(xhr.status + ": " + xhr.responseText + ". Error message: " + errmsg);
+            return false;
+        }
+    });
+}
 
 
 function request_exp_info_ajax(exp_id) {
@@ -267,18 +318,31 @@ function update_frame_info() {
 }
 
 
+function update_user_edit_info(fno) {
+    if(userFramesInfo.length > 0) {
+        let num_edited = userFramesInfo[frame-1].num_edited;
+        let num_regions = userFramesInfo[frame-1].num_of_regions;
+        $('#user_edit_frm_info').html('The selected user has edited ' + num_edited + ' regions on this active frame ' +
+            'out of total ' + num_regions + ' regions.');
+    }
+}
+
+
 $('#exp_select_list').change(function(e) {
     e.stopPropagation();
     e.preventDefault();
     if(this.value != 'null' && this.val != lastSelExpId) {
         request_exp_info_ajax(this.value);
         lastSelExpId = this.value;
+        userEditFrames = {};
     }
     else {
         $('#seg_info').html('');
         $('#user_edit').hide();
+        $('#user_edit_frm_info').html('');
         $('#player-control').hide();
         $('frame-visualizer').hide();
+        lastSelExpId = -1;
     }
 });
 
@@ -287,8 +351,14 @@ $('#user_list').change(function(e) {
     e.preventDefault();
     let expId = $('#exp_select_list').val();
     segdata.length = 0;
-    for(frm = 1; frm < startFrame + loadNumImages; frm++)
+    userFramesInfo.length = 0;
+    request_user_total_edit_frames_ajax(expId, this.value);
+
+    for(frm = 1; frm < startFrame + loadNumImages; frm++) {
         request_user_seg_data_ajax(expId, frm, this.value);
+        request_user_frame_info_ajax(expId, frm, this.value);
+    }
+
     update_frame_info();
     $('#edit_download').attr("href", '/download/' + expId + '/' + this.value);
 });
@@ -301,6 +371,7 @@ $('#player-step-fwd').click(function(e) {
         image_draw(frame);
         adminSketch.redraw();
         update_frame_info();
+        update_user_edit_info();
     }
 });
 
@@ -313,6 +384,7 @@ $('#player-step-bwd').click(function(e) {
         image_draw(frame);
         adminSketch.redraw();
         update_frame_info();
+        update_user_edit_info();
     }
 });
 
@@ -324,6 +396,7 @@ $('#player-bwd').click(function(e) {
         image_draw(frame);
         adminSketch.redraw();
         update_frame_info();
+        update_user_edit_info();
     }
 });
 
@@ -335,6 +408,7 @@ $('#player-fwd').click(function(e) {
         image_draw(frame);
         adminSketch.redraw();
         update_frame_info();
+        update_user_edit_info();
     }
 });
 
@@ -370,9 +444,11 @@ $('#advance-frames').click(function (e) {
             for (frm = 0; frm < loadNumImages; frm++) {
                 fno = startFrmIdx + frm;
                 request_user_seg_data_ajax(expId, fno, userName);
+                request_user_frame_info_ajax(expId, frm, userName);
             }
         }
         update_frame_info();
+        update_user_edit_info();
     }
 });
 
@@ -385,5 +461,6 @@ $('#reverse-frames').click(function (e) {
         image_draw(frame);
         adminSketch.redraw();
         update_frame_info();
+        update_user_edit_info();
     }
 });

@@ -291,25 +291,36 @@ def sync_seg_data_to_db(eid):
                     obj.save()
 
 
-def get_frames_info(user, exp_id):
-    filter_objs = Segmentation.objects.filter(exp_id=exp_id)
-    frm_info_list = []
-    for obj in filter_objs:
-        fno = int(obj.frame_no)
-        region_cnt = len(obj.data)
+def get_edited_frames(username, exp_id):
+    try:
+        user_edit_objs = UserSegmentation.objects.filter(user__username=username, exp_id=exp_id)
+        frm_list = []
+        for obj in user_edit_objs:
+            frm_list.append(str(obj.frame_no))
+        return ', '.join(frm_list)
+    except ObjectDoesNotExist:
+        return ''
 
-        try:
-            user_edit_objs = UserSegmentation.objects.get(user=user, exp_id=exp_id, frame_no=fno)
-            num_edited = user_edit_objs.num_edited
-        except ObjectDoesNotExist:
-            num_edited = 0
 
-        frm_info_list.append({
-            'frame_no': fno,
-            'num_of_regions': region_cnt,
-            'num_edited': num_edited
-        })
-    return frm_info_list
+def get_frame_info(username, fno, exp_id):
+    try:
+        def_seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=fno)
+    except ObjectDoesNotExist:
+        return {}
+
+    region_cnt = len(def_seg_obj.data)
+
+    try:
+        user_edit_objs = UserSegmentation.objects.get(user__username=username, exp_id=exp_id,
+                                                      frame_no=fno)
+        num_edited = user_edit_objs.num_edited
+    except ObjectDoesNotExist:
+        num_edited = 0
+
+    return {
+        'num_of_regions': region_cnt,
+        'num_edited': num_edited
+        }
 
 
 def get_all_edit_users(exp_id):

@@ -28,8 +28,8 @@ from irods.exception import CollectionDoesNotExist
 
 from ct_core.utils import get_experiment_list_util, read_video, extract_images_from_video, \
     read_image_frame, get_seg_collection, \
-    save_user_seg_data_to_db, get_start_frame, get_exp_image, get_frames_info, get_all_edit_users, \
-    create_user_segmentation_data_for_download
+    save_user_seg_data_to_db, get_start_frame, get_exp_image, get_edited_frames, get_all_edit_users, \
+    create_user_segmentation_data_for_download, get_frame_info
 from ct_core.task_utils import get_exp_frame_no
 from ct_core.forms import SignUpForm, UserProfileForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
@@ -194,12 +194,26 @@ def get_experiment_info(request, exp_id):
         # latest frame the user has worked on so that the user can pick up from where he left off
         exp_info['start_frame'] = get_start_frame(request.user, exp_id)
 
-        exp_info['frame_info'] = get_frames_info(request.user, exp_id)
+        exp_info['edit_frames'] = get_edited_frames(request.user.username, exp_id)
 
         return HttpResponse(json.dumps(exp_info), content_type='application/json')
     else:
         HttpResponse(json.dumps({'error': 'Cannot connect to iRODS data server'}),
                      status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@login_required
+def get_user_total_edit_frames(request, exp_id, username):
+    return JsonResponse({'edit_frames': get_edited_frames(username, exp_id)})
+
+
+@login_required
+def get_user_frame_info(request, exp_id, username, frame_no):
+    frame_info = get_frame_info(username, frame_no, exp_id)
+    if frame_info:
+        return HttpResponse(json.dumps(frame_info), content_type='application/json')
+    else:
+        return JsonResponse(status=status.HTTP_404_NOT_FOUND)
 
 
 @login_required
