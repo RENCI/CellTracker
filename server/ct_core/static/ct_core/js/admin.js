@@ -324,7 +324,7 @@ function update_frame_info() {
 function update_user_edit_info() {
     if(userFramesInfo.length > 0) {
         let userName = $('#user_list').val();
-        let userFullName = $('#user_list').text();
+        let userFullName = $('#user_list').attr('name');
         let num_edited = userFramesInfo[frame-1].num_edited;
         let num_regions = userFramesInfo[frame-1].num_of_regions;
         $('#user_edit_frm_info').html('This selected user ' + userFullName + ' has edited ' + num_edited +
@@ -450,7 +450,7 @@ $('#advance-frames').click(function (e) {
             for (frm = 0; frm < loadNumImages; frm++) {
                 fno = startFrmIdx + frm;
                 request_user_seg_data_ajax(expId, fno, userName);
-                request_user_frame_info_ajax(expId, frm, userName);
+                request_user_frame_info_ajax(expId, fno, userName);
             }
         }
         update_frame_info();
