@@ -358,14 +358,19 @@ $('#user_list').change(function(e) {
     let expId = $('#exp_select_list').val();
     segdata.length = 0;
     userFramesInfo.length = 0;
-    request_user_total_edit_frames_ajax(expId, this.value);
+    startFrame = 1;
+    frame = 1;
+    if (!(this.value in userEditFrames))
+        request_user_total_edit_frames_ajax(expId, this.value);
 
     for(frm = 1; frm < startFrame + loadNumImages; frm++) {
         request_user_seg_data_ajax(expId, frm, this.value);
         request_user_frame_info_ajax(expId, frm, this.value);
     }
-
+    image_draw(frame);
+    adminSketch.redraw();
     update_frame_info();
+    update_user_edit_info();
     $('#edit_download').attr("href", '/download/' + expId + '/' + this.value);
 });
 
