@@ -222,6 +222,12 @@ LOGGING = {
             'propagate': True,
             'level': 'WARNING',
         },
+        # https://docs.djangoproject.com/en/1.11/topics/logging/#django-template
+        'django.template': {
+            'handlers': ['syslog', 'djangolog'],
+            'level': 'INFO',
+            'propagate': True,
+        },
         'django.db.backends': {
             'handlers': ['syslog'],
             'level': 'WARNING',

@@ -11,7 +11,7 @@ from django.utils import timezone
 
 from ct_core.models import UserSegmentation, Segmentation, get_path
 from ct_core.task_utils  import get_exp_frame_no, find_centroid, distance_between_point_sets, \
-    sync_seg_data_to_irods
+    sync_seg_data_to_irods, validate_user
 
 
 logger = logging.getLogger('django')
@@ -28,15 +28,24 @@ def add_tracking(exp_id, username='', frm_idx=-1):
     add tracking to only the pass-in frm_idx which is zero-based frame index
     :return:
     """
+    ret_result = []
     if isinstance(username, unicode):
         username = str(username)
     if isinstance(frm_idx, unicode):
         frm_idx = int(frm_idx)
 
     fno = get_exp_frame_no(exp_id)
+    if fno < 0:
+        # the experiment does not exist
+        logger.warn('cannot add tracking to experiment ' + exp_id + ' that does not exist')
+        return ret_result
+    if not validate_user(username):
+        logger.warning('cannot add tracking for experiment ' + exp_id + ' for an invalid user '
+                       + username)
+        return ret_result
+
     centroids_xy = {}
     ids = {}
-    ret_result = []
     min_f = 0
     max_f = fno
     if frm_idx >= 0:

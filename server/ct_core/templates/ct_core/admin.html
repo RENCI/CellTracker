@@ -13,7 +13,7 @@
     </div>
     <div class="col-xs-12">
         <div id="seg_info"></div>
-        <div id="user_edit" class="col-xs-12">
+        <div id="user_edit" class="col-xs-12 hid-element">
             <label for="user_list" class="col-form-label">
                 <strong>Select an user who has edit segmentation data for this experiment: </strong>
             </label>
@@ -25,8 +25,23 @@
                 <span class="oi oi-data-transfer-download"></span>
             </a>
         </div>
+        <div id="user_edit_frm_info" class="col-xs-12"></div>
+    </div>
+    <div class="col-xs-12">
+        <div id="frame-visualizer"></div>
+    </div>
+    <div class = "col-xs-12 hid-element" id="player-control">
+    <button id='player-step-bwd' class="btn-player" title="Step backward to previous loaded frame"><i class="fa fa-step-backward"></i></button>
+    <button id='player-bwd' class="btn-player" title="Step backward to first loaded frame"><i class="fa fa-backward"></i></button>
+    {#<button id='player-play' class="btn-player"><i class="fa fa-play"></i></button>#}
+    {#<button id='player-pause' class="btn-player"><i class="fa fa-pause"></i></button>#}
+    <button id='player-fwd' class="btn-player" title="Step forward to last loaded frame"><i class="fa fa-forward"></i></button>
+    <button id='player-step-fwd' class="btn-player" title="Step forward to next loaded frame"><i class="fa fa-step-forward"></i></button>
+    <span id="frame_info"></span>
+    <button id='advance-frames' class='btn-player' title="Advance to load next 10 frames"><i class="fa fa-arrow-right"></i></button>
+    <button id='reverse-frames' class='btn-player' title="Reverse to load previous 10 frames"><i class="fa fa-arrow-left"></i></button>
     </div>
     {% block extra_js %}
-        <script type="text/javascript" src="{% static 'ct_core/js/data_ajax.js' %}"></script>
+        <script type="text/javascript" src="{% static 'ct_core/js/admin.js' %}"></script>
     {% endblock %}
 {% endblock %}

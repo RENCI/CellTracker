@@ -162,8 +162,7 @@ float the buttons inside it. This prevents collapsing. */
   clear: both;
 }
 
-.noclose .ui-dialog-titlebar-close
-{
+.hid-element {
     display:none;
 }
 
@@ -200,4 +199,19 @@ float the buttons inside it. This prevents collapsing. */
 
 .btn-save-profile {
     margin-left: 10px;
+}
+
+#frame-visualizer {
+    margin-bottom: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    width: 80%;
+}
+
+#player-control {
+    margin-bottom: 10px;
+}
+
+.btn-player {
+    font-size: 12px;
 }

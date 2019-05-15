@@ -29,4 +29,8 @@ urlpatterns = [
         name='save_frame_seg_data'),
     url(r'^check_task_status/$', views.check_task_status, name='check_task_status'),
     url(r'^download/(?P<exp_id>.*)/(?P<username>.*)$', views.download, name='download'),
+    url(r'^get_user_frame_info/(?P<exp_id>.*)/(?P<username>.*)/(?P<frame_no>[0-9]+)$',
+        views.get_user_frame_info, name='get_user_frame_info'),
+    url(r'^get_user_total_edit_frames/(?P<exp_id>.*)/(?P<username>.*)$',
+        views.get_user_total_edit_frames, name='get_user_total_edit_frames'),
 ]
