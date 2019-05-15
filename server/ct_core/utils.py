@@ -293,7 +293,8 @@ def sync_seg_data_to_db(eid):
 
 def get_edited_frames(username, exp_id):
     try:
-        user_edit_objs = UserSegmentation.objects.filter(user__username=username, exp_id=exp_id)
+        user_edit_objs = UserSegmentation.objects.filter(
+            user__username=username, exp_id=exp_id).order_by('frame_no')
         frm_list = []
         for obj in user_edit_objs:
             frm_list.append(str(obj.frame_no))

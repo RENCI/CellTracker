@@ -135,7 +135,6 @@ function request_user_total_edit_frames_ajax(exp_id, username) {
         type: "POST",
         url: "/get_user_total_edit_frames/" + exp_id + "/" + username,
         success: function (json_response) {
-            console.log(json_response.edit_frames);
             userEditFrames[username] = json_response.edit_frames;
             return true;
         },
@@ -275,6 +274,7 @@ function segmentation_draw(frame) {
             let weight = 2;
             let lineBackground = 0;
             let strokeColor = 220;
+            let fillColor = 100;
             // Draw outline background
             adminSketch.stroke(lineBackground);
             adminSketch.strokeWeight(weight+1);
@@ -294,7 +294,10 @@ function segmentation_draw(frame) {
             adminSketch.stroke(strokeColor);
             adminSketch.strokeWeight(weight);
 
-            adminSketch.noFill();
+            if (region.edited)
+                adminSketch.fill(color(fillColor, fillColor, fillColor, fillColor));
+            else
+                adminSketch.noFill();
 
             // Draw outline
             adminSketch.beginShape();
@@ -318,12 +321,15 @@ function update_frame_info() {
 }
 
 
-function update_user_edit_info(fno) {
+function update_user_edit_info() {
     if(userFramesInfo.length > 0) {
+        let userName = $('#user_list').val();
+        let userFullName = $('#user_list').text();
         let num_edited = userFramesInfo[frame-1].num_edited;
         let num_regions = userFramesInfo[frame-1].num_of_regions;
-        $('#user_edit_frm_info').html('The selected user has edited ' + num_edited + ' regions on this active frame ' +
-            'out of total ' + num_regions + ' regions.');
+        $('#user_edit_frm_info').html('This selected user ' + userFullName + ' has edited ' + num_edited +
+            ' regions out of total ' + num_regions + ' regions on this active frame. Total edited ' +
+            'frames by this user: ' + userEditFrames[userName] + '.');
     }
 }
 
