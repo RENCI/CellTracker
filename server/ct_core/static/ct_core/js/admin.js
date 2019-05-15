@@ -111,7 +111,7 @@ function request_user_frame_info_ajax(exp_id, frm_idx, username) {
         url: "/get_user_frame_info/" + exp_id + "/" + username + "/" + frm_idx,
         success: function (json_response) {
             userFramesInfo.push(json_response);
-            if (userFramesInfo.length == 1)
+            if (userFramesInfo.length == startFrame)
                 update_user_edit_info();
             return true;
         },
@@ -324,7 +324,7 @@ function update_frame_info() {
 function update_user_edit_info() {
     if(userFramesInfo.length > 0) {
         let userName = $('#user_list').val();
-        let userFullName = $('#user_list').attr('name');
+        let userFullName = $('#user_list option:selected').text();
         let num_edited = userFramesInfo[frame-1].num_edited;
         let num_regions = userFramesInfo[frame-1].num_of_regions;
         $('#user_edit_frm_info').html('This selected user ' + userFullName + ' has edited ' + num_edited +
@@ -454,7 +454,6 @@ $('#advance-frames').click(function (e) {
             }
         }
         update_frame_info();
-        update_user_edit_info();
     }
 });
 
