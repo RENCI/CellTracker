@@ -36,7 +36,8 @@ let timer = null;
 let settings = {
   editZoom: 1,
   playbackZoom: 1,
-  zoomPoint: [0, 0],
+  zoomPoint: [0.5, 0.5],
+  zoomBox: [0, 0, 1, 1],
   editMode: "vertex",
   stabilize: true
 };
@@ -392,6 +393,10 @@ function selectRegion(frame, region) {
   else {
     experiment.editFrame = null;
     experiment.centerRegion = null;
+
+    settings.zoomPoint = [0.5, 0.5];
+    settings.editZoom = 1
+    settings.playbackZoom = 1;
   }
 
   pushHistory();
@@ -576,6 +581,10 @@ function zoom(view, direction) {
   if (newZoom >= minZoom && newZoom <= maxZoom) {
     settings[key] = newZoom;
   }
+
+  const zp = settings.zoomPoint,
+        z = settings.playbackZoom / 2;
+  settings.zoomBox = [zp[0] - z, zp[1] - z, zp[0] + z, zp[1] + z];
 }
 
 function setEditMode(mode) {

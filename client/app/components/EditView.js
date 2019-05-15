@@ -134,7 +134,11 @@ const EditView = props => {
       <div className="row">
         <div className="col-md-12">
           <h4>Trajectory Graph</h4>
-          <TrajectoryGraphWrapper {...props} />
+          <TrajectoryGraphWrapper  
+            experiment={props.experiment}
+            playback={props.playback}
+            zoomPoint={props.settings.zoomPoint}
+            zoom={props.settings.playbackZoom} />
         </div>
       </div>
     </div>

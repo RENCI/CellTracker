@@ -11,7 +11,11 @@ export default function() {
       // Data
       data,
       graph = {},
+
+      // Settings
       currentFrame = 0,
+      zoomPoint = null,
+      zoom = 0,
 
       // Appearance
       nodeSize = 0,
@@ -53,11 +57,38 @@ export default function() {
   function processData() {
     // Mimic d3 Sankey, but enforce x-positions on nodes based on frame
 
+    // Find trajectories with visible regions
+    let visibleTrajectories = null;
+    
+    if (zoomPoint) {
+      visibleTrajectories = new Set();
+
+      const z = 1 / zoom / 2,
+            bb = [zoomPoint[0] - z, zoomPoint[1] - z, 
+                  zoomPoint[0] + z, zoomPoint[1] + z];
+
+      data.segmentationData.forEach(frame => {
+        frame.regions.forEach(region => {
+          for (let i = 0; i < region.vertices.length; i++) {
+            const v = region.vertices[i];
+
+            if (v[0] >= bb[0] && v[0] <= bb[2] &&
+                v[1] >= bb[1] && v[1] <= bb[3]) {
+              visibleTrajectories.add(region.trajectory_id);
+              return;
+            }
+          }
+        });
+      });
+    }
+
     // Create nodes from regions
     let nodes = data.segmentationData.map((frame, i) => {
       const frameNodes = {};
 
-      frame.regions.forEach(region => {
+      frame.regions.filter(region => {
+        return visibleTrajectories ? visibleTrajectories.has(region.trajectory_id) : true;
+      }).forEach(region => {
         const nodeId = id(i, region.id);
 
         frameNodes[region.id] = {
@@ -238,7 +269,6 @@ export default function() {
           .target(d => d.point1)
           .x(d => d.x)
           .y(d => d.y);
-
 
       // Bind data for links
       let link = svg.select(".links").selectAll(".link")
@@ -422,6 +452,18 @@ export default function() {
   trajectoryGraph.currentFrame = function(_) {
     if (!arguments.length) return currentFrame;
     currentFrame = _;
+    return trajectoryGraph;
+  };
+
+  trajectoryGraph.zoomPoint = function(_) {
+    if (!arguments.length) return zoomPoint;
+    zoomPoint = _;
+    return trajectoryGraph;
+  };
+
+  trajectoryGraph.zoom = function(_) {
+    if (!arguments.length) return zoom;
+    zoom = _;
     return trajectoryGraph;
   };
 

@@ -42,7 +42,9 @@ class TrajectoryGraphWrapper extends React.Component {
     this.trajectoryGraph
         .width(width)
         .height(width / 4)
-        .currentFrame(props.playback.frame);
+        .currentFrame(props.playback.frame)
+        .zoomPoint(props.zoomPoint)
+        .zoom(props.zoom);
 
     d3.select(this.ref)
         .datum(props.experiment)
@@ -56,7 +58,9 @@ class TrajectoryGraphWrapper extends React.Component {
 
 TrajectoryGraphWrapper.propTypes = {
   experiment: PropTypes.object.isRequired,
-  playback: PropTypes.object.isRequired
+  playback: PropTypes.object.isRequired,
+  zoomPoint: PropTypes.arrayOf(PropTypes.number),
+  zoom: PropTypes.number
 };
 
 export default TrajectoryGraphWrapper;
