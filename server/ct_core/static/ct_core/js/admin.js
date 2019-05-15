@@ -274,7 +274,7 @@ function segmentation_draw(frame) {
             let weight = 2;
             let lineBackground = 0;
             let strokeColor = 220;
-            let fillColor = 100;
+            let fillColor = 200;
             // Draw outline background
             adminSketch.stroke(lineBackground);
             adminSketch.strokeWeight(weight+1);
@@ -328,8 +328,8 @@ function update_user_edit_info() {
         let num_edited = userFramesInfo[frame-1].num_edited;
         let num_regions = userFramesInfo[frame-1].num_of_regions;
         $('#user_edit_frm_info').html('This selected user ' + userFullName + ' has edited ' + num_edited +
-            ' regions out of total ' + num_regions + ' regions on this active frame. Total edited ' +
-            'frames by this user: ' + userEditFrames[userName] + '.');
+            ' regions out of total ' + num_regions + ' regions on this active frame. Frames ' +
+            'edited by this user: frame ' + userEditFrames[userName] + '.');
     }
 }
 
