@@ -438,27 +438,39 @@ $('#advance-frames').click(function (e) {
         startFrame = startFrmIdx;
         frame = startFrmIdx;
         let i;
+        let loaded = false;
         let expId = $('#exp_select_list').val();
         for(i=0; i < loadNumImages; i++) {
             fno = startFrmIdx + i;
-            adminSketch.loadImage("/display-image/" + expId + "/jpg/" + fno, img => {
-                let w = img.width, h=img.height;
-                im = adminSketch.createImage(w, h);
-                im.copy(img, 0, 0, w, h, 0, 0, w, h);
-                images.push(im);
-                if (images.length === startFrmIdx) {
-                    resize();
-                    image_draw(frame);
-                }
-            });
+            if (fno > images.length) {
+                adminSketch.loadImage("/display-image/" + expId + "/jpg/" + fno, img => {
+                    let w = img.width, h=img.height;
+                    im = adminSketch.createImage(w, h);
+                    im.copy(img, 0, 0, w, h, 0, 0, w, h);
+                    images.push(im);
+                    if (images.length === startFrmIdx) {
+                        resize();
+                        image_draw(frame);
+                        loaded = true;
+                    }
+                });
+            }
         }
         if (hasSegmentation == 'true') {
             let userName = $('#user_list').val();
             for (frm = 0; frm < loadNumImages; frm++) {
                 fno = startFrmIdx + frm;
-                request_user_seg_data_ajax(expId, fno, userName);
-                request_user_frame_info_ajax(expId, fno, userName);
+                if (fno > segdata.length) {
+                    request_user_seg_data_ajax(expId, fno, userName);
+                    request_user_frame_info_ajax(expId, fno, userName);
+                    loaded = true;
+                }
             }
+        }
+        if (!loaded) {
+            image_draw(frame);
+            adminSketch.redraw();
+            update_user_edit_info();
         }
         update_frame_info();
     }
