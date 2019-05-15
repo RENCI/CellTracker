@@ -136,6 +136,7 @@ function request_user_total_edit_frames_ajax(exp_id, username) {
         url: "/get_user_total_edit_frames/" + exp_id + "/" + username,
         success: function (json_response) {
             userEditFrames[username] = json_response.edit_frames;
+            update_user_edit_info();
             return true;
         },
         error: function (xhr, errmsg, err) {
@@ -362,6 +363,8 @@ $('#user_list').change(function(e) {
     frame = 1;
     if (!(this.value in userEditFrames))
         request_user_total_edit_frames_ajax(expId, this.value);
+    else
+        update_user_edit_info();
 
     for(frm = 1; frm < startFrame + loadNumImages; frm++) {
         request_user_seg_data_ajax(expId, frm, this.value);
@@ -370,7 +373,6 @@ $('#user_list').change(function(e) {
     image_draw(frame);
     adminSketch.redraw();
     update_frame_info();
-    update_user_edit_info();
     $('#edit_download').attr("href", '/download/' + expId + '/' + this.value);
 });
 
