@@ -31,7 +31,7 @@ sed -i 's!CC_PATH!'${CC_PATH}'!g' ${CC_PATH}/docker-compose.yml
 # copy DockerFile.template to DockerFile
 cp Dockerfile.template Dockerfile
 sed -i 's!HOST_USER_UID!'${HOST_USER_UID}'!g' ${CC_PATH}/Dockerfile
-sed -i 's!HOST_USER_GID!'${HOST_USER_UID}'!g' ${CC_PATH}/Dockerfile
+sed -i 's!HOST_USER_GID!'${HOST_USER_GID}'!g' ${CC_PATH}/Dockerfile
 
 cd $HOME_DIR
 
