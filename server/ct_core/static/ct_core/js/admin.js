@@ -14,24 +14,27 @@ function getCookie(name) {
     return cookieValue;
 }
 
+
 function csrfSafeMethod(method) {
     // these HTTP methods do not require CSRF protection
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
 
-var images = [];
-var segdata = [];
+
+var images = {};
+var segdata = {};
 var numImages;
 var numMaxLoadFrames = 10;
 var frame = 1; // current frame index within total frames
 var startFrame = 1; // start frame index with advancing and reversing frames
 var lastSelExpId = '';
-var hasSegmentation = false;
-var userFramesInfo = [];
+var hasSegmentation = 'false';
+var userFramesInfo = {};
 var userEditFrames = {};
 
 // Create p5 instance for loading images
 var adminSketch = new p5(function (sk) {});
+
 
 function request_exp_list_ajax() {
     $.ajaxSetup({
@@ -66,13 +69,16 @@ function request_exp_list_ajax() {
     });
 }
 
+
 function normalizePoint(p) {
     return [p[0] / adminSketch.width, p[1] / adminSketch.height];
 }
 
+
 function scalePoint(p) {
     return [p[0] * adminSketch.width, p[1] * adminSketch.height];
 }
+
 
 function request_user_seg_data_ajax(exp_id, frm_idx, username) {
     $.ajaxSetup({
@@ -87,7 +93,7 @@ function request_user_seg_data_ajax(exp_id, frm_idx, username) {
         url: "/get_frame_seg_data/" + exp_id + "/" + frm_idx,
         data: {'username': username},
         success: function (json_response) {
-            segdata.push(json_response);
+            segdata[frm_idx] = json_response;
             return true;
         },
         error: function (xhr, errmsg, err) {
@@ -110,8 +116,8 @@ function request_user_frame_info_ajax(exp_id, frm_idx, username) {
         type: "POST",
         url: "/get_user_frame_info/" + exp_id + "/" + username + "/" + frm_idx,
         success: function (json_response) {
-            userFramesInfo.push(json_response);
-            if (userFramesInfo.length == startFrame)
+            userFramesInfo[frm_idx] = json_response;
+            if (frm_idx == startFrame)
                 update_user_edit_info();
             return true;
         },
@@ -147,6 +153,16 @@ function request_user_total_edit_frames_ajax(exp_id, username) {
 }
 
 
+function delete_dict(dict) {
+    var prop;
+    for (prop in dict) {
+        if (dict.hasOwnProperty(prop)) {
+            delete dict[prop];
+        }
+    }
+}
+
+
 function request_exp_info_ajax(exp_id) {
     $.ajaxSetup({
         beforeSend: function(xhr, settings) {
@@ -160,7 +176,7 @@ function request_exp_info_ajax(exp_id) {
         url: "/get_experiment_info/" + exp_id,
         success: function (json_response) {
             $('#player-control').show();
-            data = json_response;
+            let data = json_response;
             numImages = data.frames;
             info_msg = 'This experiment has ' + numImages + ' frames and has segmentation data.';
             $('frame-visualizer').show();
@@ -170,21 +186,27 @@ function request_exp_info_ajax(exp_id) {
                 loadNumImages = numImages;
             else
                 loadNumImages = numMaxLoadFrames;
-            images.length = 0;
-            var i;
-            for(i=1; i <= loadNumImages; i++) {
+            delete_dict(images);
+            delete_dict(segdata);
+            delete_dict(userFramesInfo);
+            delete_dict(userEditFrames);
+            // use let to define i is critical to be able to pass i to the call back function -
+            // let keyword allows you to declare a variable scoped to the nearest enclosing block
+            // and not global like var does.
+            // https://www.pluralsight.com/guides/javascript-callbacks-variable-scope-problem
+            for(let i=1; i <= loadNumImages; i++) {
                 adminSketch.loadImage("/display-image/" + exp_id + "/jpg/" + i, img => {
-                    let w = img.width, h=img.height;
+                    let w = img.width, h = img.height;
                     im = adminSketch.createImage(w, h);
                     im.copy(img, 0, 0, w, h, 0, 0, w, h);
-                    images.push(im);
-                    if (images.length === 1) {
+                    images[i] = im;
+                    if (i === frame) {
                         resize();
-                        image_draw(frame);
+                        image_draw(i);
                     }
                 });
             }
-            segdata.length = 0;
+
             hasSegmentation = data.has_segmentation;
             if (hasSegmentation == 'true') {
                 user_lists = data.edit_users;
@@ -201,7 +223,9 @@ function request_exp_info_ajax(exp_id) {
                 }
                 else {
                     $('#seg_info').html(info_msg + ' However, there is not yet user edit data for this experiment.');
+                    $('#user_list').empty();
                     $('#user_edit').hide();
+                    update_user_edit_info();
                     for (frm = 1; frm <= loadNumImages; frm++) {
                         request_user_seg_data_ajax(exp_id, frm, '');
                     }
@@ -233,10 +257,10 @@ function setup() {
 }
 
 function resize() {
-    if (images.length === 0) return;
+    if (!(1 in images)) return;
 
     // Size canvas to image aspect ratio
-    let im = images[0],
+    let im = images[1],
         aspect = im.width / im.height,
         w = $('#frame-visualizer').width(),
         h = w / aspect;
@@ -244,17 +268,17 @@ function resize() {
   }
 
 function draw() {
-    if (segdata.length > 0 && images.length > 0) {
+    if (frame in segdata && frame in images) {
         segmentation_draw(frame);
     }
 }
 
 function image_draw(frame) {
-    if (images.length === 0) {
+    if (!(frame in images)) {
         adminSketch.clear();
         return;
     }
-    let adminIm = images[frame-1];
+    let adminIm = images[frame];
     adminSketch.push();
     adminSketch.scale(adminSketch.width / adminIm.width, adminSketch.height / adminIm.height);
     adminSketch.image(adminIm, 0, 0);
@@ -262,13 +286,11 @@ function image_draw(frame) {
 }
 
 function segmentation_draw(frame) {
-    if (segdata.length === 0) {
+    if (!(frame in segdata)) {
         return;
     }
-    if (frame > segdata.length)
-        return;
 
-    regions = segdata[frame-1];
+    regions = segdata[frame];
     adminSketch.strokeJoin(adminSketch.ROUND);
     if(regions) {
         regions.forEach(function(region, i, a) {
@@ -315,6 +337,7 @@ function segmentation_draw(frame) {
     }
 }
 
+
 function update_frame_info() {
     sidx = frame - startFrame + 1;
     $('#frame_info').html(sidx + ' out of loaded ' + loadNumImages +
@@ -323,14 +346,17 @@ function update_frame_info() {
 
 
 function update_user_edit_info() {
-    if(userFramesInfo.length > 0) {
+    if(frame in userFramesInfo) {
         let userName = $('#user_list').val();
         let userFullName = $('#user_list option:selected').text();
-        let num_edited = userFramesInfo[frame-1].num_edited;
-        let num_regions = userFramesInfo[frame-1].num_of_regions;
+        let num_edited = userFramesInfo[frame].num_edited;
+        let num_regions = userFramesInfo[frame].num_of_regions;
         $('#user_edit_frm_info').html('This selected user ' + userFullName + ' has edited ' + num_edited +
             ' regions out of total ' + num_regions + ' regions on this active frame. Frames ' +
             'edited by this user: frame ' + userEditFrames[userName] + '.');
+    }
+    else {
+        $('#user_edit_frm_info').html('');
     }
 }
 
@@ -341,7 +367,7 @@ $('#exp_select_list').change(function(e) {
     if(this.value != 'null' && this.val != lastSelExpId) {
         request_exp_info_ajax(this.value);
         lastSelExpId = this.value;
-        userEditFrames = {};
+        delete_dict(userEditFrames);
     }
     else {
         $('#seg_info').html('');
@@ -357,8 +383,8 @@ $('#user_list').change(function(e) {
     e.stopPropagation();
     e.preventDefault();
     let expId = $('#exp_select_list').val();
-    segdata.length = 0;
-    userFramesInfo.length = 0;
+    delete_dict(segdata);
+    delete_dict(userFramesInfo);
     startFrame = 1;
     frame = 1;
     if (!(this.value in userEditFrames))
@@ -366,7 +392,7 @@ $('#user_list').change(function(e) {
     else
         update_user_edit_info();
 
-    for(frm = 1; frm < startFrame + loadNumImages; frm++) {
+    for(let frm = startFrame; frm < startFrame + loadNumImages; frm++) {
         request_user_seg_data_ajax(expId, frm, this.value);
         request_user_frame_info_ajax(expId, frm, this.value);
     }
@@ -441,16 +467,20 @@ $('#advance-frames').click(function (e) {
         let loaded = false;
         let expId = $('#exp_select_list').val();
         for(i=0; i < loadNumImages; i++) {
-            fno = startFrmIdx + i;
-            if (fno > images.length) {
+            // use let to define fno is critical to be able to pass fno to the call back function -
+            // let keyword allows you to declare a variable scoped to the nearest enclosing block
+            // and not global like var does.
+            // https://www.pluralsight.com/guides/javascript-callbacks-variable-scope-problem
+            let fno = startFrmIdx + i;
+            if (!(fno in images)) {
                 adminSketch.loadImage("/display-image/" + expId + "/jpg/" + fno, img => {
-                    let w = img.width, h=img.height;
+                    let w = img.width, h = img.height;
                     im = adminSketch.createImage(w, h);
                     im.copy(img, 0, 0, w, h, 0, 0, w, h);
-                    images.push(im);
-                    if (images.length === startFrmIdx) {
+                    images[fno] = im;
+                    if (fno === startFrmIdx) {
                         resize();
-                        image_draw(frame);
+                        image_draw(fno);
                         loaded = true;
                     }
                 });
@@ -458,11 +488,13 @@ $('#advance-frames').click(function (e) {
         }
         if (hasSegmentation == 'true') {
             let userName = $('#user_list').val();
-            for (frm = 0; frm < loadNumImages; frm++) {
-                fno = startFrmIdx + frm;
-                if (fno > segdata.length) {
+            for (let frm = 0; frm < loadNumImages; frm++) {
+                let fno = startFrmIdx + frm;
+                if (!(fno in segdata)) {
                     request_user_seg_data_ajax(expId, fno, userName);
-                    request_user_frame_info_ajax(expId, fno, userName);
+                    if (userName) {
+                        request_user_frame_info_ajax(expId, fno, userName);
+                    }
                     loaded = true;
                 }
             }
