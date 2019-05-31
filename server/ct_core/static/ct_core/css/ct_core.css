@@ -215,3 +215,7 @@ float the buttons inside it. This prevents collapsing. */
 .btn-player {
     font-size: 12px;
 }
+
+.warning-msg {
+    color: red;
+}

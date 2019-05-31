@@ -360,6 +360,29 @@ def save_tracking_data(request, exp_id):
     return HttpResponseServerError('iRODS session error')
 
 
+def create_new_experiment(request):
+    if request.user.is_authenticated() and request.user.is_superuser:
+        template = loader.get_template('ct_core/create_new_exp.html')
+        context = {}
+        return HttpResponse(template.render(context, request))
+    else:
+        return HttpResponseForbidden('You have to log in as data manager to create a new '
+                                     'experiment')
+
+
+def add_experiment_to_server(request):
+    if request.user.is_authenticated() and request.user.is_superuser:
+        exp_name = request.POST.get('exp_name', '')
+        exp_file = request.FILES['movie_sel_file']
+        seg_file = request.FILES['seg_sel_file']
+        exp_filename = exp_file.name
+        seg_filename = seg_file.name
+        return HttpResponseRedirect('/')
+    else:
+        return HttpResponseForbidden('You have to log in as data manager to add a new '
+                                     'experiment to the server')
+
+
 @login_required
 def save_frame_seg_data(request, exp_id, frame_no):
     seg_data = request.POST.dict()

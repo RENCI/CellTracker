@@ -33,4 +33,6 @@ urlpatterns = [
         views.get_user_frame_info, name='get_user_frame_info'),
     url(r'^get_user_total_edit_frames/(?P<exp_id>.*)/(?P<username>.*)$',
         views.get_user_total_edit_frames, name='get_user_total_edit_frames'),
+    url(r'^create_new_experiment/$', views.create_new_experiment, name='create_new_experiment'),
+    url(r'^add_experiment_to_server/$', views.add_experiment_to_server, name='add_experiment_to_server'),
 ]

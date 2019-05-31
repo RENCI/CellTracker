@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Create New Experiment{% endblock %}
+{% block content %}
+  <div class="container">
+    <div class="row">
+      <h2>Create a new experiment to explore in TRACE</h2>
+      <ul>
+        <li>Upload a time-lapse movie in avi format for the new experiment.</li>
+        <li>Input a meaningful name to identify the new experiment in TRACE.</li>
+        <li>Optionally upload cell segmentation data in csv format corresponding to the new experiment.</li>
+      </ul>
+      <form class="form-horizontal" role="form" action="/add_experiment_to_server/" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="movie_sel_file" class="col-form-label-lg">Upload a time-lapse movie: *</label>
+            <input type="file" class="form-control-file" name="movie_sel_file" id="movie_sel_file" accept=".avi"/>
+            <small class="form-text text-muted">You must upload a single movie in avi format.</small>
+        </div>
+        <hr/>
+        <div class="form-group">
+            <label for="exp_name" class="col-form-label-lg">Experiment Name: *</label>
+            <input id="exp_name" class="form-control" name="exp_name" placeholder="A meaning descriptive name to identify the experiment" value="" type="text" required/>
+        </div>
+        <hr/>
+        <div class="form-group">
+            <label for="seg_sel_file" class="col-form-label-lg">Upload cell segmentation data (Optional): </label>
+            <input type="file" class="form-control-file" name="seg_sel_file" id="seg_sel_file" accept=".csv"/>
+            <small class="form-text text-muted">If applicable, you can upload a single csv file that contains cell segmentation data for the experiment</small>
+        </div>
+        <hr/>
+
+        <div class="col-sm-12 row">
+          <button type="submit" class="col-sm-6 btn btn-primary btn-lg btn-block">Create New Experiment</button>
+          <a href="/" class="btn btn-default col-sm-6" type=button">Go back to data manager page</a>
+        </div>
+        <div class="form-group">
+          {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="warning-msg">{{ message }}</li>
+                {% endfor %}
+            </ul>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
