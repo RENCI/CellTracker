@@ -220,6 +220,6 @@ float the buttons inside it. This prevents collapsing. */
     color: red;
 }
 
-info-msg {
+.info-msg {
     color: green;
 }
