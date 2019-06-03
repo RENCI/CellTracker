@@ -1,18 +1,7 @@
-import os
-import csv
-import json
-import logging
-
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
-from irods.session import iRODSSession
-from irods.exception import CollectionDoesNotExist
-
-from ct_core.utils import get_exp_image_size
-
-
-logger = logging.getLogger(__name__)
+from ct_core.utils import create_seg_data_from_csv
 
 
 class Command(BaseCommand):
@@ -36,110 +25,9 @@ class Command(BaseCommand):
         parser.add_argument('input_file', help='input csv file name with full path to be splitted')
 
     def handle(self, *args, **options):
-        irods_path = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + \
-                     options['exp_id'] + '/data/segmentation'
-        rows, cols = get_exp_image_size(exp_id=options['exp_id'])
-        if rows == -1:
-            logger.error('cannot get experiment image size')
-            return
 
-        with open(options['input_file']) as inf:
-            outf_path = '/tmp/'
-            contents = csv.reader(inf)
-            last_fno = -1
-            obj_dict = {}
-            frame_ary = []
-            for row in contents:
-                if not row:
-                    continue
-                if row[0].startswith('#'):
-                    infostrs = row[0].split(' ')
-                    for istr in infostrs:
-                        istr.strip()
-                        if istr.startswith('frame'):
-                            curr_fno = int(istr[len('frame'):])
-                            if obj_dict:
-                                # remove the last vertex if it is duplicate with the first one
-                                v1y, v1x = obj_dict['vertices'][0]
-                                v2y, v2x = obj_dict['vertices'][-1]
-                                tol = 0.0000001
-                                if abs(v2y-v1y) < tol and abs(v2x-v1x) < tol:
-                                    # two vertices are equal
-                                    del obj_dict['vertices'][-1]
 
-                                # filter out polygons with less than 3 vertices
-                                if len(obj_dict['vertices']) > 2:
-                                    frame_ary.append(obj_dict)
-                                else:
-                                    print('filtering out frame ' + str(last_fno) + ' object ' +
-                                          obj_dict['id'])
-                                obj_dict = {}
-                            if frame_ary and last_fno < curr_fno:
-                                # starting a new frame - write out frame csv file and put it to
-                                # irods under the corresponding experiment id collection
-                                ofilename = 'frame' + str(last_fno+1) + '.json'
-                                outf_name = outf_path + ofilename
-                                with open(outf_name, 'w') as outf:
-                                    outf.write(json.dumps(frame_ary, indent=2))
-                                # put file to irods
-                                with iRODSSession(host=settings.IRODS_HOST,
-                                                  port=settings.IRODS_PORT,
-                                                  user=settings.IRODS_USER,
-                                                  password=settings.IRODS_PWD,
-                                                  zone=settings.IRODS_ZONE,
-                                                  ) as session:
-                                    session.default_resource = settings.IRODS_RESC
-                                    try:
-                                        coll = session.collections.get(irods_path)
-                                    except CollectionDoesNotExist:
-                                        session.collections.create(irods_path)
-
-                                    session.data_objects.put(outf_name,
-                                                             irods_path + '/' + ofilename)
-
-                                # clean up
-                                os.remove(outf_name)
-
-                                frame_ary = []
-                            last_fno = curr_fno
-                        elif istr.startswith('object'):
-                            obj_dict['id'] = istr
-                            obj_dict['vertices'] = []
-                    continue
-
-                x = row[0].strip()
-                y = row[1].strip()
-                numx = float(x)/rows
-                numy = float(y)/cols
-                if 'id' in obj_dict:
-                    obj_dict['vertices'].append([numy, numx])
-
-            # write the last frame
-            if obj_dict:
-                # filter out polygons with less than 3 vertices
-                if len(obj_dict['vertices']) > 2:
-                    frame_ary.append(obj_dict)
-                else:
-                    print('filtering out frame ' + str(curr_fno) + ' object ' +
-                          obj_dict['id'])
-                ofilename = 'frame' + str(last_fno + 1) + '.json'
-                outf_name = outf_path + ofilename
-                with open(outf_name, 'w') as outf:
-                    outf.write(json.dumps(frame_ary, indent=2))
-                # put file to irods
-                with iRODSSession(host=settings.IRODS_HOST,
-                                  port=settings.IRODS_PORT,
-                                  user=settings.IRODS_USER,
-                                  password=settings.IRODS_PWD,
-                                  zone=settings.IRODS_ZONE) as session:
-                    session.default_resource = settings.IRODS_RESC
-                    try:
-                        coll = session.collections.get(irods_path)
-                    except CollectionDoesNotExist:
-                        session.collections.create(irods_path)
-
-                    session.data_objects.put(outf_name,
-                                             irods_path + '/' + ofilename)
-
-                # clean up
-                os.remove(outf_name)
+        ret_msg = create_seg_data_from_csv(exp_id=options['exp_id'],
+                                           input_csv_file=options['input_file'],
+                                           irods_path=irods_path)
+        print(ret_msg)

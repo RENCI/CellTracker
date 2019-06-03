@@ -219,3 +219,7 @@ float the buttons inside it. This prevents collapsing. */
 .warning-msg {
     color: red;
 }
+
+info-msg {
+    color: green;
+}

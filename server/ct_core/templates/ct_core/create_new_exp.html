@@ -20,7 +20,7 @@
         <hr/>
         <div class="form-group">
             <label for="exp_name" class="col-form-label-lg">Experiment Name: *</label>
-            <input id="exp_name" class="form-control" name="exp_name" placeholder="A meaning descriptive name to identify the experiment" value="" type="text" required/>
+            <input id="exp_name" class="form-control" name="exp_name" placeholder="A meaningful descriptive name to identify the experiment" value="" type="text" required/>
         </div>
         <hr/>
         <div class="form-group">
@@ -38,7 +38,11 @@
           {% if messages %}
             <ul class="messages">
                 {% for message in messages %}
-                    <li class="warning-msg">{{ message }}</li>
+                    {% if message.tags == 'error' %}
+                        <li class="warning-msg">{{ message }}</li>
+                    {% elif message.tags == 'info' %}
+                        <li class="info-msg">{{ message }}</li>
+                    {% endif %}
                 {% endfor %}
             </ul>
           {% endif %}

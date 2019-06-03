@@ -19,7 +19,6 @@ urlpatterns = [
 
     # the following URLs were for initial testing, and not in use currently
     url(r'^stream-video/(?P<exp_id>.*)$', views.stream_video, name='stream_video'),
-    url(r'^extract-images/(?P<exp_id>.*)$', views.extract_images, name='extract_images'),
     url(r'^read-image/(?P<exp_id>.*)/(?P<img_file_name>.*)$', views.read_image, name='read_image'),
     url(r'^save_tracking_data/(?P<exp_id>.*)$', views.save_tracking_data,
         name='save_tracking_data'),

@@ -26,10 +26,10 @@ from rest_framework import status
 from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist
 
-from ct_core.utils import get_experiment_list_util, read_video, extract_images_from_video, \
-    read_image_frame, get_seg_collection, \
+from ct_core.utils import get_experiment_list_util, read_video, \
+    extract_images_from_video_to_irods, read_image_frame, get_seg_collection, \
     save_user_seg_data_to_db, get_start_frame, get_exp_image, get_edited_frames, get_all_edit_users, \
-    create_user_segmentation_data_for_download, get_frame_info
+    create_user_segmentation_data_for_download, get_frame_info, create_seg_data_from_csv
 from ct_core.task_utils import get_exp_frame_no
 from ct_core.forms import SignUpForm, UserProfileForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
@@ -241,30 +241,6 @@ def stream_video(request, exp_id):
 
 
 @login_required
-def extract_images(request, exp_id):
-    # this view function is not used since we now save image sequences directly using ImageJ without dynamic extraction
-    # from video. Keep this view function just for future reference.
-    # remove the temp image directory before streaming the new one
-    input_dest_path = os.path.join(settings.IRODS_ROOT, exp_id)
-    image_path = os.path.join(input_dest_path, 'image')
-    if os.path.exists(image_path):
-        shutil.rmtree(image_path)
-    istorage = IrodsStorage()
-    dpath = istorage.getVideo(exp_id, settings.IRODS_ROOT)
-    for vfile in os.listdir(dpath):
-        # there is supposed to be only one video
-        vfilepath = os.path.join(dpath, vfile)
-        ret = extract_images_from_video(vfilepath, image_path)
-
-        template = loader.get_template('ct_core/index.html')
-        context = {
-            'SITE_TITLE': settings.SITE_TITLE,
-            'extract': True if ret else None
-        }
-        return HttpResponse(template.render(context, request))
-
-
-@login_required
 def display_image(request, exp_id, type, frame_no):
     """
     Return requested image to client
@@ -377,10 +353,49 @@ def add_experiment_to_server(request):
         seg_file = request.FILES['seg_sel_file']
         exp_filename = exp_file.name
         seg_filename = seg_file.name
-        return HttpResponseRedirect('/')
+        exp_list, err_msg = get_experiment_list_util()
+        if err_msg or not exp_list:
+            messages.error(request, "Cannot connect to iRODS server")
+            return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+        id_list = [item['id'] for item in exp_list]
+        exp_id = os.path.splitext(exp_filename)[0]
+        idx = 1
+        while exp_id in id_list:
+            # make exp_id unique
+            exp_id = '{}_{}'.format(exp_id, idx)
+            idx += 1
+
+        # create new experiment collection in iRODS and transfer uploaded video to iRODS
+        retmsg = extract_images_from_video_to_irods(exp_id=exp_id,
+                                                    video_input_file=exp_file)
+        if retmsg != 'success':
+            messages.error(request, retmsg)
+            return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+        # put experiment data as metadata for the newly created experiment collection
+        cpath = '/{}/home/{}/{}'.format(settings.IRODS_ZONE, settings.IRODS_USER, exp_id)
+        with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT,
+                          user=settings.IRODS_USER,
+                          password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
+            coll = session.collections.get(cpath)
+            coll.metadata.add('experiment_name', exp_name)
+
+        # extract frame segmentation data from uploaded csv file and put them in iRODS
+        irods_path = cpath + '/data/segmentation'
+        err_msg = create_seg_data_from_csv(exp_id=exp_id,
+                                           input_csv_file=seg_file,
+                                           irods_path=irods_path)
+        if err_msg != 'success':
+            messages.error(request, retmsg)
+            return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+        messages.info(request, 'New experiment is added successfully.')
+        return HttpResponseRedirect(request.META['HTTP_REFERER'])
     else:
-        return HttpResponseForbidden('You have to log in as data manager to add a new '
-                                     'experiment to the server')
+        messages.error(request, 'You have to log in as data manager to add a new experiment '
+                                'to the server')
+        return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
 @login_required

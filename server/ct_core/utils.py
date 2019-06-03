@@ -16,6 +16,8 @@ from django.core.exceptions import ObjectDoesNotExist
 
 from django_irods.storage import IrodsStorage
 
+from wand.image import Image
+
 from ct_core.models import Segmentation, UserSegmentation, get_path
 from ct_core.task_utils  import get_exp_frame_no, validate_user
 
@@ -60,26 +62,87 @@ def read_video(filename):
         time.sleep(settings.VIDEO_FRAME_INTERVAL_SECOND)
 
 
-def extract_images_from_video(videofile, imagepath):
-    cap = cv2.VideoCapture(videofile)
-    success, frame = cap.read()
-    count = 0
-    # clean up destination image path
-    if os.path.exists(imagepath):
-        shutil.rmtree(imagepath)
+def extract_images_from_video_to_irods(exp_id='', video_input_file=''):
+    """
+    extract images from video_input_file and put video file and extracted images to iRODS
+    :param exp_id: experiment id
+    :param video_input_file: video input file name string or UploadedTemporaryFile object on
+    the Django server
+    :return: error message if error, 'success' otherwise
+    """
+    if not exp_id:
+        return "input exp_id cannot be empty"
+    if not video_input_file:
+        return "input video_input_file cannot be empty"
 
-    os.mkdir(imagepath)
+    video_type = None
 
-    while success:
-        ifile = os.path.join(imagepath, 'frame{}.png'.format(count))
-        cv2.imwrite(ifile, frame)
-        count += 1
-        success, frame = cap.read()
-
-    if count > 0:
-        return True
+    if hasattr(video_input_file, 'name'):
+        video_filename = video_input_file.name
+        if video_filename.endswith('.avi'):
+            video_type = 'avi'
+        elif video_filename.endswith('.tif'):
+            video_type = 'tif'
+        video_file_path = video_input_file.temporary_file_path()
     else:
-        return False
+        if video_input_file.endswith('.avi'):
+            video_type = 'avi'
+        elif video_input_file.endswith('.tif'):
+            video_type = 'tif'
+        video_file_path = video_input_file
+        video_filename = os.path.basename(video_input_file)
+
+    if not video_type:
+        return "uploaded video must be in the format of avi or tif"
+
+    outf_path = '/tmp/'
+
+    if video_type == 'avi':
+        cap = cv2.VideoCapture(video_file_path)
+        success, frame = cap.read()
+        count = 0
+        while success:
+            ofile = outf_path + "frame{}.jpg".format(count)
+            # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            # cv2.imwrite(ofile, gray)
+            cv2.imwrite(ofile, frame)
+            success, frame = cap.read()
+            count += 1
+    else:
+        # video type is tif
+        with Image(filename=video_file_path) as img:
+            count = len(img.sequence)
+            for i in range(0, count):
+                ofile = outf_path + "frame{}.jpg".format(i)
+                img_out = Image(image=img.sequence[i])
+                img_out.format = 'jpeg'
+                img_out.save(filename=ofile)
+
+    istorage = IrodsStorage()
+
+    irods_path = exp_id + '/data/video/' + video_filename
+
+    # put video file to irods first
+    istorage.saveFile(video_file_path, irods_path, create_directory=True)
+
+    irods_path = exp_id + '/data/image/jpg/'
+
+    # create image collection first
+    istorage.saveFile('', irods_path, create_directory=True)
+
+    # write to iRODS
+    for i in range(count):
+        ifile = outf_path + "frame{}.jpg".format(i)
+        zero_cnt = len(str(count)) - len(str(i + 1))
+        packstr = ''
+        for j in range(0, zero_cnt):
+            packstr += '0'
+        ofile = 'frame' + packstr + str(i + 1) + '.jpg'
+        istorage.saveFile(ifile, irods_path + ofile)
+        # clean up
+        os.remove(ifile)
+    # success
+    return 'success'
 
 
 def read_image_frame(exp_id, image_fname):
@@ -601,3 +664,128 @@ def create_user_segmentation_data_for_download(exp_id, username):
     shutil.rmtree(local_data_path)
 
     return ret_filename
+
+
+def create_seg_data_from_csv(exp_id, input_csv_file, irods_path):
+    """
+    Create frame json segmentation data from input csv file and put them in iRODS
+    :param exp_id: experiment id
+    :param input_csv_file: input csv file name
+    :param irods_path: irods path to put frame json segmentation data
+    :return: error message string or 'success' otherwise
+    """
+    rows, cols = get_exp_image_size(exp_id=exp_id)
+    if rows == -1:
+        return 'cannot get experiment image size'
+
+    try:
+        if hasattr(input_csv_file, 'name'):
+            # TemporaryUploadedFile
+            input_csv_path = input_csv_file.temporary_file_path()
+        else:
+            input_csv_path = input_csv_file
+
+        with open(input_csv_path) as inf:
+            outf_path = '/tmp/'
+            contents = csv.reader(inf)
+            last_fno = -1
+            obj_dict = {}
+            frame_ary = []
+            for row in contents:
+                if not row:
+                    continue
+                if row[0].startswith('#'):
+                    infostrs = row[0].split(' ')
+                    for istr in infostrs:
+                        istr.strip()
+                        if istr.startswith('frame'):
+                            curr_fno = int(istr[len('frame'):])
+                            if obj_dict:
+                                # remove the last vertex if it is duplicate with the first one
+                                v1y, v1x = obj_dict['vertices'][0]
+                                v2y, v2x = obj_dict['vertices'][-1]
+                                tol = 0.0000001
+                                if abs(v2y - v1y) < tol and abs(v2x - v1x) < tol:
+                                    # two vertices are equal
+                                    del obj_dict['vertices'][-1]
+
+                                # filter out polygons with less than 3 vertices
+                                if len(obj_dict['vertices']) > 2:
+                                    frame_ary.append(obj_dict)
+                                else:
+                                    print('filtering out frame ' + str(last_fno) + ' object ' +
+                                          obj_dict['id'])
+                                obj_dict = {}
+                            if frame_ary and last_fno < curr_fno:
+                                # starting a new frame - write out frame csv file and put it to
+                                # irods under the corresponding experiment id collection
+                                ofilename = 'frame' + str(last_fno + 1) + '.json'
+                                outf_name = outf_path + ofilename
+                                with open(outf_name, 'w') as outf:
+                                    outf.write(json.dumps(frame_ary, indent=2))
+                                # put file to irods
+                                with iRODSSession(host=settings.IRODS_HOST,
+                                                  port=settings.IRODS_PORT,
+                                                  user=settings.IRODS_USER,
+                                                  password=settings.IRODS_PWD,
+                                                  zone=settings.IRODS_ZONE,
+                                                  ) as session:
+                                    session.default_resource = settings.IRODS_RESC
+                                    try:
+                                        coll = session.collections.get(irods_path)
+                                    except CollectionDoesNotExist:
+                                        session.collections.create(irods_path)
+
+                                    session.data_objects.put(outf_name,
+                                                             irods_path + '/' + ofilename)
+
+                                # clean up
+                                os.remove(outf_name)
+
+                                frame_ary = []
+                            last_fno = curr_fno
+                        elif istr.startswith('object'):
+                            obj_dict['id'] = istr
+                            obj_dict['vertices'] = []
+                    continue
+
+                x = row[0].strip()
+                y = row[1].strip()
+                numx = float(x) / rows
+                numy = float(y) / cols
+                if 'id' in obj_dict:
+                    obj_dict['vertices'].append([numy, numx])
+
+            # write the last frame
+            if obj_dict:
+                # filter out polygons with less than 3 vertices
+                if len(obj_dict['vertices']) > 2:
+                    frame_ary.append(obj_dict)
+                else:
+                    print('filtering out frame ' + str(curr_fno) + ' object ' +
+                          obj_dict['id'])
+                ofilename = 'frame' + str(last_fno + 1) + '.json'
+                outf_name = outf_path + ofilename
+                with open(outf_name, 'w') as outf:
+                    outf.write(json.dumps(frame_ary, indent=2))
+                # put file to irods
+                with iRODSSession(host=settings.IRODS_HOST,
+                                  port=settings.IRODS_PORT,
+                                  user=settings.IRODS_USER,
+                                  password=settings.IRODS_PWD,
+                                  zone=settings.IRODS_ZONE) as session:
+                    session.default_resource = settings.IRODS_RESC
+                    try:
+                        coll = session.collections.get(irods_path)
+                    except CollectionDoesNotExist:
+                        session.collections.create(irods_path)
+
+                    session.data_objects.put(outf_name,
+                                             irods_path + '/' + ofilename)
+
+                # clean up
+                os.remove(outf_name)
+                # success
+                return 'success'
+    except Exception as ex:
+        return ex.message
