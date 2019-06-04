@@ -29,7 +29,8 @@ from irods.exception import CollectionDoesNotExist
 from ct_core.utils import get_experiment_list_util, read_video, \
     extract_images_from_video_to_irods, read_image_frame, get_seg_collection, \
     save_user_seg_data_to_db, get_start_frame, get_exp_image, get_edited_frames, get_all_edit_users, \
-    create_user_segmentation_data_for_download, get_frame_info, create_seg_data_from_csv
+    create_user_segmentation_data_for_download, get_frame_info, create_seg_data_from_csv, \
+    sync_seg_data_to_db
 from ct_core.task_utils import get_exp_frame_no
 from ct_core.forms import SignUpForm, UserProfileForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
@@ -389,6 +390,9 @@ def add_experiment_to_server(request):
         if err_msg != 'success':
             messages.error(request, retmsg)
             return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+        # populate segmentation data in DB from iRODS
+        sync_seg_data_to_db(exp_id)
 
         messages.info(request, 'New experiment is added successfully.')
         return HttpResponseRedirect(request.META['HTTP_REFERER'])
