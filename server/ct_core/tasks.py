@@ -39,7 +39,7 @@ def add_tracking(exp_id, username='', frm_idx=-1):
         # the experiment does not exist
         logger.warn('cannot add tracking to experiment ' + exp_id + ' that does not exist')
         return ret_result
-    if not validate_user(username):
+    if username and not validate_user(username):
         logger.warning('cannot add tracking for experiment ' + exp_id + ' for an invalid user '
                        + username)
         return ret_result

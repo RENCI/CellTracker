@@ -20,6 +20,7 @@ from django.shortcuts import render, redirect
 from django.forms.models import inlineformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils.datastructures import MultiValueDictKeyError
 
 from rest_framework import status
 
@@ -350,10 +351,23 @@ def create_new_experiment(request):
 def add_experiment_to_server(request):
     if request.user.is_authenticated() and request.user.is_superuser:
         exp_name = request.POST.get('exp_name', '')
-        exp_file = request.FILES['movie_sel_file']
-        seg_file = request.FILES['seg_sel_file']
-        exp_filename = exp_file.name
-        seg_filename = seg_file.name
+        if not exp_name:
+            messages.error(request, 'Please input a meaningful experiment name.')
+            return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+        try:
+            exp_file = request.FILES['movie_sel_file']
+            exp_filename = exp_file.name
+        except MultiValueDictKeyError as ex:
+            messages.error(request, 'Please upload a experiment video in avi format.')
+            return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+        try:
+            seg_file = request.FILES['seg_sel_file']
+            seg_filename = seg_file.name
+        except MultiValueDictKeyError as ex:
+            seg_filename = ''
+
         exp_list, err_msg = get_experiment_list_util()
         if err_msg or not exp_list:
             messages.error(request, "Cannot connect to iRODS server")
@@ -382,17 +396,21 @@ def add_experiment_to_server(request):
             coll = session.collections.get(cpath)
             coll.metadata.add('experiment_name', exp_name)
 
-        # extract frame segmentation data from uploaded csv file and put them in iRODS
-        irods_path = cpath + '/data/segmentation'
-        err_msg = create_seg_data_from_csv(exp_id=exp_id,
-                                           input_csv_file=seg_file,
-                                           irods_path=irods_path)
-        if err_msg != 'success':
-            messages.error(request, retmsg)
-            return HttpResponseRedirect(request.META['HTTP_REFERER'])
+        if seg_filename:
+            # extract frame segmentation data from uploaded csv file and put them in iRODS
+            irods_path = cpath + '/data/segmentation'
+            err_msg = create_seg_data_from_csv(exp_id=exp_id,
+                                               input_csv_file=seg_file,
+                                               irods_path=irods_path)
+            if err_msg != 'success':
+                messages.error(request, retmsg)
+                return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
-        # populate segmentation data in DB from iRODS
-        sync_seg_data_to_db(exp_id)
+            # populate segmentation data in DB from iRODS
+            sync_seg_data_to_db(exp_id)
+
+            # add tracking
+            add_tracking.apply_async((exp_id,), countdown=1)
 
         messages.info(request, 'New experiment is added successfully.')
         return HttpResponseRedirect(request.META['HTTP_REFERER'])
