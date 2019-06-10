@@ -36,6 +36,7 @@ from ct_core.task_utils import get_exp_frame_no
 from ct_core.forms import SignUpForm, UserProfileForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
 from django_irods.storage import IrodsStorage
+from django_irods.icommands import SessionException
 from ct_core.tasks import add_tracking
 
 
@@ -355,18 +356,48 @@ def add_experiment_to_server(request):
             messages.error(request, 'Please input a meaningful experiment name.')
             return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
+        upload_video = False
         try:
-            exp_file = request.FILES['movie_sel_file']
-            exp_filename = exp_file.name
-        except MultiValueDictKeyError as ex:
-            messages.error(request, 'Please upload a experiment video in avi format.')
-            return HttpResponseRedirect(request.META['HTTP_REFERER'])
+            exp_img_files = request.FILES.getlist('image_sel_files')
+            exp_filename = exp_img_files[0].name
+            # validate image frame file name formats
+            fname_list = [fn.name for fn in exp_img_files]
+            list_len = len(exp_img_files)
+            for i in range(list_len):
+                fname = 'frame{}.jpg'.format(i + 1)
+                if fname not in fname_list:
+                    messages.error(request, 'Uploaded image frame does not contain ' + fname)
+                    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+        except MultiValueDictKeyError:
+            try:
+                exp_video_file = request.FILES['movie_sel_file']
+                exp_filename = exp_video_file.name
+                upload_video = True
+            except MultiValueDictKeyError:
+                messages.error(request, 'Please upload experiment image frames in jpg format or '
+                                        'upload an experiment video in avi format.')
+                return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
+        seg_csv = False
         try:
-            seg_file = request.FILES['seg_sel_file']
-            seg_filename = seg_file.name
-        except MultiValueDictKeyError as ex:
-            seg_filename = ''
+            seg_files = request.FILES.getlist('seg_sel_files')
+            seg_filename = seg_files[0].name
+            # validate segmentation data frame file name formats
+            fname_list = [fn.name for fn in seg_files]
+            list_len = len(seg_files)
+            for i in range(list_len):
+                fname = 'frame{}.json'.format(i + 1)
+                if fname not in fname_list:
+                    messages.error(request, 'Uploaded segmentation data frame does not contain ' +
+                                   fname)
+                    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+        except MultiValueDictKeyError:
+            try:
+                seg_file = request.FILES['seg_sel_file']
+                seg_filename = seg_file.name
+                seg_csv = True
+            except MultiValueDictKeyError:
+                seg_filename = ''
 
         exp_list, err_msg = get_experiment_list_util()
         if err_msg or not exp_list:
@@ -381,12 +412,26 @@ def add_experiment_to_server(request):
             exp_id = '{}_{}'.format(exp_id, idx)
             idx += 1
 
-        # create new experiment collection in iRODS and transfer uploaded video to iRODS
-        retmsg = extract_images_from_video_to_irods(exp_id=exp_id,
-                                                    video_input_file=exp_file)
-        if retmsg != 'success':
-            messages.error(request, retmsg)
-            return HttpResponseRedirect(request.META['HTTP_REFERER'])
+        istorage = IrodsStorage()
+        if upload_video:
+            # create new experiment collection in iRODS and transfer uploaded video to iRODS
+            retmsg = extract_images_from_video_to_irods(exp_id=exp_id,
+                                                        video_input_file=exp_video_file,
+                                                        istorage=istorage)
+            if retmsg != 'success':
+                messages.error(request, retmsg)
+                return HttpResponseRedirect(request.META['HTTP_REFERER'])
+        else:
+            # put image frames in iRODS
+            try:
+                irods_path = exp_id + '/data/image/jpg/'
+                # create image collection first
+                istorage.saveFile('', irods_path, create_directory=True)
+                for f in exp_img_files:
+                    istorage.saveFile(f.temporary_file_path(), irods_path + f.name)
+            except SessionException as ex:
+                messages.error(request, ex.stderr)
+                return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
         # put experiment data as metadata for the newly created experiment collection
         cpath = '/{}/home/{}/{}'.format(settings.IRODS_ZONE, settings.IRODS_USER, exp_id)
@@ -397,15 +442,26 @@ def add_experiment_to_server(request):
             coll.metadata.add('experiment_name', exp_name)
 
         if seg_filename:
-            # extract frame segmentation data from uploaded csv file and put them in iRODS
-            irods_path = cpath + '/data/segmentation'
-            err_msg = create_seg_data_from_csv(exp_id=exp_id,
-                                               input_csv_file=seg_file,
-                                               irods_path=irods_path)
-            if err_msg != 'success':
-                messages.error(request, retmsg)
-                return HttpResponseRedirect(request.META['HTTP_REFERER'])
-
+            if seg_csv:
+                # extract frame segmentation data from uploaded csv file and put them in iRODS
+                irods_path = cpath + '/data/segmentation'
+                err_msg = create_seg_data_from_csv(exp_id=exp_id,
+                                                   input_csv_file=seg_file,
+                                                   irods_path=irods_path)
+                if err_msg != 'success':
+                    messages.error(request, retmsg)
+                    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+            else:
+                # put seg data frames in iRODS
+                try:
+                    irods_path = cpath + '/data/segmentation/'
+                    # create image collection first
+                    istorage.saveFile('', irods_path, create_directory=True)
+                    for f in seg_files:
+                        istorage.saveFile(f.temporary_file_path(), irods_path + f.name)
+                except SessionException as ex:
+                    messages.error(request, ex.stderr)
+                    return HttpResponseRedirect(request.META['HTTP_REFERER'])
             # populate segmentation data in DB from iRODS
             sync_seg_data_to_db(exp_id)
 

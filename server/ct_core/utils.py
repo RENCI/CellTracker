@@ -15,6 +15,7 @@ from django.utils import timezone
 from django.core.exceptions import ObjectDoesNotExist
 
 from django_irods.storage import IrodsStorage
+from django_irods.icommands import SessionException
 
 from wand.image import Image
 
@@ -62,12 +63,13 @@ def read_video(filename):
         time.sleep(settings.VIDEO_FRAME_INTERVAL_SECOND)
 
 
-def extract_images_from_video_to_irods(exp_id='', video_input_file=''):
+def extract_images_from_video_to_irods(exp_id='', video_input_file='', istorage=None):
     """
     extract images from video_input_file and put video file and extracted images to iRODS
     :param exp_id: experiment id
     :param video_input_file: video input file name string or UploadedTemporaryFile object on
     the Django server
+    :param istorage: iRODS storage object with default being None
     :return: error message if error, 'success' otherwise
     """
     if not exp_id:
@@ -95,7 +97,7 @@ def extract_images_from_video_to_irods(exp_id='', video_input_file=''):
     if not video_type:
         return "uploaded video must be in the format of avi or tif"
 
-    outf_path = '/tmp/'
+    outf_path = '/tmp/{}/'.format(exp_id)
 
     if video_type == 'avi':
         cap = cv2.VideoCapture(video_file_path)
@@ -118,31 +120,36 @@ def extract_images_from_video_to_irods(exp_id='', video_input_file=''):
                 img_out.format = 'jpeg'
                 img_out.save(filename=ofile)
 
-    istorage = IrodsStorage()
+    try:
+        if not istorage:
+            istorage = IrodsStorage()
 
-    irods_path = exp_id + '/data/video/' + video_filename
+        irods_path = exp_id + '/data/video/' + video_filename
 
-    # put video file to irods first
-    istorage.saveFile(video_file_path, irods_path, create_directory=True)
+        # put video file to irods first
+        istorage.saveFile(video_file_path, irods_path, create_directory=True)
 
-    irods_path = exp_id + '/data/image/jpg/'
+        irods_path = exp_id + '/data/image/jpg/'
 
-    # create image collection first
-    istorage.saveFile('', irods_path, create_directory=True)
+        # create image collection first
+        istorage.saveFile('', irods_path, create_directory=True)
 
-    # write to iRODS
-    for i in range(count):
-        ifile = outf_path + "frame{}.jpg".format(i)
-        zero_cnt = len(str(count)) - len(str(i + 1))
-        packstr = ''
-        for j in range(0, zero_cnt):
-            packstr += '0'
-        ofile = 'frame' + packstr + str(i + 1) + '.jpg'
-        istorage.saveFile(ifile, irods_path + ofile)
-        # clean up
-        os.remove(ifile)
-    # success
-    return 'success'
+        # write to iRODS
+        for i in range(count):
+            ifile = outf_path + "frame{}.jpg".format(i)
+            zero_cnt = len(str(count)) - len(str(i + 1))
+            packstr = ''
+            for j in range(0, zero_cnt):
+                packstr += '0'
+            ofile = 'frame' + packstr + str(i + 1) + '.jpg'
+            istorage.saveFile(ifile, irods_path + ofile)
+            # clean up
+            os.remove(ifile)
+        # success
+        return 'success'
+    except SessionException as ex:
+        shutil.rmtree(outf_path)
+        return ex.stderr
 
 
 def read_image_frame(exp_id, image_fname):
@@ -610,6 +617,32 @@ def compute_time_series_and_put_in_irods(exp_id, username=''):
     os.remove(output_file_with_path)
 
 
+def put_image_list_to_irods(exp_id, files):
+    """
+    Put uploaded image list to iRODS
+    :param exp_id: experiment id collection to save files to
+    :param files: uploaded image frame list
+    :return: success or error message
+    """
+    if not files:
+        return "input files list cannot be empty"
+
+    irods_path = exp_id + '/data/image/jpg/'
+    istorage = IrodsStorage()
+
+    # create image collection first
+    istorage.saveFile('', irods_path, create_directory=True)
+
+    # write to iRODS
+    for f in files:
+        fname = f.name
+        if not fname.endswith('.jpg'):
+            return "input file must be jpg file"
+        file_path = f.temporary_file_path()
+    # success
+    return 'success'
+
+
 def create_user_segmentation_data_for_download(exp_id, username):
     """
     Create a zipped user segmentation data for downloading. It contains user edit frames along
@@ -686,7 +719,7 @@ def create_seg_data_from_csv(exp_id, input_csv_file, irods_path):
             input_csv_path = input_csv_file
 
         with open(input_csv_path) as inf:
-            outf_path = '/tmp/'
+            outf_path = '/tmp/{}/'.format(exp_id)
             contents = csv.reader(inf)
             last_fno = -1
             obj_dict = {}
@@ -788,4 +821,5 @@ def create_seg_data_from_csv(exp_id, input_csv_file, irods_path):
                 # success
                 return 'success'
     except Exception as ex:
+        shutil.rmtree(outf_path)
         return ex.message

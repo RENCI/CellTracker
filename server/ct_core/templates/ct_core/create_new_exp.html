@@ -6,16 +6,20 @@
     <div class="row">
       <h2>Create a new experiment to explore in TRACE</h2>
       <ul>
-        <li>Upload a time-lapse movie in avi format for the new experiment.</li>
+        <li>Upload image frame files in jpeg format or upload a time-lapse movie in avi format for the new experiment.</li>
         <li>Input a meaningful name to identify the new experiment in TRACE.</li>
-        <li>Optionally upload cell segmentation data in csv format corresponding to the new experiment.</li>
+        <li>Optionally upload cell segmentation data frame files in JSON format or upload one segmentation file in csv format
+            for all frames corresponding to the new experiment.</li>
       </ul>
       <form class="form-horizontal" role="form" action="/add_experiment_to_server/" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="form-group">
-            <label for="movie_sel_file" class="col-form-label-lg">Upload a time-lapse movie: *</label>
+            <label for="image_sel_files" class="col-form-label-lg">Upload multiple image frame files:</label>
+            <input type="file" class="form-control-file" name="image_sel_files" id="image_sel_files" accept=".jpg" multiple/>
+            <small class="form-text text-muted">Uploaded image frames must be in jpg format and named as frame1.jpg, frame2.jpg, and so on.</small>
+            <label for="movie_sel_file" class="col-form-label-lg">Or upload a time-lapse movie:</label>
             <input type="file" class="form-control-file" name="movie_sel_file" id="movie_sel_file" accept=".avi"/>
-            <small class="form-text text-muted">You must upload a single movie in avi format.</small>
+            <small class="form-text text-muted">Uploaded movie must be in avi format.</small>
         </div>
         <hr/>
         <div class="form-group">
@@ -24,9 +28,12 @@
         </div>
         <hr/>
         <div class="form-group">
-            <label for="seg_sel_file" class="col-form-label-lg">Upload cell segmentation data (Optional): </label>
+            <label for="seg_sel_files" class="col-form-label-lg">If applicable, upload multiple frame cell segmentation data (Optional):</label>
+            <input type="file" class="form-control-file" name="seg_sel_files" id="seg_sel_files" accept=".json" multiple/>
+            <small class="form-text text-muted">Uploaded cell segmentation data frames must be in json format and named as frame1.json, frame2.json, and so on.</small>
+            <label for="seg_sel_file" class="col-form-label-lg">Or upload single cell segmentation data for all frames: </label>
             <input type="file" class="form-control-file" name="seg_sel_file" id="seg_sel_file" accept=".csv"/>
-            <small class="form-text text-muted">If applicable, you can upload a single csv file that contains cell segmentation data for the experiment</small>
+            <small class="form-text text-muted"> Uploaded single cell segmentation data for all frames must be in csv format</small>
         </div>
         <hr/>
 
