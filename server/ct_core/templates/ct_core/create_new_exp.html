@@ -3,7 +3,6 @@
 {% block title %}Create New Experiment{% endblock %}
 {% block content %}
   <div class="container">
-    <div class="row">
       <h2>Create a new experiment to explore in TRACE</h2>
       <ul>
         <li>Upload image frame files in jpeg format or upload a time-lapse movie in avi format for the new experiment.</li>
@@ -26,6 +25,10 @@
             <label for="exp_name" class="col-form-label-lg">Experiment Name: *</label>
             <input id="exp_name" class="form-control" name="exp_name" placeholder="A meaningful descriptive name to identify the experiment" value="" type="text" required/>
         </div>
+        <div class="form-group">
+            <label for="exp_id" class="col-form-label-lg">Experiment Unique Identifier (Optional): </label>
+            <input id="exp_id" class="form-control" name="exp_id" placeholder="A unique identifier used internally as the directory name to identify the experiment. If not provided, the file name of an uploaded file will be used." value="" type="text"/>
+        </div>
         <hr/>
         <div class="form-group">
             <label for="seg_sel_files" class="col-form-label-lg">If applicable, upload multiple frame cell segmentation data (Optional):</label>
@@ -37,7 +40,7 @@
         </div>
         <hr/>
 
-        <div class="col-sm-12 row">
+        <div class="row">
           <button type="submit" class="col-sm-6 btn btn-primary btn-lg btn-block">Create New Experiment</button>
           <a href="/" class="btn btn-default col-sm-6" type=button">Go back to data manager page</a>
         </div>
@@ -55,6 +58,5 @@
           {% endif %}
         </div>
       </form>
-    </div>
   </div>
 {% endblock %}

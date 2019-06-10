@@ -352,6 +352,7 @@ def create_new_experiment(request):
 def add_experiment_to_server(request):
     if request.user.is_authenticated() and request.user.is_superuser:
         exp_name = request.POST.get('exp_name', '')
+        exp_id = request.POST.get('exp_id', '')
         if not exp_name:
             messages.error(request, 'Please input a meaningful experiment name.')
             return HttpResponseRedirect(request.META['HTTP_REFERER'])
@@ -368,7 +369,7 @@ def add_experiment_to_server(request):
                 if fname not in fname_list:
                     messages.error(request, 'Uploaded image frame does not contain ' + fname)
                     return HttpResponseRedirect(request.META['HTTP_REFERER'])
-        except MultiValueDictKeyError:
+        except (MultiValueDictKeyError, IndexError):
             try:
                 exp_video_file = request.FILES['movie_sel_file']
                 exp_filename = exp_video_file.name
@@ -391,7 +392,7 @@ def add_experiment_to_server(request):
                     messages.error(request, 'Uploaded segmentation data frame does not contain ' +
                                    fname)
                     return HttpResponseRedirect(request.META['HTTP_REFERER'])
-        except MultiValueDictKeyError:
+        except (MultiValueDictKeyError, IndexError):
             try:
                 seg_file = request.FILES['seg_sel_file']
                 seg_filename = seg_file.name
@@ -405,7 +406,8 @@ def add_experiment_to_server(request):
             return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
         id_list = [item['id'] for item in exp_list]
-        exp_id = os.path.splitext(exp_filename)[0]
+        if not exp_id:
+            exp_id = os.path.splitext(exp_filename)[0]
         idx = 1
         while exp_id in id_list:
             # make exp_id unique
