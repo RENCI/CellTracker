@@ -388,7 +388,7 @@ function selectRegion(frame, region) {
     experiment.editFrame = frame;
     experiment.centerRegion = region;
 
-    settings.zoomPoint = region.center;
+    settings.zoomPoint = region.center.slice();
 
     setZoomLevels(region);
   }
@@ -404,7 +404,7 @@ function selectZoomPoint(frame, point) {
   experiment.editFrame = frame;
   experiment.centerRegion = null;
 
-  settings.zoomPoint = point;
+  settings.zoomPoint = point.slice();
 
   setZoomLevels(point);
 

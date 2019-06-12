@@ -49,6 +49,7 @@ export default function(sketch) {
       moveMouse = false,
       // XXX: Need to keep the previous mouse position because mouse moved is firing on mouse pressed
       oldMouseX = -1, oldMouseY = -1,
+      dragOffsetX = -1, dragOffsetY = -1,
       splitLine = null,
       actionString = "";
 
@@ -330,6 +331,14 @@ export default function(sketch) {
         [m[0], m[1]]
       ];
     }
+    else if (editMode === "regionMove") {
+      if (currentRegion) {
+        const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+
+        dragOffsetX = m[0] - currentRegion.center[0];
+        dragOffsetY = m[1] - currentRegion.center[1];
+      }
+    }
   }
 
   function mouseMoved(e) {
@@ -395,6 +404,34 @@ export default function(sketch) {
         break;
 
       case "regionEdit":
+        break;
+
+      case "regionMove":
+        if (sketch.mouseIsPressed && currentRegion) {
+
+          if (currentRegion) {
+            actionString = "Moving region";
+
+            const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+
+            const dx = m[0] - dragOffsetX - currentRegion.center[0];
+            const dy = m[1] - dragOffsetY - currentRegion.center[1];
+
+            currentRegion.vertices.forEach(vertex => {
+              vertex[0] += dx;
+              vertex[1] += dy;
+            });
+
+            currentRegion.center[0] += dx;
+            currentRegion.center[1] += dy;
+            currentRegion.min[0] += dx;
+            currentRegion.min[1] += dy;
+            currentRegion.max[0] += dx;
+            currentRegion.max[1] += dy;
+          }
+        }
+        break;
+
       case "regionSelect":
         break;
     }
@@ -539,6 +576,9 @@ export default function(sketch) {
 
         break;
 
+      case "regionMove":
+        break;
+
       case "regionSelect":
         if (moveMouse) return;
 
@@ -652,6 +692,7 @@ export default function(sketch) {
     switch (editMode) {
       case "playback":
       case "regionEdit":
+      case "regionMove":
       case "regionSelect":
       case "merge":
         actionString = editMode === "regionEdit" ? "Add region" : ""; 
@@ -669,6 +710,7 @@ export default function(sketch) {
 
             actionString = 
               editMode === "regionEdit" ? "Remove region" : 
+              editMode === "regionMove" ? "Move region" :
               editMode === "regionSelect" ? "Center on region" : 
               editMode === "merge" && !mergeRegion ? "Select first merge region" :
               editMode === "merge" && mergeRegion ? "Select second merge region" :

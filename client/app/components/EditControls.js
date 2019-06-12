@@ -24,6 +24,10 @@ function onRegionEditClick() {
   ViewActionCreators.setEditMode("regionEdit");
 }
 
+function onRegionMoveClick() {
+  ViewActionCreators.setEditMode("regionMove");
+}
+
 function onRegionSelectClick() {
   ViewActionCreators.setEditMode("regionSelect");
 }
@@ -53,6 +57,8 @@ const EditControls = props => {
           iconName="oi-crop" callback={onTrimClick} active={props.editMode === "trim"} tooltip="Trim region" />
         <IconButton 
           iconName="oi-wrench" callback={onRegionEditClick} active={props.editMode === "regionEdit"} tooltip="Add/remove region" />
+        <IconButton 
+          iconName="oi-move" callback={onRegionMoveClick} active={props.editMode === "regionMove"} tooltip="Move region" />
         <IconButton
           iconName="oi-map-marker" callback={onRegionSelectClick} active={props.editMode === "regionSelect"} tooltip="Center on region" />
       </div>
