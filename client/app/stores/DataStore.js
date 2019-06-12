@@ -34,8 +34,8 @@ let timer = null;
 
 // Settings
 let settings = {
-  editZoom: 1,
-  playbackZoom: 1,
+  editZoom: null,
+  playbackZoom: null,
   zoomPoint: [0.5, 0.5],
   zoomBox: [0, 0, 1, 1],
   editMode: "vertex",
@@ -388,15 +388,13 @@ function selectRegion(frame, region) {
     experiment.editFrame = frame;
     experiment.centerRegion = region;
 
+    settings.zoomPoint = region.center;
+
     setZoomLevels(region);
   }
   else {
     experiment.editFrame = null;
     experiment.centerRegion = null;
-
-    settings.zoomPoint = [0.5, 0.5];
-    settings.editZoom = 1
-    settings.playbackZoom = 1;
   }
 
   pushHistory();
@@ -406,7 +404,9 @@ function selectZoomPoint(frame, point) {
   experiment.editFrame = frame;
   experiment.centerRegion = null;
 
-  setZoomLevels(point)
+  settings.zoomPoint = point;
+
+  setZoomLevels(point);
 
   pushHistory();
 }
@@ -522,6 +522,8 @@ function toggleStabilize() {
 }
 
 function setZoomLevels(item) {
+  if (settings.editZoom !== null) return;
+
   // Default
   let s = 0.01;
 
@@ -544,16 +546,12 @@ function setZoomLevels(item) {
       h /= n;
       s = Math.max(w, h);
     }
-
-    settings.zoomPoint = item;
   }
   else {
     // Region
     const w = item.max[0] - item.min[0];
     const h = item.max[1] - item.min[1];
     s = Math.max(w, h);
-
-    settings.zoomPoint = item.center
   }
 
   const zoom = 1 / (s * 2);
