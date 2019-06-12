@@ -439,9 +439,6 @@ export default function(sketch) {
             else if (onSelectZoomPoint) {
               onSelectZoomPoint(frame, normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])));
             }  
-            else {
-              onSelectRegion();
-            }
           }
         }
 
@@ -654,16 +651,10 @@ export default function(sketch) {
 
     switch (editMode) {
       case "playback":
-        if (zoom !== 1) {
-          sketch.cursor(sketch.MOVE);
-        }
-
       case "regionEdit":
       case "regionSelect":
       case "merge":
-        actionString = 
-          editMode === "regionEdit" ? "Add region" :
-          editMode === "playback" && zoom !== 1 ? "Reset view" : ""; 
+        actionString = editMode === "regionEdit" ? "Add region" : ""; 
 
         // Test regions
         const p = normalizePoint(m);
