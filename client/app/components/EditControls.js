@@ -28,6 +28,10 @@ function onRegionMoveClick() {
   ViewActionCreators.setEditMode("regionMove");
 }
 
+function onRegionRotateClick() {
+  ViewActionCreators.setEditMode("regionRotate");
+}
+
 function onRegionSelectClick() {
   ViewActionCreators.setEditMode("regionSelect");
 }
@@ -59,6 +63,8 @@ const EditControls = props => {
           iconName="oi-wrench" callback={onRegionEditClick} active={props.editMode === "regionEdit"} tooltip="Add/remove region" />
         <IconButton 
           iconName="oi-move" callback={onRegionMoveClick} active={props.editMode === "regionMove"} tooltip="Move region" />
+        <IconButton 
+          iconName="oi-loop-circular" callback={onRegionRotateClick} active={props.editMode === "regionRotate"} tooltip="Rotate region" />
         <IconButton
           iconName="oi-map-marker" callback={onRegionSelectClick} active={props.editMode === "regionSelect"} tooltip="Center on region" />
       </div>

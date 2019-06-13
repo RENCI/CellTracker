@@ -1,6 +1,8 @@
 import * as d3 from "d3";
 import { lineSegmentIntersection, insidePolygon, pointLineSegmentDistance } from "../utils/MathUtils";
-import { addVertex, removeVertex, mergeRegions, splitRegion, trimRegion, removeRegion, addRegion, moveRegion } from "../utils/RegionEditing";
+import { 
+  addVertex, removeVertex, mergeRegions, splitRegion, trimRegion, 
+  removeRegion, addRegion, moveRegion, rotateRegion } from "../utils/RegionEditing";
 
 export default function(sketch) {
   // Current experiment
@@ -49,7 +51,8 @@ export default function(sketch) {
       moveMouse = false,
       // XXX: Need to keep the previous mouse position because mouse moved is firing on mouse pressed
       oldMouseX = -1, oldMouseY = -1,
-      dragOffsetX = -1, dragOffsetY = -1,
+      dragStartX = -1, dragStartY = -1,
+      dragVertices = null,
       splitLine = null,
       actionString = "";
 
@@ -331,12 +334,14 @@ export default function(sketch) {
         [m[0], m[1]]
       ];
     }
-    else if (editMode === "regionMove") {
+    else if (editMode === "regionMove" || editMode === "regionRotate") {
       if (currentRegion) {
         const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
-        dragOffsetX = m[0] - currentRegion.center[0];
-        dragOffsetY = m[1] - currentRegion.center[1];
+        dragStartX = m[0];
+        dragStartY = m[1];
+
+        dragVertices = currentRegion.vertices.slice();
       }
     }
   }
@@ -408,18 +413,27 @@ export default function(sketch) {
 
       case "regionMove":
         if (sketch.mouseIsPressed && currentRegion) {
+          actionString = "Moving region";
 
-          if (currentRegion) {
-            actionString = "Moving region";
+          const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
-            const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+          const dx = m[0] - dragStartX;
+          const dy = m[1] - dragStartY;
 
-            const dx = m[0] - dragOffsetX - currentRegion.center[0];
-            const dy = m[1] - dragOffsetY - currentRegion.center[1];
+          moveRegion(currentRegion, dragVertices, dx, dy);
+        }
+        break;
 
-            moveRegion(currentRegion, dx, dy);
-            onEditRegion(frame, currentRegion);
-          }
+      case "regionRotate":
+        if (sketch.mouseIsPressed && currentRegion) {
+          actionString = "Rotating region";
+
+          const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+
+          const dx = m[0] - dragStartX;
+          const theta = dx * 50;
+
+          rotateRegion(currentRegion, dragVertices, theta);
         }
         break;
 
@@ -568,6 +582,11 @@ export default function(sketch) {
         break;
 
       case "regionMove":
+      case "regionRotate":
+        if (currentRegion) {
+          onEditRegion(frame, currentRegion);
+        }
+
         break;
 
       case "regionSelect":
@@ -684,6 +703,7 @@ export default function(sketch) {
       case "playback":
       case "regionEdit":
       case "regionMove":
+      case "regionRotate":
       case "regionSelect":
       case "merge":
         actionString = editMode === "regionEdit" ? "Add region" : ""; 
@@ -702,6 +722,7 @@ export default function(sketch) {
             actionString = 
               editMode === "regionEdit" ? "Remove region" : 
               editMode === "regionMove" ? "Move region" :
+              editMode === "regionRotate" ? "Rotate region" :
               editMode === "regionSelect" ? "Center on region" : 
               editMode === "merge" && !mergeRegion ? "Select first merge region" :
               editMode === "merge" && mergeRegion ? "Select second merge region" :

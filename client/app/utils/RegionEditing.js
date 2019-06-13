@@ -401,16 +401,27 @@ export function addRegion(point, radius, regionArray) {
   return region;
 }
 
-export function moveRegion(region, dx, dy) {
-  region.vertices.forEach(vertex => {
-    vertex[0] += dx;
-    vertex[1] += dy;
+export function moveRegion(region, originalVertices, dx, dy) {
+  const vertices = originalVertices.map(vertex => {
+    return [vertex[0] + dx, vertex[1] + dy];
   });
 
-  region.center[0] += dx;
-  region.center[1] += dy;
-  region.min[0] += dx;
-  region.min[1] += dy;
-  region.max[0] += dx;
-  region.max[1] += dy;
+  setVertices(region, vertices);
+}
+
+export function rotateRegion(region, originalVertices, theta) {
+  const center = region.center.slice();
+
+  const vertices = originalVertices.map(vertex => {
+    const x = vertex[0]- center[0],
+          y = vertex[1] - center[1],
+          c = Math.cos(theta),
+          s = Math.sin(theta);
+
+    return [x * c - y * s + center[0], y * c + x * s + center[1]];
+  });
+
+  setVertices(region, vertices);
+
+  region.center = center;
 }
