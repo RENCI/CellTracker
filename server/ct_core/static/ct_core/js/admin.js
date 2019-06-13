@@ -361,15 +361,39 @@ function update_user_edit_info() {
 }
 
 
+$('#delete_exp').click(function(e){
+    e.stopPropagation();
+    e.preventDefault();
+    let expId = $('#exp_select_list').val();
+    $.ajax({
+        type: "POST",
+        url: '/delete_experiment/' + expId + '/',
+        success: function (json_response) {
+            $('#notification_msg').text(json_response.message);
+            $('#exp_select_list').find('[value="' + expId + '"]').remove();
+            $('#delete_exp').prop('disabled', true);
+            return true;
+        },
+        error: function (xhr, errmsg, err) {
+            console.log(xhr.status + ": " + xhr.responseText + ". Error message: " + errmsg);
+            $('#notification_msg').text(errmsg);
+            return false;
+        }
+    });
+});
+
 $('#exp_select_list').change(function(e) {
     e.stopPropagation();
     e.preventDefault();
+    $('#notification_msg').text('');
     if(this.value != 'null' && this.val != lastSelExpId) {
+        $('#delete_exp').prop('disabled', false);
         request_exp_info_ajax(this.value);
         lastSelExpId = this.value;
         delete_dict(userEditFrames);
     }
     else {
+        $('#delete_exp').prop('disabled', true);
         $('#seg_info').html('');
         $('#user_edit').hide();
         $('#user_edit_frm_info').html('');

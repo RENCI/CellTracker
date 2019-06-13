@@ -31,7 +31,7 @@ from ct_core.utils import get_experiment_list_util, read_video, \
     extract_images_from_video_to_irods, read_image_frame, get_seg_collection, \
     save_user_seg_data_to_db, get_start_frame, get_exp_image, get_edited_frames, get_all_edit_users, \
     create_user_segmentation_data_for_download, get_frame_info, create_seg_data_from_csv, \
-    sync_seg_data_to_db
+    sync_seg_data_to_db, delete_one_experiment
 from ct_core.task_utils import get_exp_frame_no
 from ct_core.forms import SignUpForm, UserProfileForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
@@ -476,6 +476,21 @@ def add_experiment_to_server(request):
         messages.error(request, 'You have to log in as data manager to add a new experiment '
                                 'to the server')
         return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
+
+def delete_experiment(request, exp_id):
+    if request.user.is_authenticated() and request.user.is_superuser:
+        ret_msg = delete_one_experiment(exp_id)
+        if ret_msg == 'success':
+            return JsonResponse({'message': 'Selected experiment deleted successfully'},
+                                status=status.HTTP_200_OK)
+        else:
+            return JsonResponse({'message': ret_msg},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        return JsonResponse({'message': 'You have to log in as data manager to create a '
+                                        'new experiment'},
+                            status=status.HTTP_401_UNAUTHORIZED)
 
 
 @login_required

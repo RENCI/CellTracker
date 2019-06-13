@@ -643,6 +643,25 @@ def put_image_list_to_irods(exp_id, files):
     return 'success'
 
 
+def delete_one_experiment(exp_id):
+    """
+    delete experiment identified by exp_id
+    :param exp_id: experiment unique id
+    :return: error message or 'success'
+    """
+    try:
+        istorage = IrodsStorage()
+        istorage.delete(exp_id)
+
+        Segmentation.objects.filter(exp_id=exp_id).delete()
+        UserSegmentation.objects.filter(exp_id=exp_id).delete()
+        return 'success'
+    except SessionException as ex:
+        return ex.stderr
+    except Exception as ex:
+        return ex.message
+
+
 def create_user_segmentation_data_for_download(exp_id, username):
     """
     Create a zipped user segmentation data for downloading. It contains user edit frames along

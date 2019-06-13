@@ -1,6 +1,5 @@
 from django.core.management.base import BaseCommand
-from django_irods.storage import IrodsStorage
-from ct_core.models import Segmentation, UserSegmentation
+from ct_core.utils import delete_one_experiment
 
 
 class Command(BaseCommand):
@@ -20,9 +19,5 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options['exp_id']:
             exp_id = str(options['exp_id'])
-            istorage = IrodsStorage()
-            istorage.delete(exp_id)
-
-            Segmentation.objects.filter(exp_id=exp_id).delete()
-            UserSegmentation.objects.filter(exp_id=exp_id).delete()
-            print ('Success')
+            ret_msg = delete_one_experiment(exp_id)
+            print (ret_msg)
