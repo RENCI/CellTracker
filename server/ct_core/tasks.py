@@ -25,7 +25,7 @@ def add_tracking(exp_id, username='', frm_idx=-1):
     :param user: Empty by default. If Empty, add tracking to system segmentation data;
     otherwise, add tracking to user edit segmentation data
     :param frm_idx: -1 by default. If -1, add tracking to all frames; otherwise,
-    add tracking to only the pass-in frm_idx which is zero-based frame index
+    add tracking to only the pass-in frm_idx which is one-based frame index
     :return:
     """
     ret_result = []
@@ -48,20 +48,20 @@ def add_tracking(exp_id, username='', frm_idx=-1):
     ids = {}
     min_f = 0
     max_f = fno
-    if frm_idx >= 0:
-        min_f = frm_idx - 1 if frm_idx > 0 else frm_idx
-        max_f = frm_idx + 2 if frm_idx < fno - 1 else fno
+    if frm_idx >= 1 and frm_idx <= fno:
+        min_f = frm_idx - 2 if frm_idx > 1 else frm_idx - 1
+        max_f = frm_idx + 1 if frm_idx < fno else fno
 
-    for i in range(min_f, max_f):
+    for i in range(max_f, min_f, -1):
         if username:
             try:
                 seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user__username=username,
-                                                       frame_no=i+1)
+                                                       frame_no=i)
             except ObjectDoesNotExist:
                 # check system Segmentation if the next frame of user segmentation does not exist
-                seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=i+1)
+                seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=i)
         else:
-            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=i+1)
+            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=i)
         data = seg_obj.data
         centroid_list = []
         id_list = []
@@ -76,43 +76,43 @@ def add_tracking(exp_id, username='', frm_idx=-1):
         centroids_xy[i] = np.array(centroid_list)
         ids[i] = id_list
 
-    # compute minimum distance from a centroid to all centroids in the next frame
-    for fi in range(min_f, max_f-1):
+    # compute minimum distance from a centroid to all centroids in the previous frame
+    for fi in range(max_f, min_f+1, -1):
         if username:
             try:
                 seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user__username=username,
-                                                       frame_no=fi+1)
+                                                       frame_no=fi)
             except ObjectDoesNotExist:
                 # check system Segmentation if the frame of user segmentation does not exist,
                 # and create a UserSegmentation object for the frame using the data of the frame
                 # on the system segmentation data since the link_id field of some regions could be
                 # updated as a result of region updates of the next frame
-                sys_seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=fi+1)
+                sys_seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=fi)
                 seg_obj = UserSegmentation(user=User.objects.get(username=username),
-                                           exp_id=exp_id, frame_no=fi+1,
+                                           exp_id=exp_id, frame_no=fi,
                                            data=sys_seg_obj.data,
                                            num_edited=0,
                                            update_time=timezone.now())
                 rel_path = get_path(seg_obj)
                 seg_obj.file = rel_path
         else:
-            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=fi+1)
+            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=fi)
         if frm_idx >= 0:
             return_regions = []
-        next_frm = fi + 1
+        pre_frm = fi - 1
         for cur_re in range(0, centroids_xy[fi].shape[0]):
             # xy1 contains centroid x, y for one region on frame fi
             xy1 = np.array([centroids_xy[fi][cur_re]])
             # xy2 contains all centroids for all regions on the next frame fj
-            xy2 = centroids_xy[next_frm]
+            xy2 = centroids_xy[pre_frm]
             min_idx = np.argmin(distance_between_point_sets(xy1, xy2))
-            linked_id = ids[next_frm][min_idx]
+            linked_id = ids[pre_frm][min_idx]
             seg_obj.data[cur_re]['link_id'] = linked_id
-            if username and frm_idx >= 0:
+            if username and frm_idx > 0:
                 return_regions.append({'id': ids[fi][cur_re],
                                        'linked_id': linked_id})
         seg_obj.save()
-        if username and frm_idx >= 0:
+        if username and frm_idx > 0:
             ret_result.append({'frame_no': fi+1,
                                'region_ids': return_regions})
         # update iRODS data to be in sync with updated data in DB
@@ -124,4 +124,34 @@ def add_tracking(exp_id, username='', frm_idx=-1):
             sync_seg_data_to_irods(exp_id=exp_id, username='system', json_data=seg_obj.data,
                                    irods_path=rel_path)
 
+    if frm_idx == -1:
+        # this block will only be run for migration of old data only
+        # remove link_id data if any for the first frame due to the linkage direction change from
+        # forward to backward linkages
+        if username:
+            try:
+                seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user__username=username,
+                                                       frame_no=1)
+            except ObjectDoesNotExist:
+                # check system Segmentation if the next frame of user segmentation does not exist
+                seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=1)
+        else:
+            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=1)
+        changed = False
+        data = seg_obj.data
+        for region in data:
+            if 'link_id' in region:
+                region.pop('link_id')
+                changed = True
+        changed = True
+        if changed:
+            seg_obj.save()
+            # update iRODS data to be in sync with updated data in DB
+            rel_path = get_path(seg_obj)
+            if username:
+                sync_seg_data_to_irods(exp_id=exp_id, username=username, json_data=seg_obj.data,
+                                       irods_path=rel_path)
+            else:
+                sync_seg_data_to_irods(exp_id=exp_id, username='system', json_data=seg_obj.data,
+                                       irods_path=rel_path)
     return ret_result
