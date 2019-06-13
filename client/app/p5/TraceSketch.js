@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import { lineSegmentIntersection, insidePolygon, pointLineSegmentDistance } from "../utils/MathUtils";
-import { addVertex, removeVertex, mergeRegions, splitRegion, trimRegion, removeRegion, addRegion } from "../utils/RegionEditing";
+import { addVertex, removeVertex, mergeRegions, splitRegion, trimRegion, removeRegion, addRegion, moveRegion } from "../utils/RegionEditing";
 
 export default function(sketch) {
   // Current experiment
@@ -417,17 +417,8 @@ export default function(sketch) {
             const dx = m[0] - dragOffsetX - currentRegion.center[0];
             const dy = m[1] - dragOffsetY - currentRegion.center[1];
 
-            currentRegion.vertices.forEach(vertex => {
-              vertex[0] += dx;
-              vertex[1] += dy;
-            });
-
-            currentRegion.center[0] += dx;
-            currentRegion.center[1] += dy;
-            currentRegion.min[0] += dx;
-            currentRegion.min[1] += dy;
-            currentRegion.max[0] += dx;
-            currentRegion.max[1] += dy;
+            moveRegion(currentRegion, dx, dy);
+            onEditRegion(frame, currentRegion);
           }
         }
         break;

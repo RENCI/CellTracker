@@ -400,3 +400,17 @@ export function addRegion(point, radius, regionArray) {
 
   return region;
 }
+
+export function moveRegion(region, dx, dy) {
+  region.vertices.forEach(vertex => {
+    vertex[0] += dx;
+    vertex[1] += dy;
+  });
+
+  region.center[0] += dx;
+  region.center[1] += dy;
+  region.min[0] += dx;
+  region.min[1] += dy;
+  region.max[0] += dx;
+  region.max[1] += dy;
+}
