@@ -369,6 +369,7 @@ $('#delete_exp').click(function(e){
         type: "POST",
         url: '/delete_experiment/' + expId + '/',
         success: function (json_response) {
+            $('#notification_msg').css({"color": "green"});
             $('#notification_msg').text(json_response.message);
             $('#exp_select_list').find('[value="' + expId + '"]').remove();
             $('#delete_exp').prop('disabled', true);
@@ -376,6 +377,7 @@ $('#delete_exp').click(function(e){
         },
         error: function (xhr, errmsg, err) {
             console.log(xhr.status + ": " + xhr.responseText + ". Error message: " + errmsg);
+            $('#notification_msg').css({"color": "red"});
             $('#notification_msg').text(errmsg);
             return false;
         }
