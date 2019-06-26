@@ -106,13 +106,15 @@ export default function() {
     // Link nodes
     const links = [];
 
-    nodes.slice(0, -1).forEach((frameNodes, i) => {
-      d3.values(frameNodes).forEach(source => {
-        if (source.region.link_id) {
-          const target = nodes[i + 1][source.region.link_id];
+    nodes.forEach((frameNodes, i) => {
+      if (i === 0) return;
 
-          if (!target) {
-            console.log("Invalid link_id: " + source.region.link_id);
+      d3.values(frameNodes).forEach(target => {
+        if (target.region.link_id) {
+          const source = nodes[i - 1][target.region.link_id];
+
+          if (!source) {
+            console.log("Invalid link_id: " + target.region.link_id);
             return;
           }
 
@@ -130,15 +132,15 @@ export default function() {
       })
     });
 
-    // Set end ids for sorting
-    nodes.slice().reverse().forEach((frameNodes, i, a) => {
+    // Set start ids for sorting
+    nodes.forEach((frameNodes, i, a) => {
       d3.values(frameNodes).forEach(node => {
         if (i === 0) {
-          node.end_id = node.region.trajectory_id;
+          node.start_id = node.region.trajectory_id;
         }
         else {
-          let end = a[i - 1][node.region.link_id];
-          node.end_id = end ? end.end_id : node.region.trajectory_id;
+          let start = a[i - 1][node.region.link_id];
+          node.start_id = start ? start.start_id : node.region.trajectory_id;
         }
       });
     });
@@ -146,16 +148,16 @@ export default function() {
     // Convert each node frame to arrays and sort
     nodes = nodes.map((d, i) => {
       return d3.values(d).sort((a, b) => {
-        return a.end_id === b.end_id ? 
+        return a.start_id === b.start_id ? 
           d3.ascending(a.region.trajectory_id, b.region.trajectory_id) :
-          d3.ascending(a.end_id, b.end_id);
+          d3.ascending(a.start_id, b.start_id);
       });
     });
 
     // Initialize some node data
     nodes.forEach((frameNodes, i, a) => {
       frameNodes.forEach(node => {
-        node.value = Math.max(d3.sum(node.targetLinks, link => link.value), 1);
+        node.value = Math.max(d3.sum(node.sourceLinks, link => link.value), 1);
         node.depth = i;
         node.height = a.length - 1 - i;
       });
@@ -191,6 +193,7 @@ export default function() {
 
     // Update height based on node size
     height = -d3.min(nodes, d => d.y0) + margin.top + margin.bottom;
+
     // Update y position
     nodes.forEach(node => {
       node.y0 += innerHeight();
@@ -204,24 +207,28 @@ export default function() {
 
       let y = startY;
 
+      node.sourceLinks.sort((a, b) => {
+        return d3.ascending(a.target.y0, b.target.y0);
+      });
+
       node.sourceLinks.forEach(link => {
         link.point0 = {
           x: x,
           y: y
         };
 
+        link.width = nodeSize;
+
         y += nodeSize;
       });
 
-      y = startY;
+      y = node.y0 + (node.y1 - node.y0) / 2;
 
       node.targetLinks.forEach(link => {
         link.point1 = {
           x: x,
           y: y
-        };
-        
-        link.width = nodeSize;
+        };        
 
         y += nodeSize;
       });
@@ -292,7 +299,7 @@ export default function() {
       link.exit().remove();
 
       function stroke(d) {
-        return colorMap(d.source.region.trajectory_id);
+        return colorMap(d.target.region.trajectory_id);
       }
 
       function linkWidth(d) {
