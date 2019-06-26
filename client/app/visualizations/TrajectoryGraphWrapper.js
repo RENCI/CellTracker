@@ -30,8 +30,12 @@ class TrajectoryGraphWrapper extends React.Component {
     setFrame(frame);
   }
 
+  componentDidMount() {
+    this.drawVisualization(this.props);
+  }
+
   shouldComponentUpdate(props, state) {
-    this.drawVisualization(props, state);
+    this.drawVisualization(props);
 
     return false;
   }
