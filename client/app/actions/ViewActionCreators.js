@@ -116,11 +116,11 @@ export function editRegion(frame, region) {
 };
 
 export function saveSegmentationData(id, segmentationData) {
-  WebAPIUtils.saveSegmentationData(id, segmentationData);
-
   AppDispatcher.dispatch({
     actionType: Constants.SAVE_SEGMENTATION_DATA
   });
+
+  WebAPIUtils.saveSegmentationData(id, segmentationData);
 };
 
 export function undoHistory() {

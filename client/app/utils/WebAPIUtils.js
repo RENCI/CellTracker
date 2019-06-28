@@ -181,7 +181,7 @@ export function saveSegmentationData(id, data) {
       return sendRegion;
     }));
 
-    const numEdited = frame.regions.reduce((p, c) => c.edited || c.unsavedEdit ? p + 1 : p, 0);
+    const numEdited = frame.regions.reduce((p, c) => c.edited ? p + 1 : p, 0);
 
     $.ajax({
       type: "POST",
