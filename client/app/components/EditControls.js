@@ -32,6 +32,14 @@ function onRegionRotateClick() {
   ViewActionCreators.setEditMode("regionRotate");
 }
 
+function onRegionCopy() {
+  ViewActionCreators.setEditMode("regionCopy");
+}
+
+function onRegionPaste() {
+  ViewActionCreators.setEditMode("pasteRegion");
+}
+
 function onRegionSelectClick() {
   ViewActionCreators.setEditMode("regionSelect");
 }
@@ -48,9 +56,11 @@ const EditControls = props => {
   const ref = useRef(null);
   useTooltip(ref); 
 
+  const copyMode = props.editMode === "regionPaste" ? "paste" : "copy";
+
   return (
     <div className="form-inline" ref={ref}>
-      <div className="btn-group-sm mr-2">
+      <div className="btn-group-sm">
         <IconButton 
           iconName="oi-pencil" callback={onVertexEditClick} active={props.editMode === "vertex"} tooltip="Vertex edit" />
         <IconButton 
@@ -59,16 +69,20 @@ const EditControls = props => {
           iconName="oi-fullscreen-enter" callback={onSplitClick} active={props.editMode === "split"} tooltip="Split region" />
         <IconButton 
           iconName="oi-crop" callback={onTrimClick} active={props.editMode === "trim"} tooltip="Trim region" />
+      </div>
+      <div className="btn-group-sm ml-2">
         <IconButton 
           iconName="oi-wrench" callback={onRegionEditClick} active={props.editMode === "regionEdit"} tooltip="Add/remove region" />
         <IconButton 
           iconName="oi-move" callback={onRegionMoveClick} active={props.editMode === "regionMove"} tooltip="Move region" />
         <IconButton 
           iconName="oi-loop-circular" callback={onRegionRotateClick} active={props.editMode === "regionRotate"} tooltip="Rotate region" />
+        <IconButton 
+          iconName={copyMode === "copy" ? "oi-tag" : "oi-tags"} callback={copyMode === "copy" ? onRegionCopy : onRegionPaste} active={props.editMode === "regionCopy" || props.editMode === "regionPaste"} tooltip={copyMode === "copy" ? "Copy region" : "Paste region"}/>
         <IconButton
           iconName="oi-map-marker" callback={onRegionSelectClick} active={props.editMode === "regionSelect"} tooltip="Center on region" />
       </div>
-      <div className="btn-group-sm">
+      <div className="btn-group-sm ml-2">
         <IconButton 
           iconName="oi-zoom-in" callback={onZoomInClick} tooltip="Zoom in" />
         <IconButton 
