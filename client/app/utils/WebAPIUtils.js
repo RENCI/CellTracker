@@ -167,8 +167,6 @@ export function saveSegmentationData(id, data) {
   setupAjax();
 
   // Send each edited frame
-  console.log(data);
-
   data.filter(frame => frame.edited).forEach(frame => {
     console.log("Saving frame " + frame.frame);
 

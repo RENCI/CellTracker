@@ -194,6 +194,12 @@ function generateTrajectoryIds() {
           if (linked.trajectory_id) linked.trajectory_id = "collision";
           else linked.trajectory_id = region.trajectory_id;
         }
+        else {
+          console.log("Invalid link_id: " + region.link_id);
+          console.log(region);
+          console.log(frame);
+          console.log(experiment.segmentationData);
+        }
       }
     });
   });

@@ -113,8 +113,8 @@ export default function() {
         if (target.region.link_id) {
           const source = nodes[i - 1][target.region.link_id];
 
-          if (!source) {
-            console.log("Invalid link_id: " + target.region.link_id);
+          if (!source) {            
+//            console.log("Invalid link_id: " + target.region.link_id);
             return;
           }
 
