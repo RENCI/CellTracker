@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.postgres.fields import JSONField
 
 from django_irods.storage import IrodsStorage
@@ -30,10 +29,9 @@ def get_path(instance, filename=''):
 # Create your models here.
 class UserProfile(models.Model):
     user = models.OneToOneField(User, related_name='user')
-    grade = models.PositiveSmallIntegerField(blank=True, null=True,
-                                             validators=[MaxValueValidator(12),
-                                                         MinValueValidator(1)])
-    school = models.CharField(max_length=100, blank=True, default='')
+    grade = models.CharField(max_length=2, blank=True, null=True, default='')
+    school = models.CharField(max_length=100, blank=True, null=True, default='')
+    email = models.EmailField(blank=True, null=True, default='', unique=True)
 
     def __str__(self):
         return self.user.username

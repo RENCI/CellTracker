@@ -2,6 +2,8 @@ from django import forms
 from django.contrib.auth import password_validation
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 
 class SignUpForm(forms.ModelForm):
@@ -28,12 +30,13 @@ class SignUpForm(forms.ModelForm):
     last_name = forms.CharField(max_length=30, required=True)
     grade = forms.IntegerField(max_value=12, min_value=1, required=False,
                                help_text='Optional. Input your grade between 1 to 12.')
-    school = forms.CharField(max_length=30, required=False, help_text='Optional. Input the '
+    school = forms.CharField(max_length=100, required=False, help_text='Optional. Input the '
                                                                       'name of your school')
-
+    email = forms.EmailField(required=False, help_text='Optional. Input your email for password '
+                                                       'reset and notifications')
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'grade', 'school', 'password1',
+        fields = ('first_name', 'last_name', 'grade', 'school', 'email', 'password1',
                   'password2', )
 
     def __init__(self, *args, **kwargs):
@@ -50,6 +53,18 @@ class SignUpForm(forms.ModelForm):
             )
         password_validation.validate_password(self.cleaned_data.get('password2'), self.instance)
         return password2
+
+    def clean_email(self):
+        email_value = self.cleaned_data.get('email')
+        if email_value:
+            try:
+                validate_email(email_value)
+                return email_value
+            except ValidationError as ex:
+                raise forms.ValidationError(
+                    self.error_messages['email invalid'],
+                    code='email_invalid'
+                )
 
     def save(self, commit=True):
         user = super(SignUpForm, self).save(commit=False)

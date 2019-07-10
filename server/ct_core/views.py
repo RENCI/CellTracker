@@ -83,6 +83,7 @@ def signup(request):
             lastname = form.cleaned_data.get('last_name')
             grade = form.cleaned_data.get('grade')
             school = form.cleaned_data.get('school')
+            email = form.cleaned_data.get('email')
             username = '{}{}'.format(firstname, lastname).lower()
             raw_pwd = form.cleaned_data.get('password1')
             id = 2
@@ -105,7 +106,7 @@ def signup(request):
             )
 
             user = authenticate(username=username, password=raw_pwd)
-            up = UserProfile(user=user, grade=grade, school=school)
+            up = UserProfile(user=user, grade=grade, school=school, email=email)
             up.save()
             login(request, user)
             request.session['just_signed_up'] = 'true'
@@ -124,7 +125,7 @@ def edit_user(request, pk):
         return HttpResponseForbidden('You are not authenticated to edit user profile')
 
     ProfileInlineFormset = inlineformset_factory(User, UserProfile,
-                                                 fields=('grade', 'school'),
+                                                 fields=('grade', 'school', 'email'),
                                                  can_delete=False)
     formset = ProfileInlineFormset(instance=user)
 
