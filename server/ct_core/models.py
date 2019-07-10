@@ -31,7 +31,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, related_name='user')
     grade = models.CharField(max_length=2, blank=True, null=True, default='')
     school = models.CharField(max_length=100, blank=True, null=True, default='')
-    email = models.EmailField(blank=True, null=True, default='', unique=True)
+    email = models.EmailField(blank=True, null=True, unique=True)
 
     def __str__(self):
         return self.user.username
