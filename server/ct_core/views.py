@@ -21,7 +21,7 @@ from django.forms.models import inlineformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.datastructures import MultiValueDictKeyError
-
+from django.db import IntegrityError
 from rest_framework import status
 
 from irods.session import iRODSSession
@@ -107,7 +107,13 @@ def signup(request):
 
             user = authenticate(username=username, password=raw_pwd)
             up = UserProfile(user=user, grade=grade, school=school, email=email)
-            up.save()
+            try:
+                up.save()
+            except IntegrityError as ex:
+                # violate email uniqueness, raise error and roll back
+                user.delete()
+                return render(request, 'registration/signup.html', {'form': form,
+                                                                    'error_message': ex.message})
             login(request, user)
             request.session['just_signed_up'] = 'true'
             return redirect('index')

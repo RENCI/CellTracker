@@ -2,8 +2,6 @@ from django import forms
 from django.contrib.auth import password_validation
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
 
 
 class SignUpForm(forms.ModelForm):
@@ -13,6 +11,7 @@ class SignUpForm(forms.ModelForm):
     """
     error_messages = {
         'password_mismatch': _("The two password fields didn't match."),
+        'email_invalid': _("The input email is not valid."),
     }
     password1 = forms.CharField(
         label=_("Password"),
@@ -32,7 +31,8 @@ class SignUpForm(forms.ModelForm):
                                help_text='Optional. Input your grade between 1 to 12.')
     school = forms.CharField(max_length=100, required=False, help_text='Optional. Input the '
                                                                       'name of your school')
-    email = forms.EmailField(required=False, help_text='Optional. Input your email for password '
+    email = forms.EmailField(required=False,
+                             help_text='Optional. Input your email for password '
                                                        'reset and notifications')
     class Meta:
         model = User
@@ -54,18 +54,6 @@ class SignUpForm(forms.ModelForm):
         password_validation.validate_password(self.cleaned_data.get('password2'), self.instance)
         return password2
 
-    def clean_email(self):
-        email_value = self.cleaned_data.get('email')
-        if email_value:
-            try:
-                validate_email(email_value)
-                return email_value
-            except ValidationError as ex:
-                raise forms.ValidationError(
-                    self.error_messages['email invalid'],
-                    code='email_invalid'
-                )
-
     def save(self, commit=True):
         user = super(SignUpForm, self).save(commit=False)
         user.set_password(self.cleaned_data["password1"])
@@ -82,4 +70,3 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['first_name', 'last_name']
-
