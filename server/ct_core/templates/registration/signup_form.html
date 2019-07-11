@@ -2,8 +2,10 @@
 
 <form method="post">
     {% csrf_token %}
-    {{ form.non_field_errors }}
-    {{ error_message }}
+    <div class="warning-msg">
+        {{ form.non_field_errors }}
+        {{ error_message }}
+    </div>
     <div class="row form-group half">
       {% include "includes/form_field.html" with field=form.first_name inline_label=True %}
       {% include "includes/form_field.html" with field=form.last_name inline_label=True %}
