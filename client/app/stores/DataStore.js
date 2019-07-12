@@ -418,12 +418,24 @@ function selectZoomPoint(frame, point) {
 }
 
 function editRegion(frame, region) {
-  region.unsavedEdit = true;
-  experiment.segmentationData[frame].edited = true;
+  if (region) {
+    region.unsavedEdit = true;
+    experiment.segmentationData[frame].edited = true;
+  }
 
   pushHistory();
 
-  setEditMode("vertex");
+  switch (settings.editMode) {
+    case "regionCopy":
+      setEditMode("regionPaste");
+      break;
+
+    case "regionPaste":
+      break;
+
+    default:
+      setEditMode("vertex");
+  }
 }
 
 function resetHistory() {

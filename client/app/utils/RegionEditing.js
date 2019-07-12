@@ -425,3 +425,34 @@ export function rotateRegion(region, originalVertices, theta) {
 
   region.center = center;
 }
+
+export let copiedRegion = null;
+
+export function copyRegion(region) {
+  copiedRegion = {
+    center: region.center.slice(),
+    min: region.min.slice(),
+    max: region.max.slice(),
+    vertices: region.vertices.slice()
+  };
+}
+
+export function pasteRegion(center, regionArray) {
+  const dx = center[0] - copiedRegion.center[0],
+        dy = center[1] - copiedRegion.center[1];
+
+  const newRegion = {
+    center: center.slice(),
+    id: generateId(regionArray),
+    min: [copiedRegion.min[0] + dx, copiedRegion.min[1] + dy],
+    max: [copiedRegion.max[0] + dx, copiedRegion.max[1] + dy],
+    selected: false,
+    vertices: copiedRegion.vertices.map(vertex => {
+      return [vertex[0] + dx, vertex[1] + dy];
+    })
+  };
+
+  regionArray.push(newRegion);
+
+  return newRegion;
+}

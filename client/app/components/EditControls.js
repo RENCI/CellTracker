@@ -37,7 +37,7 @@ function onRegionCopy() {
 }
 
 function onRegionPaste() {
-  ViewActionCreators.setEditMode("pasteRegion");
+  ViewActionCreators.setEditMode("regionPaste");
 }
 
 function onRegionSelectClick() {
@@ -78,7 +78,9 @@ const EditControls = props => {
         <IconButton 
           iconName="oi-loop-circular" callback={onRegionRotateClick} active={props.editMode === "regionRotate"} tooltip="Rotate region" />
         <IconButton 
-          iconName={copyMode === "copy" ? "oi-tag" : "oi-tags"} callback={copyMode === "copy" ? onRegionCopy : onRegionPaste} active={props.editMode === "regionCopy" || props.editMode === "regionPaste"} tooltip={copyMode === "copy" ? "Copy region" : "Paste region"}/>
+          iconName="oi-tag" callback={onRegionCopy} active={props.editMode === "regionCopy"} tooltip="Copy region" />
+        <IconButton 
+          iconName="oi-tags" callback={onRegionPaste} active={props.editMode === "regionPaste"} tooltip="Paste region" />
         <IconButton
           iconName="oi-map-marker" callback={onRegionSelectClick} active={props.editMode === "regionSelect"} tooltip="Center on region" />
       </div>

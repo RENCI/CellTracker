@@ -2,7 +2,7 @@ import * as d3 from "d3";
 import { lineSegmentIntersection, insidePolygon, pointLineSegmentDistance } from "../utils/MathUtils";
 import { 
   addVertex, removeVertex, mergeRegions, splitRegion, trimRegion, 
-  removeRegion, addRegion, moveRegion, rotateRegion } from "../utils/RegionEditing";
+  removeRegion, addRegion, moveRegion, rotateRegion, copiedRegion, copyRegion, pasteRegion } from "../utils/RegionEditing";
 
 export default function(sketch) {
   // Current experiment
@@ -437,6 +437,8 @@ export default function(sketch) {
         }
         break;
 
+      case "regionCopy":
+      case "regionPaste":
       case "regionSelect":
         break;
     }
@@ -589,6 +591,24 @@ export default function(sketch) {
 
         break;
 
+      case "regionCopy":
+        if (moveMouse) return;
+
+        if (currentRegion) {
+          copyRegion(currentRegion);
+          onEditRegion(frame, null);
+        }
+
+        break;
+
+      case "regionPaste":
+        if (moveMouse) return;
+
+        const newRegion = pasteRegion(normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])), regions);
+        onEditRegion(frame, newRegion);
+
+        break;
+
       case "regionSelect":
         if (moveMouse) return;
 
@@ -704,6 +724,7 @@ export default function(sketch) {
       case "regionEdit":
       case "regionMove":
       case "regionRotate":
+      case "regionCopy":
       case "regionSelect":
       case "merge":
         actionString = editMode === "regionEdit" ? "Add region" : ""; 
@@ -723,6 +744,7 @@ export default function(sketch) {
               editMode === "regionEdit" ? "Remove region" : 
               editMode === "regionMove" ? "Move region" :
               editMode === "regionRotate" ? "Rotate region" :
+              editMode === "regionCopy" ? "Copy region" :
               editMode === "regionSelect" ? "Center on region" : 
               editMode === "merge" && !mergeRegion ? "Select first merge region" :
               editMode === "merge" && mergeRegion ? "Select second merge region" :
@@ -775,6 +797,10 @@ export default function(sketch) {
           }
         }
 
+        break;
+
+      case "regionPaste":
+        actionString = "Paste region";
         break;
 
       case "split":
