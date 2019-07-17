@@ -1,7 +1,11 @@
 from django import forms
 from django.contrib.auth import password_validation
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import PasswordResetForm
 from django.utils.translation import ugettext_lazy as _
+from django.core.exceptions import ObjectDoesNotExist
+
+from ct_core.models import UserProfile
 
 
 class SignUpForm(forms.ModelForm):
@@ -57,6 +61,9 @@ class SignUpForm(forms.ModelForm):
     def save(self, commit=True):
         user = super(SignUpForm, self).save(commit=False)
         user.set_password(self.cleaned_data["password1"])
+        email = self.cleaned_data['email']
+        if email:
+            user.email = email
         if commit:
             user.save()
         return user
@@ -69,4 +76,38 @@ class UserProfileForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ['first_name', 'last_name']
+        fields = ['first_name', 'last_name', 'email']
+
+    def save(self, commit=True):
+        up = super(UserProfileForm, self).save(commit=False)
+        email = self.cleaned_data['email']
+        if email:
+            up.user.email = email
+        if commit:
+            up.save()
+        return up
+
+
+class UserPasswordResetForm(PasswordResetForm):
+    def get_users(self, email):
+        """
+        Override its parent form's method since we store email in UserProfile not in user
+        :return:
+        """
+        try:
+            u = UserProfile.objects.get(email=email)
+        except ObjectDoesNotExist:
+            return []
+
+        return [u.user]
+
+    def clean_email(self):
+        try:
+            email = self.cleaned_data.get("email")
+            UserProfile.objects.get(email=email)
+        except ObjectDoesNotExist:
+            raise forms.ValidationError(
+                'No user account is associated with the input email',
+                code='invalid',
+            )
+        return email

@@ -16,6 +16,7 @@ from django.http import HttpResponse, HttpResponseServerError, StreamingHttpResp
     HttpResponseBadRequest, JsonResponse, HttpResponseForbidden, HttpResponseRedirect, FileResponse
 from django.views.decorators import gzip
 from django.contrib.auth import login, authenticate
+from django.contrib.auth.views import PasswordResetView
 from django.shortcuts import render, redirect
 from django.forms.models import inlineformset_factory
 from django.contrib.auth.decorators import login_required
@@ -33,7 +34,7 @@ from ct_core.utils import get_experiment_list_util, read_video, \
     create_user_segmentation_data_for_download, get_frame_info, create_seg_data_from_csv, \
     sync_seg_data_to_db, delete_one_experiment
 from ct_core.task_utils import get_exp_frame_no
-from ct_core.forms import SignUpForm, UserProfileForm
+from ct_core.forms import SignUpForm, UserProfileForm, UserPasswordResetForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
 from django_irods.storage import IrodsStorage
 from django_irods.icommands import SessionException
@@ -49,6 +50,7 @@ def index(request):
     #sys.path.append("/home/docker/pycharm-debug")
     #import pydevd
     #pydevd.settrace('172.17.0.1', port=21000, suspend=False)
+
 
     if request.user.is_authenticated():
         if request.user.is_superuser:
@@ -70,6 +72,10 @@ def index(request):
         template = loader.get_template('ct_core/home.html')
         context = {}
         return HttpResponse(template.render(context, request))
+
+
+class request_password_reset_view(PasswordResetView):
+    form_class = UserPasswordResetForm
 
 
 def signup(request):

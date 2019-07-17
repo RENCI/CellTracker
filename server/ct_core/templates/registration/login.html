@@ -10,4 +10,10 @@
     <button type="submit">Login</button>
     <a href="/" class="btn btn-default" type=button">Go back to home page</a>
   </form>
+
+  <p class="home-page-block">If you have forgotten your password, you can
+      <a href="{% url 'reset_password_request' %}">reset your password</a>
+      if your account has an associated email address.
+  </p>
+
 {% endblock %}

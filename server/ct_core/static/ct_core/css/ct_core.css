@@ -223,3 +223,7 @@ float the buttons inside it. This prevents collapsing. */
 .info-msg {
     color: green;
 }
+
+.bold_text {
+    font-weight: bold;
+}
