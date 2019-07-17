@@ -11,6 +11,7 @@ class SignUpForm(forms.ModelForm):
     """
     error_messages = {
         'password_mismatch': _("The two password fields didn't match."),
+        'email_invalid': _("The input email is not valid."),
     }
     password1 = forms.CharField(
         label=_("Password"),
@@ -28,12 +29,14 @@ class SignUpForm(forms.ModelForm):
     last_name = forms.CharField(max_length=30, required=True)
     grade = forms.IntegerField(max_value=12, min_value=1, required=False,
                                help_text='Optional. Input your grade between 1 to 12.')
-    school = forms.CharField(max_length=30, required=False, help_text='Optional. Input the '
+    school = forms.CharField(max_length=100, required=False, help_text='Optional. Input the '
                                                                       'name of your school')
-
+    email = forms.EmailField(required=False,
+                             help_text='Optional. Input your email for password '
+                                                       'reset and notifications')
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'grade', 'school', 'password1',
+        fields = ('first_name', 'last_name', 'grade', 'school', 'email', 'password1',
                   'password2', )
 
     def __init__(self, *args, **kwargs):
@@ -67,4 +70,3 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['first_name', 'last_name']
-
