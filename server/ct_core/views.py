@@ -137,7 +137,7 @@ def edit_user(request, pk):
         return HttpResponseForbidden('You are not authenticated to edit user profile')
 
     ProfileInlineFormset = inlineformset_factory(User, UserProfile,
-                                                 fields=('grade', 'school', 'email'),
+                                                 fields=('grade', 'school'),
                                                  can_delete=False)
     formset = ProfileInlineFormset(instance=user)
 
