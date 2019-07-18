@@ -6,7 +6,9 @@ import {
 
 export default function(sketch) {
   // Current experiment
-  let experiment = null;
+  let experiment = null,
+      allRegions = null,
+      visibleRegions = null;
 
   // Images
   let images = [],
@@ -123,7 +125,9 @@ export default function(sketch) {
       resize();
     }
 
-    if (experiment) {
+    segmentationData = experiment && experiment.segmentationData ? experiment.segmentationData : null;
+
+    if (segmentationData) {
       segmentationData = experiment.segmentationData;
 
       let trajectories = new Set();
@@ -140,6 +144,29 @@ export default function(sketch) {
 
       strokeColorMap.domain(trajectories);
       fillColorMap.domain(trajectories);
+    }
+
+    if (segmentationData) {
+      allRegions = segmentationData[frame].regions;
+
+      // Find visible regions
+      if (zoomPoint) {
+        // Get visible area
+        const z = 1 / zoom / 2,
+              area = [zoomPoint[0] - z, zoomPoint[1] - z, 
+                      zoomPoint[0] + z, zoomPoint[1] + z];
+        visibleRegions = allRegions.filter(region => {
+          // Just use bounding box
+          return region.min[0] <= area[2] && region.min[1] <= area[3] &&
+                region.max[0] >= area[0] && region.max[1] >= area[1]; 
+        });
+      }
+      else {
+        visibleRegions = allRegions;
+      }
+    }
+    else {
+      allregions = visibleRegions = null;
     }
 
     highlight();
@@ -160,7 +187,7 @@ export default function(sketch) {
     const im = colorImages[frame];
 
     // Get regions    
-    const regions = segmentationData ? segmentationData[frame].regions : null;
+    const regions = visibleRegions;
 
     // Set scale and translation
     let p = null;
@@ -171,7 +198,7 @@ export default function(sketch) {
       const i = regions.map(region => region.trajectory_id).indexOf(id);
 
       if (i !== -1) {
-        p = scalePoint(segmentationData[frame].regions[i].center);
+        p = scalePoint(regions[i].center);
         translation = [sketch.width / 2 / zoom - p[0], sketch.height / 2 / zoom - p[1]];
       }
     }
@@ -355,7 +382,7 @@ export default function(sketch) {
 
     if (sketch.mouseButton && sketch.mouseButton !== sketch.LEFT) return;
 
-    const regions = segmentationData[frame].regions;
+    const regions = visibleRegions;
 
     activeRegions = [];
 
@@ -472,7 +499,7 @@ export default function(sketch) {
 
     if (sketch.mouseButton !== sketch.LEFT) return;
 
-    const regions = segmentationData[frame].regions;
+    const regions = visibleRegions;
 
     switch (editMode) {
       case "playback":
@@ -519,7 +546,7 @@ export default function(sketch) {
       case "merge":
         if (!moveMouse) {
           if (mergeRegion && currentRegion && mergeRegion !== currentRegion) {
-            mergeRegions(mergeRegion, currentRegion, regions);
+            mergeRegions(mergeRegion, currentRegion, allRegions);
             onEditRegion(frame, mergeRegion);
             mergeRegion = null;
           }
@@ -536,7 +563,7 @@ export default function(sketch) {
       case "split":
         if (splitLine) {
           activeRegions.forEach(region => {
-            const newRegion = splitRegion(region, splitLine, 0.5 / images[0].width, regions);
+            const newRegion = splitRegion(region, splitLine, 0.5 / images[0].width, allRegions);
             
             if (newRegion) {
               onEditRegion(frame, region);
@@ -566,7 +593,7 @@ export default function(sketch) {
         if (moveMouse) return;
 
         if (currentRegion) {
-          removeRegion(currentRegion, regions);
+          removeRegion(currentRegion, allRegions);
           onEditRegion(frame, currentRegion);
         }
         else {
@@ -576,7 +603,7 @@ export default function(sketch) {
 
           const newRegion = addRegion(
             normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])),
-            radius, regions
+            radius, allRegions
           );
 
           onEditRegion(frame, newRegion);
@@ -606,7 +633,7 @@ export default function(sketch) {
       case "regionPaste":
         if (moveMouse) return;
 
-        const newRegion = pasteRegion(normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])), regions);
+        const newRegion = pasteRegion(normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])), allRegions);
         onEditRegion(frame, newRegion);
 
         break;
@@ -718,7 +745,7 @@ export default function(sketch) {
     currentRegion = null;
     if (editMode !== "merge") mergeRegion = null;
 
-    const regions = segmentationData[frame].regions;
+    const regions = visibleRegions;
 
     sketch.cursor(sketch.ARROW);
 
