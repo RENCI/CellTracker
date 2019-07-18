@@ -70,6 +70,8 @@ export default function(sketch) {
       handleRadius = 3,
       handleHighlightRadius = 5;
 
+  let count = 0;
+
   sketch.setup = function() {
     // Create canvas with default size
     var canvas = sketch.createCanvas(100, 100);
@@ -712,6 +714,7 @@ export default function(sketch) {
 
     // Clear highlighting
     handle = null;
+    const previousRegion = currentRegion;
     currentRegion = null;
     if (editMode !== "merge") mergeRegion = null;
 
@@ -810,7 +813,7 @@ export default function(sketch) {
         break;
     }
 
-    if (currentRegion) {
+    if (currentRegion !== previousRegion) {
       const f = editView ? null : frame;
 
       setTimeout(() => { onHighlightRegion(f, currentRegion); }, 0);
