@@ -51,7 +51,6 @@ def index(request):
     #import pydevd
     #pydevd.settrace('172.17.0.1', port=21000, suspend=False)
 
-
     if request.user.is_authenticated():
         if request.user.is_superuser:
             # go to data management page
@@ -137,7 +136,7 @@ def edit_user(request, pk):
         return HttpResponseForbidden('You are not authenticated to edit user profile')
 
     ProfileInlineFormset = inlineformset_factory(User, UserProfile,
-                                                 fields=('grade', 'school'),
+                                                 fields=('grade', 'school', 'email'),
                                                  can_delete=False)
     formset = ProfileInlineFormset(instance=user)
 
@@ -148,6 +147,7 @@ def edit_user(request, pk):
             created_user = user_form.save(commit=False)
             formset = ProfileInlineFormset(request.POST, instance=created_user)
             if formset.is_valid():
+                created_user.email = formset.cleaned_data[0]['email']
                 created_user.save()
                 formset.save()
                 messages.info(request, "Your profile is updated successfully")
