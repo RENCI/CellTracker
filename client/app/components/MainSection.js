@@ -5,8 +5,6 @@ import LoadingProgress from "./LoadingProgress";
 import EditView from "./EditView";
 
 const MainSection = props => {
-  const edit = props.experiment && Number.isInteger(props.experiment.editFrame);
-
   const divClass = props.loading ?
       "offset-md-2 col-md-8 text-center" :
       "col-md-12";

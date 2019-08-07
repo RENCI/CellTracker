@@ -42,6 +42,10 @@ function handleSelectZoomPoint(frame, point) {
   ViewActionCreators.selectZoomPoint(frame, point);
 }
 
+function handleEditRegion(frame, region) {
+  ViewActionCreators.editRegion(frame, region);
+}
+
 const frameDivStyle = {
   display: "flex",
   marginBottom: "5px"
@@ -125,12 +129,16 @@ const PlaybackView = props => {
           <TraceSketchWrapper
             ref={sketchRef}
             experiment={props.experiment}
+            zoom={props.settings.editZoom ? props.settings.editZoom : 1}
+            zoomPoint={props.settings.zoomPoint ? props.settings.zoomPoint : [0, 0]}
             frame={props.playback.frame}
+            editMode={props.settings.editMode}
             onKeyPress={handleKeyPress}
             onMouseWheel={handleMouseWheel}
             onHighlightRegion={handleHighlightRegion}
             onSelectRegion={handleSelectRegion}
-            onSelectZoomPoint={handleSelectZoomPoint} />
+            onSelectZoomPoint={handleSelectZoomPoint}
+            onEditRegion={handleEditRegion} />
           <MediaControls {...props} />
         </div>
         <div className="col-md-2 text-center">
