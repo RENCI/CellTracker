@@ -17,14 +17,14 @@ function getStateFromStore() {
 
 const AppContainer = () => {
   const [state, setState] = useState(getStateFromStore());
-  const [, forceUpdate] = useState();
+  const [, forceUpdate] = useState([]);
 
   const onDataChange = () => {
     setState(getStateFromStore());
   };
 
   const onResize = () => {
-    forceUpdate();
+    forceUpdate([]);
   }
 
   useEffect(() => {

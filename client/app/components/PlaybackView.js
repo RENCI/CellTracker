@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import TraceSketchWrapper from "../p5/TraceSketchWrapper";
 import MediaControls from "./MediaControls";
@@ -41,15 +41,18 @@ function handleSelectZoomPoint(frame, point) {
 }
 
 const PlaybackView = props => {
+  const [sketchWidth, setSketchWidth] = useState(100);
   const sketchRef = useRef(null);
 
-  const graphHeight = sketchRef.current ? sketchRef.current.sketch.width : 100;
+  useEffect(() => {
+    setSketchWidth(sketchRef.current.sketch.width);
+  });
 
   return (
     <div className="row">
       <div className="col-md-2">        
         <h4>Trajectories</h4>
-        <TrajectoryGraphWrapper height={graphHeight} {...props} />
+        <TrajectoryGraphWrapper height={sketchWidth} {...props} />
       </div>
       <div className="col-md-8 text-center">
         <h4>Overview</h4>
