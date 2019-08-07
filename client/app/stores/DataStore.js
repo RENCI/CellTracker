@@ -2,6 +2,7 @@ import AppDispatcher from "../dispatcher/AppDispatcher";
 import { EventEmitter } from "events";
 import assign from "object-assign";
 import Constants from "../constants/Constants";
+import { getExperimentInfo } from "../utils/WebAPIUtils";
 
 const CHANGE_EVENT = "change";
 
@@ -38,7 +39,7 @@ let settings = {
   playbackZoom: null,
   zoomPoint: [0.5, 0.5],
   zoomBox: [0, 0, 1, 1],
-  editMode: "vertex",
+  editMode: "regionSelect",
   stabilize: true
 };
 
@@ -399,15 +400,15 @@ function selectRegion(frame, region) {
     setZoomLevels(region);
   }
   else {
-    experiment.editFrame = null;
     experiment.centerRegion = null;
+    settings.editZoom = 1;
+    settings.playbackZoom = 1;
+    settings.zoomPoint = [0.5, 0.5];
   }
-
   pushHistory();
 }
 
 function selectZoomPoint(frame, point) {
-  experiment.editFrame = frame;
   experiment.centerRegion = null;
 
   settings.zoomPoint = point.slice();

@@ -60,11 +60,21 @@ const EditControls = props => {
   const ref = useRef(null);
   useTooltip(ref); 
 
-  const copyMode = props.editMode === "regionPaste" ? "paste" : "copy";
+  const spacing = " ml-3";
 
   return (
     <div className="form-inline" ref={ref}>
       <div className="btn-group-sm">
+        <IconButton
+          iconName="oi-map-marker" callback={onRegionSelectClick} active={props.editMode === "regionSelect"} tooltip="Center on region" />
+        <IconButton 
+          iconName="oi-zoom-in" callback={onZoomInClick} tooltip="Zoom in" />
+        <IconButton 
+          iconName="oi-zoom-out" callback={onZoomOutClick} tooltip="Zoom out" />
+        <IconButton 
+          iconName="oi-home" callback={onResetClick} tooltip="Reset" />
+      </div>
+      <div className={"btn-group-sm" + spacing}>
         <IconButton 
           iconName="oi-pencil" callback={onVertexEditClick} active={props.editMode === "vertex"} tooltip="Vertex edit" />
         <IconButton 
@@ -74,7 +84,7 @@ const EditControls = props => {
         <IconButton 
           iconName="oi-crop" callback={onTrimClick} active={props.editMode === "trim"} tooltip="Trim region" />
       </div>
-      <div className="btn-group-sm ml-2">
+      <div className={"btn-group-sm" + spacing}>
         <IconButton 
           iconName="oi-wrench" callback={onRegionEditClick} active={props.editMode === "regionEdit"} tooltip="Add/remove region" />
         <IconButton 
@@ -84,17 +94,7 @@ const EditControls = props => {
         <IconButton 
           iconName="oi-tag" callback={onRegionCopy} active={props.editMode === "regionCopy"} tooltip="Copy region" />
         <IconButton 
-          iconName="oi-tags" callback={onRegionPaste} active={props.editMode === "regionPaste"} tooltip="Paste region" />
-        <IconButton
-          iconName="oi-map-marker" callback={onRegionSelectClick} active={props.editMode === "regionSelect"} tooltip="Center on region" />
-      </div>
-      <div className="btn-group-sm ml-2">
-        <IconButton 
-          iconName="oi-zoom-in" callback={onZoomInClick} tooltip="Zoom in" />
-        <IconButton 
-          iconName="oi-zoom-out" callback={onZoomOutClick} tooltip="Zoom out" />
-        <IconButton 
-          iconName="oi-home" callback={onResetClick} tooltip="Reset" />
+          iconName="oi-tags" callback={onRegionPaste} active={props.editMode === "regionPaste"} tooltip="Paste region" />        
       </div>
     </div>
   );
