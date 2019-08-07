@@ -55,7 +55,7 @@ export default function() {
   }
 
   function processData() {
-    // Mimic d3 Sankey, but enforce x-positions on nodes based on frame
+    // Mimic d3 Sankey, but enforce y-positions on nodes based on frame
 
     // Find trajectories with visible regions
     let visibleTrajectories = null;
@@ -159,56 +159,56 @@ export default function() {
       frameNodes.forEach(node => {
         node.value = Math.max(d3.sum(node.sourceLinks, link => link.value), 1);
         node.depth = i;
-        node.height = a.length - 1 - i;
+        node.width = a.length - 1 - i;
       });
     });
 
     // Compute node size
-    nodeSize = innerWidth() / 80;
+    nodeSize = innerHeight() / 80;
     nodeStrokeWidth = nodeSize / 6;
 
     const padding = 0.5;
 
     // Position nodes
-    const xScale = d3.scaleLinear()
+    const yScale = d3.scaleLinear()
         .domain([0, nodes.length - 1])
-        .range([0, innerWidth() - nodeSize]);
+        .range([0, innerHeight() - nodeSize]);
 
     nodes.forEach((frameNodes, i) => {
-      const x = xScale(i);
-      let y = 0;
+      let x = 0;
+      const y = yScale(i);
 
       frameNodes.forEach(node => {
-        node.x0 = x;
-        node.x1 = x + nodeSize;
-        node.y1 = y;
-        node.y0 = y - node.value * nodeSize;
+        node.x1 = x;
+        node.x0 = x - node.value * nodeSize;
+        node.y0 = y;
+        node.y1 = y + nodeSize;
 
-        y = node.y0 - nodeSize * padding;
+        x = node.x0 - nodeSize * padding;
       });
     });
 
     // Flatten node array
     nodes = d3.merge(nodes);
 
-    // Update height based on node size
-    height = -d3.min(nodes, d => d.y0) + margin.top + margin.bottom;
+    // Update width based on node size
+    width = -d3.min(nodes, d => d.x0) + margin.left + margin.right;
 
-    // Update y position
+    // Update x position
     nodes.forEach(node => {
-      node.y0 += innerHeight();
-      node.y1 += innerHeight();
+      node.x0 += innerWidth();
+      node.x1 += innerWidth();
     });
 
     // Position links
     nodes.forEach(node => {
-      const x = (node.x0 + node.x1) / 2,
-            startY = node.y0 + nodeSize / 2;
+      const y = (node.y0 + node.y1) / 2,
+            startX = node.x0 + nodeSize / 2;
 
-      let y = startY;
+      let x = startX;
 
       node.sourceLinks.sort((a, b) => {
-        return d3.ascending(a.target.y0, b.target.y0);
+        return d3.ascending(a.target.x0, b.target.x0);
       });
 
       node.sourceLinks.forEach(link => {
@@ -219,10 +219,10 @@ export default function() {
 
         link.width = nodeSize;
 
-        y += nodeSize;
+        x += nodeSize;
       });
 
-      y = node.y0 + (node.y1 - node.y0) / 2;
+      x = node.x0 + (node.x1 - node.x0) / 2;
 
       node.targetLinks.forEach(link => {
         link.point1 = {
@@ -230,7 +230,7 @@ export default function() {
           y: y
         };        
 
-        y += nodeSize;
+        x += nodeSize;
       });
     });
 
@@ -271,7 +271,7 @@ export default function() {
     drawFrames();
 
     function drawLinks() {
-      let linkShape = d3.linkHorizontal()
+      let linkShape = d3.linkVertical()
           .source(d => d.point0)
           .target(d => d.point1)
           .x(d => d.x)
@@ -307,9 +307,9 @@ export default function() {
       }
 
       function mousemove(d) {
-        const x = d3.mouse(this)[0],
-              s = x - d.point0.x,
-              t = d.point1.x - x;
+        const y = d3.mouse(this)[1],
+              s = y - d.point0.y,
+              t = d.point1.y - y;
 
         if (s < t) dispatcher.call("highlightRegion", this, d.source.frameIndex, d.source.region);
         else dispatcher.call("highlightRegion", this, d.target.frameIndex, d.target.region);
@@ -378,15 +378,15 @@ export default function() {
 
       const frames = data.segmentationData;
 
-      const xScale = d3.scaleLinear()
+      const yScale = d3.scaleLinear()
           .domain([0, frames.length - 1])
-          .range([-diff, innerWidth() - nodeSize - diff]);
+          .range([-diff, innerHeight() - nodeSize - diff]);
 
-      const backWidth = xScale(1) - xScale(0);
+      const backHeight = yScale(1) - yScale(0);
 
-      const backXScale = d3.scaleLinear()
+      const backYScale = d3.scaleLinear()
           .domain([0, frames.length - 1])
-          .range([nodeSize / 2 - backWidth / 2, innerWidth() - nodeSize / 2 - backWidth / 2]);
+          .range([nodeSize / 2 - backHeight / 2, innerHeight() - nodeSize / 2 - backHeight / 2]);
 
       // Bind frames
       let frame = svg.select(".frames").selectAll(".frame")
@@ -413,33 +413,33 @@ export default function() {
       let frameUpdate = frameEnter.merge(frame);
 
       frameUpdate.select(".background")
-          .attr("x", backX)
-          .attr("y", 0)
-          .attr("width", backWidth)
-          .attr("height", innerHeight())
+          .attr("x", 0)
+          .attr("y", backY)
+          .attr("width", innerWidth())
+          .attr("height", backHeight);
 
       frameUpdate.select(".foreground")
           .attr("rx", frameSize / 2)
           .attr("ry", frameSize / 2)
-          .attr("x", x)
-          .attr("y", -diff)
-          .attr("width", frameSize)
-          .attr("height", innerHeight() + diff)
+          .attr("x", -diff)
+          .attr("y", y)
+          .attr("width", innerWidth() + diff)
+          .attr("height", frameSize)
           .style("fill", fill);
 
       // Frame exit
       frame.exit().remove();
 
-      function x(d, i) {
-        return xScale(i);
+      function y(d, i) {
+        return yScale(i);
       }
 
       function fill(d, i) {
         return i === currentFrame ? "#aaa" : "#eee";
       }
 
-      function backX(d, i) {
-        return backXScale(i);
+      function backY(d, i) {
+        return backYScale(i);
       }
     }
   }

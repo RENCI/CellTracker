@@ -8,9 +8,9 @@ import EditView from "./EditView";
 const MainSection = props => {
   const edit = props.experiment && Number.isInteger(props.experiment.editFrame);
 
-  const divClass = edit ?
-      "col-md-12 text-center" :
-      "offset-md-1 col-md-10 text-center";
+  const divClass = props.loading ?
+      "offset-md-2 col-md-8 text-center" :
+      "col-md-12";
 
   return (
     <div>
@@ -33,12 +33,10 @@ const MainSection = props => {
                 max1={props.loading.numFrames}
                 value2={props.loading.segFrame}
                 max2={props.loading.numSegFrames} />
-            : null}
-            {props.loading === null ?
-              edit ?
+            : edit ?
                 <EditView {...props} /> :
                 <PlaybackView {...props} />
-            : null}
+            }
           </div>
       : null}
       </div>

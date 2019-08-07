@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import * as d3 from "d3";
 import TrajectoryGraph from "./TrajectoryGraph";
@@ -45,7 +45,7 @@ class TrajectoryGraphWrapper extends React.Component {
 
     this.trajectoryGraph
         .width(width)
-        .height(width / 4)
+        .height(props.height)
         .currentFrame(props.playback.frame)
         .zoomPoint(props.zoomPoint)
         .zoom(props.zoom);
@@ -56,11 +56,12 @@ class TrajectoryGraphWrapper extends React.Component {
   }
 
   render() {
-    return <div ref={ref => this.ref = ref}></div>
+    return <div style={{overflowX: "auto"}} ref={ref => this.ref = ref}></div>
   }
 }
 
 TrajectoryGraphWrapper.propTypes = {
+  height: PropTypes.number.isRequired,
   experiment: PropTypes.object.isRequired,
   playback: PropTypes.object.isRequired,
   zoomPoint: PropTypes.arrayOf(PropTypes.number),

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import PropTypes from "prop-types";
 import TraceSketchWrapper from "../p5/TraceSketchWrapper";
 import MediaControls from "./MediaControls";
@@ -41,11 +41,20 @@ function handleSelectZoomPoint(frame, point) {
 }
 
 const PlaybackView = props => {
+  const sketchRef = useRef(null);
+
+  const graphHeight = sketchRef.current ? sketchRef.current.sketch.width : 100;
+
   return (
-    <div>
-      <div className="mb-3">
+    <div className="row">
+      <div className="col-md-2">        
+        <h4>Trajectories</h4>
+        <TrajectoryGraphWrapper height={graphHeight} {...props} />
+      </div>
+      <div className="col-md-8 text-center">
         <h4>Overview</h4>
         <TraceSketchWrapper
+          ref={sketchRef}
           experiment={props.experiment}
           frame={props.playback.frame}
           onKeyPress={handleKeyPress}
@@ -55,8 +64,6 @@ const PlaybackView = props => {
           onSelectZoomPoint={handleSelectZoomPoint} />
         <MediaControls {...props} />
       </div>
-      <h4>Trajectory Graph</h4>
-      <TrajectoryGraphWrapper {...props} />
     </div>
   );
 }
