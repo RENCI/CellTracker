@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import TraceSketchWrapper from "../p5/TraceSketchWrapper";
 import MediaControls from "./MediaControls";
 import TrajectoryGraphWrapper from "../visualizations/TrajectoryGraphWrapper";
+import Frames from "./Frames";
 import * as ViewActionCreators from "../actions/ViewActionCreators";
 
 function handleKeyPress(keyCode) {
@@ -40,6 +41,11 @@ function handleSelectZoomPoint(frame, point) {
   ViewActionCreators.selectZoomPoint(frame, point);
 }
 
+const frameDivStyle = {
+  display: "flex",
+  marginBottom: "5px"
+};
+
 const PlaybackView = props => {
   const [sketchWidth, setSketchWidth] = useState(100);
   const sketchRef = useRef(null);
@@ -48,10 +54,52 @@ const PlaybackView = props => {
     setSketchWidth(sketchRef.current.sketch.width);
   });
 
+  const frames = [];
+  let framesIndex = -1;
+
+  for (let i = 0; i < props.experiment.frames; i++) {
+    if (i % 5 === 0) {
+      framesIndex = frames.push([]) - 1;
+    }
+
+    const frameStyle = {
+      flex: "1",
+      width: "0px",
+      paddingTop: "5px",
+      paddingLeft: "5px",
+      paddingRight: "5px",
+      borderRadius: "5px",
+      background: i === props.playback.frame ? "#007bff" : "none"
+    };
+
+    if (i < 0 || i >= props.experiment.frames) {
+      frames[framesIndex].push(
+        <div style={frameStyle} key={i}>
+        </div>
+      );
+    }
+    else {
+      frames[framesIndex].push(
+        <div style={frameStyle} key={i}>
+          <TraceSketchWrapper
+            experiment={props.experiment}
+            zoom={props.settings.playbackZoom}
+            zoomPoint={props.settings.zoomPoint}
+            frame={i}
+            stabilize={props.settings.stabilize}
+            onKeyPress={handleKeyPress}
+            onMouseWheel={handleMouseWheel}
+            onHighlightRegion={handleHighlightRegion}
+            onSelectRegion={handleSelectRegion} />
+        </div>
+      );
+    }
+  }
+
   return (
     <div className="row">
       <div className="col-md-2">        
-        <h4>Trajectories</h4>
+        <h4 className="text-center">Trajectories</h4>
         <TrajectoryGraphWrapper height={sketchWidth} {...props} />
       </div>
       <div className="col-md-8 text-center">
@@ -67,12 +115,17 @@ const PlaybackView = props => {
           onSelectZoomPoint={handleSelectZoomPoint} />
         <MediaControls {...props} />
       </div>
+      <div className="col-md-2 text-center">        
+        <h4>Frames</h4>
+        <Frames height={sketchWidth} {...props} />
+      </div>
     </div>
   );
 }
 
 PlaybackView.propTypes = {
   experiment: PropTypes.object,
+  settings: PropTypes.object,
   playback: PropTypes.object
 };
 
