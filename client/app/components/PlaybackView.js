@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import TraceSketchWrapper from "../p5/TraceSketchWrapper";
 import MediaControls from "./MediaControls";
-import PlaybackControls from "./PlaybackControls";
 import EditControls from "./EditControls";
 import TrajectoryGraphWrapper from "../visualizations/TrajectoryGraphWrapper";
 import Frames from "./Frames";

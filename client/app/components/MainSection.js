@@ -2,7 +2,6 @@ import React from "react";
 import PropTypes from "prop-types";
 import DataControls from "./DataControls";
 import LoadingProgress from "./LoadingProgress";
-import PlaybackView from "./PlaybackView";
 import EditView from "./EditView";
 
 const MainSection = props => {
@@ -33,9 +32,7 @@ const MainSection = props => {
                 max1={props.loading.numFrames}
                 value2={props.loading.segFrame}
                 max2={props.loading.numSegFrames} />
-            : edit ?
-                <EditView {...props} /> :
-                <PlaybackView {...props} />
+            : <EditView {...props} />
             }
           </div>
       : null}

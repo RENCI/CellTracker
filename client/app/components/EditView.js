@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import TraceSketchWrapper from "../p5/TraceSketchWrapper";
-import PlaybackControls from "./PlaybackControls";
 import MediaControls from "./MediaControls";
 import EditControls from "./EditControls";
 import TrajectoryGraphWrapper from "../visualizations/TrajectoryGraphWrapper";
+import Frames from "./Frames";
 import * as ViewActionCreators from "../actions/ViewActionCreators";
 
 function handleKeyPress(keyCode) {
@@ -38,8 +38,8 @@ function handleSelectRegion(frame, region) {
   ViewActionCreators.selectRegion(frame, region);
 }
 
-function handleEditRegion(frame, region) {
-  ViewActionCreators.editRegion(frame, region);
+function handleSelectZoomPoint(frame, point) {
+  ViewActionCreators.selectZoomPoint(frame, point);
 }
 
 const frameDivStyle = {
@@ -47,7 +47,14 @@ const frameDivStyle = {
   marginBottom: "5px"
 };
 
-const EditView = props => {
+const PlaybackView = props => {
+  const [sketchWidth, setSketchWidth] = useState(100);
+  const sketchRef = useRef(null);
+
+  useEffect(() => {
+    setSketchWidth(sketchRef.current.sketch.width);
+  });
+
   const frames = [];
   let framesIndex = -1;
 
@@ -91,64 +98,53 @@ const EditView = props => {
   }
 
   return (
-    <div>
-      <div className="row mb-3">
-        <div className="col-md-5">
-          <h4>Playback</h4>
-          <PlaybackControls />
+    <>
+      <div className="row text-center">
+        <div className="col-md-2">        
+          <h4>Trajectories</h4>
+        </div>
+        <div className="col-md-8">
+          <h4>Edit</h4>
+        </div>
+        <div className="col-md-2">        
+          <h4>Frames</h4>
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="offset-md-2 col-md-8 text-center">
+          <EditControls editMode={props.settings.editMode} />        
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="col-md-2">        
+          <TrajectoryGraphWrapper height={sketchWidth} {...props} />
+        </div>
+        <div className="col-md-8 text-center">
           <TraceSketchWrapper
+            ref={sketchRef}
             experiment={props.experiment}
-            zoom={props.settings.playbackZoom}
-            zoomPoint={props.settings.zoomPoint}
             frame={props.playback.frame}
-            stabilize={props.settings.stabilize}
             onKeyPress={handleKeyPress}
             onMouseWheel={handleMouseWheel}
             onHighlightRegion={handleHighlightRegion}
-            onSelectRegion={handleSelectRegion} />       
-            {frames.map((frames, i) => {
-              return (
-                <div style={frameDivStyle} key={i}>
-                  {frames}
-                </div>          
-              );
-            })}         
+            onSelectRegion={handleSelectRegion}
+            onSelectZoomPoint={handleSelectZoomPoint} />
           <MediaControls {...props} />
         </div>
-        <div className="col-md-7">
-          <h4>Edit</h4>
-          <EditControls editMode={props.settings.editMode} />
-          <TraceSketchWrapper
-            experiment={props.experiment}
-            zoom={props.settings.editZoom}
-            zoomPoint={props.settings.zoomPoint}
-            frame={props.experiment.editFrame}
-            editMode={props.settings.editMode}
-            onKeyPress={handleKeyPress}
-            onMouseWheel={handleMouseWheel}
-            onSelectRegion={handleSelectRegion}
-            onHighlightRegion={handleHighlightRegion}
-            onEditRegion={handleEditRegion} />
+        <div className="col-md-2 text-center">
+          <Frames height={sketchWidth} {...props} />
         </div>
       </div>
-      <div className="row">
-        <div className="col-md-12">
-          <h4>Trajectory Graph</h4>
-          <TrajectoryGraphWrapper  
-            experiment={props.experiment}
-            playback={props.playback}
-            zoomPoint={props.settings.zoomPoint}
-            zoom={props.settings.playbackZoom} />
-        </div>
-      </div>
-    </div>
+    </>
   );
 }
 
-EditView.propTypes = {
+PlaybackView.propTypes = {
   experiment: PropTypes.object,
   settings: PropTypes.object,
   playback: PropTypes.object
 };
 
-export default EditView;
+export default PlaybackView;
