@@ -52,6 +52,10 @@ function onZoomOutClick() {
   ViewActionCreators.zoom("edit", "out");
 }
 
+function onResetClick() {
+  ViewActionCreators.selectRegion(-1, null);
+}
+
 const EditControls = props => {
   const ref = useRef(null);
   useTooltip(ref); 
@@ -89,6 +93,8 @@ const EditControls = props => {
           iconName="oi-zoom-in" callback={onZoomInClick} tooltip="Zoom in" />
         <IconButton 
           iconName="oi-zoom-out" callback={onZoomOutClick} tooltip="Zoom out" />
+        <IconButton 
+          iconName="oi-home" callback={onResetClick} tooltip="Reset" />
       </div>
     </div>
   );

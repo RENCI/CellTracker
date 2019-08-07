@@ -2,6 +2,8 @@ import React, { useRef, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import TraceSketchWrapper from "../p5/TraceSketchWrapper";
 import MediaControls from "./MediaControls";
+import PlaybackControls from "./PlaybackControls";
+import EditControls from "./EditControls";
 import TrajectoryGraphWrapper from "../visualizations/TrajectoryGraphWrapper";
 import Frames from "./Frames";
 import * as ViewActionCreators from "../actions/ViewActionCreators";
@@ -97,29 +99,46 @@ const PlaybackView = props => {
   }
 
   return (
-    <div className="row">
-      <div className="col-md-2">        
-        <h4 className="text-center">Trajectories</h4>
-        <TrajectoryGraphWrapper height={sketchWidth} {...props} />
+    <>
+      <div className="row text-center">
+        <div className="col-md-2">        
+          <h4>Trajectories</h4>
+        </div>
+        <div className="col-md-8">
+          <h4>Edit</h4>
+        </div>
+        <div className="col-md-2">        
+          <h4>Frames</h4>
+        </div>
       </div>
-      <div className="col-md-8 text-center">
-        <h4>Overview</h4>
-        <TraceSketchWrapper
-          ref={sketchRef}
-          experiment={props.experiment}
-          frame={props.playback.frame}
-          onKeyPress={handleKeyPress}
-          onMouseWheel={handleMouseWheel}
-          onHighlightRegion={handleHighlightRegion}
-          onSelectRegion={handleSelectRegion}
-          onSelectZoomPoint={handleSelectZoomPoint} />
-        <MediaControls {...props} />
+
+      <div className="row">
+        <div className="offset-md-2 col-md-8 text-center">
+          <EditControls editMode={props.settings.editMode} />        
+        </div>
       </div>
-      <div className="col-md-2 text-center">        
-        <h4>Frames</h4>
-        <Frames height={sketchWidth} {...props} />
+
+      <div className="row">
+        <div className="col-md-2">        
+          <TrajectoryGraphWrapper height={sketchWidth} {...props} />
+        </div>
+        <div className="col-md-8 text-center">
+          <TraceSketchWrapper
+            ref={sketchRef}
+            experiment={props.experiment}
+            frame={props.playback.frame}
+            onKeyPress={handleKeyPress}
+            onMouseWheel={handleMouseWheel}
+            onHighlightRegion={handleHighlightRegion}
+            onSelectRegion={handleSelectRegion}
+            onSelectZoomPoint={handleSelectZoomPoint} />
+          <MediaControls {...props} />
+        </div>
+        <div className="col-md-2 text-center">
+          <Frames height={sketchWidth} {...props} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

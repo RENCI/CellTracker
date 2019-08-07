@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import TraceSketchWrapper from "../p5/TraceSketchWrapper";
+import * as ViewActionCreators from "../actions/ViewActionCreators";
 
 function handleKeyPress(keyCode) {
   switch (keyCode) {
@@ -19,10 +20,6 @@ function handleKeyPress(keyCode) {
       ViewActionCreators.frameDelta(1);
       break;
   }
-}
-
-function handleMouseWheel(delta) {
-  ViewActionCreators.frameDelta(delta);
 }
 
 function handleHighlightRegion(frame, region) {
@@ -83,8 +80,6 @@ const Frames = props => {
             zoomPoint={props.settings.zoomPoint ? props.settings.zoomPoint : [0, 0] }
             frame={i}
             stabilize={props.settings.stabilize}
-            onKeyPress={handleKeyPress}
-            onMouseWheel={handleMouseWheel}
             onHighlightRegion={handleHighlightRegion}
             onSelectRegion={handleSelectRegion} />
         </div>

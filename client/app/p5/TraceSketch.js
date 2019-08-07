@@ -342,7 +342,9 @@ export default function(sketch) {
   sketch.keyPressed = function(e) {
     e.preventDefault();
 
-    onKeyPress(sketch.keyCode);
+    if (keyPress) {
+      onKeyPress(sketch.keyCode);
+    }
   }
 
   function mousePressed(e) {
@@ -655,7 +657,9 @@ export default function(sketch) {
   function mouseWheel(e) {
     e.preventDefault();
 
-    onMouseWheel(Math.round(-e.deltaY / 100));
+    if (onMouseWheel) {
+      onMouseWheel(Math.round(-e.deltaY / 100));
+    }
 
     return false;
   }
