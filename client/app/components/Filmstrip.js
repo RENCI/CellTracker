@@ -3,27 +3,9 @@ import PropTypes from "prop-types";
 import TraceSketchWrapper from "../p5/TraceSketchWrapper";
 import * as ViewActionCreators from "../actions/ViewActionCreators";
 
-function handleKeyPress(keyCode) {
-  switch (keyCode) {
-    case 32:
-      // Space bar
-      ViewActionCreators.togglePlay();
-      break;
-
-    case 37:
-      // Left arrow
-      ViewActionCreators.frameDelta(-1);
-      break;
-
-    case 39:
-      // Right arrow
-      ViewActionCreators.frameDelta(1);
-      break;
-  }
-}
-
 function handleHighlightRegion(frame, region) {
-  ViewActionCreators.highlightRegion(frame, region);
+  // Don't switch to this frame
+  ViewActionCreators.highlightRegion(null, region);
 }
 
 function handleSelectRegion(frame, region) {
@@ -90,7 +72,7 @@ const Filmstrip = props => {
 
   return (
     <div ref={divRef} style={divStyle}>
-      {frames}
+        {frames}
     </div>
   );
 }

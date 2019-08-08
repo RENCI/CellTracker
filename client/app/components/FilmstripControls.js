@@ -18,7 +18,7 @@ const FilmstripControls = props => {
 
   return (
     <div className="form-inline" ref={ref}>
-      <div className="btn-group-sm ml-2">       
+      <div className="btn-group-sm mx-auto">       
         <IconButton 
           iconName="oi-zoom-in" callback={onZoomInClick} tooltip="Zoom in" />
         <IconButton 

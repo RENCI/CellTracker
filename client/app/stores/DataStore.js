@@ -279,8 +279,7 @@ function resetPlayback() {
   playback.frame = 0;
   playback.direction = 1;
 
-//  setPlay(true);
-setPlay(false);
+  setPlay(true);
 }
 
 function skipBackward() {
@@ -384,14 +383,12 @@ function highlightRegion(frame, region) {
 
 function selectRegion(frame, region) {
   if (region) {
-    experiment.editFrame = frame;
+    setFrame(frame);
     experiment.centerRegion = region;
 
     settings.zoomPoint = region.center.slice();
 
     setZoomLevels(region);
-
-    console.log(settings);
   }
   else {
     experiment.centerRegion = null;

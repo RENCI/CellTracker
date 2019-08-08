@@ -44,7 +44,7 @@ export default function(sketch) {
 
   // Editing
   let editView = false,
-      editMode = "playback",
+      editMode = "filmstrip",
       handle = null,
       currentRegion = null,
       mergeRegion = null,
@@ -105,11 +105,11 @@ export default function(sketch) {
     onSelectZoomPoint = props.onSelectZoomPoint;
     onEditRegion = props.onEditRegion;
 
-    editView = editMode !== "playback";
+    editView = editMode !== "filmstrip";
     if (editMode !== "split" && editMode !== "trim") splitLine = null;
   
     // Image smoothing
-    //sketch.canvas.getContext("2d").imageSmoothingEnabled = editMode === "playback" ? true : false;
+    //sketch.canvas.getContext("2d").imageSmoothingEnabled = editMode === "filmstrip" ? true : false;
 
     // Check for new experiment
     if (!experiment || experiment.id !== props.experiment.id) {
@@ -282,9 +282,11 @@ export default function(sketch) {
           const v = scalePoint(region.vertices[0]);
           sketch.vertex(v[0], v[1]);
         }
-        sketch.endShape();
+        sketch.endShape();        
 
-        if (editView) {
+        const showVertices = editMode == "vertex" || editMode == "merge" || editMode == "split" || editMode == "trim";
+
+        if (showVertices) {
           // Draw points
           sketch.ellipseMode(sketch.RADIUS);
           sketch.fill(handleColor);          
@@ -401,7 +403,7 @@ export default function(sketch) {
     moveMouse = true;
 
     switch (editMode) {
-      case "playback":
+      case "plafilyback":
       break;
 
       case "vertex":
@@ -510,7 +512,7 @@ export default function(sketch) {
     const regions = visibleRegions;
 
     switch (editMode) {
-      case "playback":
+      case "filmstrip":
         if (!moveMouse) {
           // Select segmentation region
           if (regions) {
@@ -760,7 +762,7 @@ export default function(sketch) {
     sketch.cursor(sketch.ARROW);
 
     switch (editMode) {
-      case "playback":
+      case "filmstrip":
       case "regionEdit":
       case "regionMove":
       case "regionRotate":
@@ -788,7 +790,7 @@ export default function(sketch) {
               editMode === "regionSelect" ? "Center on region" : 
               editMode === "merge" && !mergeRegion ? "Select first merge region" :
               editMode === "merge" && mergeRegion ? "Select second merge region" :
-              editMode === "playback" ? "Center on region" : ""; 
+              editMode === "filmstrip" ? "Center on region" : ""; 
 
             break;
           }

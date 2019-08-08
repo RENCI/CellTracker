@@ -50,7 +50,7 @@ TraceSketchWrapper.propTypes = {
 TraceSketchWrapper.defaultProps = {
   zoom: 1,
   zoomPoint: null,
-  editMode: "playback",
+  editMode: "filmstrip",
   stabilize: false
 };
 
