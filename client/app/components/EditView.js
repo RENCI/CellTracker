@@ -4,7 +4,8 @@ import TraceSketchWrapper from "../p5/TraceSketchWrapper";
 import MediaControls from "./MediaControls";
 import EditControls from "./EditControls";
 import TrajectoryGraphWrapper from "../visualizations/TrajectoryGraphWrapper";
-import Frames from "./Frames";
+import Filmstrip from "./Filmstrip";
+import FilmstripControls from "./FilmstripControls";
 import * as ViewActionCreators from "../actions/ViewActionCreators";
 
 function handleKeyPress(keyCode) {
@@ -59,48 +60,6 @@ const PlaybackView = props => {
     setSketchWidth(sketchRef.current.sketch.width);
   });
 
-  const frames = [];
-  let framesIndex = -1;
-
-  for (let i = 0; i < props.experiment.frames; i++) {
-    if (i % 5 === 0) {
-      framesIndex = frames.push([]) - 1;
-    }
-
-    const frameStyle = {
-      flex: "1",
-      width: "0px",
-      paddingTop: "5px",
-      paddingLeft: "5px",
-      paddingRight: "5px",
-      borderRadius: "5px",
-      background: i === props.playback.frame ? "#007bff" : "none"
-    };
-
-    if (i < 0 || i >= props.experiment.frames) {
-      frames[framesIndex].push(
-        <div style={frameStyle} key={i}>
-        </div>
-      );
-    }
-    else {
-      frames[framesIndex].push(
-        <div style={frameStyle} key={i}>
-          <TraceSketchWrapper
-            experiment={props.experiment}
-            zoom={props.settings.playbackZoom}
-            zoomPoint={props.settings.zoomPoint}
-            frame={i}
-            stabilize={props.settings.stabilize}
-            onKeyPress={handleKeyPress}
-            onMouseWheel={handleMouseWheel}
-            onHighlightRegion={handleHighlightRegion}
-            onSelectRegion={handleSelectRegion} />
-        </div>
-      );
-    }
-  }
-
   return (
     <>
       <div className="row text-center">
@@ -116,8 +75,11 @@ const PlaybackView = props => {
       </div>
 
       <div className="row">
-        <div className="offset-md-2 col-md-8 text-center">
+        <div className="offset-md-2 col-md-8">
           <EditControls editMode={props.settings.editMode} />        
+        </div>
+        <div className="col-md-2">
+          <FilmstripControls />        
         </div>
       </div>
 
@@ -129,8 +91,8 @@ const PlaybackView = props => {
           <TraceSketchWrapper
             ref={sketchRef}
             experiment={props.experiment}
-            zoom={props.settings.editZoom ? props.settings.editZoom : 1}
-            zoomPoint={props.settings.zoomPoint ? props.settings.zoomPoint : [0, 0]}
+            zoom={props.settings.zoom}
+            zoomPoint={props.settings.zoomPoint}
             frame={props.playback.frame}
             editMode={props.settings.editMode}
             onKeyPress={handleKeyPress}
@@ -142,7 +104,7 @@ const PlaybackView = props => {
           <MediaControls {...props} />
         </div>
         <div className="col-md-2 text-center">
-          <Frames height={sketchWidth} {...props} />
+          <Filmstrip height={sketchWidth} {...props} />
         </div>
       </div>
     </>

@@ -87,6 +87,10 @@ export default function(sketch) {
     sketch.canvas.getContext("2d").imageSmoothingEnabled = false;
   }
 
+  sketch.resize = function() {
+    resize();
+  }
+
   sketch.updateProps = function(props) {
     // Set props
     frame = props.frame;
@@ -171,6 +175,8 @@ export default function(sketch) {
 
     highlight();
     sketch.redraw();
+
+    resize();
   }
 
   sketch.windowResized = function() {
@@ -718,7 +724,7 @@ export default function(sketch) {
     if (images.length === 0) return;
 
     // Size canvas to image aspect ratio
-    var im = images[0],
+    let im = images[0],
         aspect = im.width / im.height,
         w = innerWidth(sketch._userNode),
         h = w / aspect;
@@ -852,12 +858,7 @@ export default function(sketch) {
   }
 
   function innerWidth(element) {
-    var cs = getComputedStyle(element);
-
-    var padding = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight),
-        border = parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
-
-    return element.offsetWidth - padding - border;
+    return element.clientWidth;
   }
 
   function applyZoom(p) {

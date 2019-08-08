@@ -30,7 +30,7 @@ function handleSelectRegion(frame, region) {
   ViewActionCreators.selectRegion(frame, region);
 }
 
-const Frames = props => {
+const Filmstrip = props => {
   const divRef = useRef(null);
   const [width, setWidth] = useState(0);
 
@@ -50,19 +50,24 @@ const Frames = props => {
     display: "flex",
     flexDirection: "column",
     justifyContent: "space-around",
+    alignItems: "center",
     height: props.height
   };
 
+  const pad = "4%";
+
+  let key = 0;
   for (let i = center - framePad; i <= center + framePad; i++) {
     const frameStyle = {
       flex: "0 0 auto",
       width: w,
       height: w,
-      paddingTop: "5px",
-      paddingLeft: "5px",
-      paddingRight: "5px",
-      borderRadius: "5px",
-      background: i === center ? "#007bff" : "none"
+      paddingTop: pad,
+      paddingBottom: pad,
+      paddingLeft: pad,
+      paddingRight: pad,
+      background: i === center ? "#007bff" : "none",
+      borderRadius: pad
     };
 
     if (i < 0 || i >= props.experiment.frames) {
@@ -73,11 +78,11 @@ const Frames = props => {
     }
     else {      
       frames.push(
-        <div style={frameStyle} key={i}>          
+        <div style={frameStyle} key={key++}>          
           <TraceSketchWrapper
             experiment={props.experiment}
-            zoom={props.settings.playbackZoom ? props.settings.playbackZoom : 1 }
-            zoomPoint={props.settings.zoomPoint ? props.settings.zoomPoint : [0, 0] }
+            zoom={props.settings.filmstripZoom}
+            zoomPoint={props.settings.zoomPoint}
             frame={i}
             stabilize={props.settings.stabilize}
             onHighlightRegion={handleHighlightRegion}
@@ -94,11 +99,11 @@ const Frames = props => {
   );
 }
 
-Frames.propTypes = {
+Filmstrip.propTypes = {
   height: PropTypes.number.isRequired,
   experiment: PropTypes.object,
   settings: PropTypes.object,
   playback: PropTypes.object
 };
 
-export default Frames;
+export default Filmstrip;

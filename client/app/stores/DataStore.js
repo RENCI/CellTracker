@@ -33,9 +33,9 @@ let timer = null;
 // Settings
 let settings = {
   zoom: 1,
-  filmStripZoom: 1,
-  zoomDefault: 1,
-  filmStripZoomDefault: 1,
+  filmstripZoom: 1,
+  zoomDefault: null,
+  filmstripZoomDefault: null,
   zoomPoint: [0.5, 0.5],
   editMode: "regionSelect",
   stabilize: true
@@ -279,7 +279,8 @@ function resetPlayback() {
   playback.frame = 0;
   playback.direction = 1;
 
-  setPlay(true);
+//  setPlay(true);
+setPlay(false);
 }
 
 function skipBackward() {
@@ -395,7 +396,7 @@ function selectRegion(frame, region) {
   else {
     experiment.centerRegion = null;
     settings.zoom = 1;
-    settings.filmStripZoom = 1;
+    settings.filmstripZoom = 1;
     settings.zoomPoint = [0.5, 0.5];
   }
   pushHistory();
@@ -445,7 +446,7 @@ function pushHistory() {
   history.index = history.edits.push({
     segmentationData: cloneData(experiment.segmentationData),
     zoom: settings.zoom,    
-    filmStripZoom: settings.filmStripZoom
+    filmstripZoom: settings.filmstripZoom
   }) - 1;
 
   // Remove first if too long
@@ -475,7 +476,7 @@ function getHistory() {
 
   experiment.segmentationData = cloneData(edit.segmentationData);
   settings.zoom = edit.zoom;
-  settings.filmStripZoom = edit.filmStripZoom;
+  settings.filmstripZoom = edit.filmstripZoom;
 
   // XXX: ANY OF THIS NECESSARY NOW?
 //  updateSelectedRegionFromHistory();
@@ -534,6 +535,13 @@ function toggleStabilize() {
 }
 
 function setZoomLevels(item) {
+  if (settings.zoomDefault) {
+    settings.zoom = settings.zoomDefault;
+    settings.filmstripZoom = settings.filmstripZoomDefault;
+
+    return;
+  }
+
   // Default
   let s = 0.01;
 
@@ -566,8 +574,8 @@ function setZoomLevels(item) {
 
   const zoom = 1 / (s * 2);
 
-  settings.zoom = zoom;
-  settings.filmStripZoom = zoom / 2;
+  settings.zoom = settings.zoomDefault = zoom;
+  settings.filmstripZoom = settings.filmstripZoomDefault = zoom / 2;
 }
 
 function zoom(view, direction) {
@@ -576,7 +584,7 @@ function zoom(view, direction) {
   const maxZoom = 50;
 
   // Set the key for the parameter to adjust
-  const key = view === "filmStrip" ? "filmStripZoom" : "zoom";
+  const key = view === "filmstrip" ? "filmstripZoom" : "zoom";
 
   // Zoom in or out
   let s = 1.5;
@@ -588,6 +596,7 @@ function zoom(view, direction) {
   // Check for valid zoom amount
   if (newZoom >= minZoom && newZoom <= maxZoom) {
     settings[key] = newZoom;
+    settings[key + "Default"] = newZoom;
   }
 }
 
