@@ -435,7 +435,7 @@ export default function() {
       }
 
       function fill(d, i) {
-        return i === currentFrame ? "#aaa" : "#eee";
+        return i === currentFrame ? "#007bff" : "#eee";
       }
 
       function backY(d, i) {
