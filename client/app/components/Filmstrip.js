@@ -58,6 +58,8 @@ const Filmstrip = props => {
 
   let key = 0;
   for (let i = center - framePad; i <= center + framePad; i++) {
+    const valid = i >= 0 && i < props.experiment.frames;
+
     const frameStyle = {
       flex: "0 0 auto",
       width: w,
@@ -67,29 +69,23 @@ const Filmstrip = props => {
       paddingLeft: pad,
       paddingRight: pad,
       background: i === center ? "#007bff" : "none",
-      borderRadius: pad
+      borderRadius: pad, 
+      visibility: valid ? "visible" : "hidden"
     };
-
-    if (i < 0 || i >= props.experiment.frames) {
-      frames.push(
-        <div style={frameStyle} key={i}>
-        </div>
-      );
-    }
-    else {      
-      frames.push(
-        <div style={frameStyle} key={key++}>          
-          <TraceSketchWrapper
-            experiment={props.experiment}
-            zoom={props.settings.filmstripZoom}
-            zoomPoint={props.settings.zoomPoint}
-            frame={i}
-            stabilize={props.settings.stabilize}
-            onHighlightRegion={handleHighlightRegion}
-            onSelectRegion={handleSelectRegion} />
-        </div>
-      );      
-    }
+     
+    // Avoid unmounting by making invalid frames invisible, and set to the first frame
+    frames.push(
+      <div style={frameStyle} key={key++}>          
+        <TraceSketchWrapper
+          experiment={props.experiment}
+          zoom={props.settings.filmstripZoom}
+          zoomPoint={props.settings.zoomPoint}
+          frame={valid ? i : 0}
+          stabilize={props.settings.stabilize}
+          onHighlightRegion={handleHighlightRegion}
+          onSelectRegion={handleSelectRegion} />
+      </div>
+    );      
   }
 
   return (

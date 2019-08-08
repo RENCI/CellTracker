@@ -14,12 +14,10 @@ class TraceSketchWrapper extends React.Component {
     this.sketch = new p5(TraceSketch, this.ref.current);
 
     this.sketch.updateProps(this.props);
-//    this.sketch.resize();
   }
 
   shouldComponentUpdate(props, state) {
     this.sketch.updateProps(props);
-//    this.sketch.resize();
 
     return false;
   }
