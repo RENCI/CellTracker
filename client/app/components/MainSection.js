@@ -26,9 +26,9 @@ const MainSection = props => {
                   props.experiment.start ?
                   ("Frames " + props.experiment.start + "-" + props.experiment.stop) : null
                 }
-                value1={props.loading.frame}
+                value1={props.loading.framesLoaded}
                 max1={props.loading.numFrames}
-                value2={props.loading.segFrame}
+                value2={props.loading.segFramesLoaded}
                 max2={props.loading.numSegFrames} />
             : <EditView {...props} />
             }

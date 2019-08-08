@@ -2,7 +2,6 @@ import AppDispatcher from "../dispatcher/AppDispatcher";
 import { EventEmitter } from "events";
 import assign from "object-assign";
 import Constants from "../constants/Constants";
-import { getExperimentInfo } from "../utils/WebAPIUtils";
 
 const CHANGE_EVENT = "change";
 
@@ -18,9 +17,7 @@ let history = {
   edits: []
 };
 
-// Loading information
-let framesLoaded = 0;
-let segFramesLoaded = 0;
+// Data loading
 let loading = null;
 
 // Playback
@@ -35,10 +32,11 @@ let timer = null;
 
 // Settings
 let settings = {
-  editZoom: null,
-  playbackZoom: null,
+  zoom: 1,
+  filmStripZoom: 1,
+  zoomDefault: 1,
+  filmStripZoomDefault: 1,
   zoomPoint: [0.5, 0.5],
-  zoomBox: [0, 0, 1, 1],
   editMode: "regionSelect",
   stabilize: true
 };
@@ -48,7 +46,7 @@ function setExperimentList(newList) {
   experiment = null;
 
   // XXX: Decorate with user-specific info here, until such info is supplied by the server
-  experimentList.forEach(function(experiment) {
+  experimentList.forEach(experiment => {
     // XXX: Use a fraction since we don't know the number of frames yet
     experiment.userProgress = Math.random();
   });
@@ -62,18 +60,14 @@ function selectExperiment(newExperiment) {
 
 function reset() {
   resetHistory();
-
-  framesLoaded = 0;
-  segFramesLoaded = 0;
-
-  updateLoading();
+  resetLoading();
 }
 
 function setExperiment(newExperiment) {
   experiment = newExperiment;
 
   if (experiment) {
-    experiment.name = experimentList.filter(function (e) {
+    experiment.name = experimentList.filter(e => {
       return e.id === experiment.id;
     })[0].name;
     experiment.images = [];
@@ -95,11 +89,13 @@ function setExperiment(newExperiment) {
       }
     }    
   }
+
+  resetLoading();  
 }
 
 function receiveFrame(i, image) {
   experiment.images[i] = image;
-  framesLoaded++;
+  loading.framesLoaded++;
 
   updateLoading();
 }
@@ -107,7 +103,7 @@ function receiveFrame(i, image) {
 function receiveSegmentationFrame(frame, regions) {
   if (Array.isArray(regions)) {
     // Process vertices
-    regions.forEach(function (region) {
+    regions.forEach(region => {
       const vertices = region.vertices;
 
       // Convert to numbers
@@ -146,9 +142,9 @@ function receiveSegmentationFrame(frame, regions) {
     regions: regions
   };
 
-  segFramesLoaded++;
+  loading.segFramesLoaded++;
 
-  if (segFramesLoaded === experiment.frames) {
+  if (loading.segFramesLoaded === experiment.frames) {
     generateTrajectoryIds();
 
     pushHistory();
@@ -160,8 +156,7 @@ function receiveSegmentationFrame(frame, regions) {
 function generateTrajectoryIds() {
   // Sanity check for object ids
   experiment.segmentationData.forEach(frame => {
-    const ids = frame.regions.map(region => region.id);
-    
+    const ids = frame.regions.map(region => region.id);    
     const duplicates = ids.filter((id, i, a) => a.indexOf(id) !== i)
 
     if (duplicates.length > 0) {
@@ -226,30 +221,26 @@ function updateTracking(trackingData) {
   generateTrajectoryIds();
 }
 
-function updateLoading() {
-  if (!experiment.frames) {
-    // No info yet
-    loading = {
-      frame: 0,
-      numFrames: 1,
-      segFrame: 0,
-      numSegFrames: 1
-    };
+function resetLoading() {
+  loading = {
+    framesLoaded: 0,
+    numFrames: experiment.frames ? experiment.frames : 0,
+    segFramesLoaded: 0,
+    numSegFrames: experiment.frames && experiment.has_segmentation ? experiment.frames : 0
+  };
+}
 
+function updateLoading() {
+  if (!experiment.frames) {    
     return;
   }
 
-  const numSegFrames = experiment.has_segmentation ? experiment.frames : 0;
-  const total = experiment.frames + numSegFrames;
+  const total = loading.numFrames + loading.numSegFrames;
 
-  loading = framesLoaded + segFramesLoaded < total ? {
-    frame: Math.min(experiment.frames, framesLoaded + 1),
-    numFrames: experiment.frames,
-    segFrame: Math.min(numSegFrames, segFramesLoaded + 1),
-    numSegFrames: numSegFrames
-  } : null;
-
-  if (!loading) resetPlayback();
+  if (loading.framesLoaded + loading.segFramesLoaded >= total) {
+    loading = null;
+    resetPlayback();
+  }
 }
 
 function advanceFrames() {
@@ -398,11 +389,13 @@ function selectRegion(frame, region) {
     settings.zoomPoint = region.center.slice();
 
     setZoomLevels(region);
+
+    console.log(settings);
   }
   else {
     experiment.centerRegion = null;
-    settings.editZoom = 1;
-    settings.playbackZoom = 1;
+    settings.zoom = 1;
+    settings.filmStripZoom = 1;
     settings.zoomPoint = [0.5, 0.5];
   }
   pushHistory();
@@ -451,8 +444,8 @@ function pushHistory() {
   // Add to the end
   history.index = history.edits.push({
     segmentationData: cloneData(experiment.segmentationData),
-    editZoom: settings.editZoom,
-    playbackZoom: settings.playbackZoom
+    zoom: settings.zoom,    
+    filmStripZoom: settings.filmStripZoom
   }) - 1;
 
   // Remove first if too long
@@ -481,8 +474,8 @@ function getHistory() {
   let edit = history.edits[history.index];
 
   experiment.segmentationData = cloneData(edit.segmentationData);
-  settings.editZoom = edit.editZoom;
-  settings.playbackZoom = edit.playbackZoom;
+  settings.zoom = edit.zoom;
+  settings.filmStripZoom = edit.filmStripZoom;
 
   // XXX: ANY OF THIS NECESSARY NOW?
 //  updateSelectedRegionFromHistory();
@@ -541,8 +534,6 @@ function toggleStabilize() {
 }
 
 function setZoomLevels(item) {
-  if (settings.editZoom !== null) return;
-
   // Default
   let s = 0.01;
 
@@ -575,8 +566,8 @@ function setZoomLevels(item) {
 
   const zoom = 1 / (s * 2);
 
-  settings.editZoom = zoom
-  settings.playbackZoom = zoom / 2;
+  settings.zoom = zoom;
+  settings.filmStripZoom = zoom / 2;
 }
 
 function zoom(view, direction) {
@@ -585,7 +576,7 @@ function zoom(view, direction) {
   const maxZoom = 50;
 
   // Set the key for the parameter to adjust
-  const key = view === "playback" ? "playbackZoom" : "editZoom";
+  const key = view === "filmStrip" ? "filmStripZoom" : "zoom";
 
   // Zoom in or out
   let s = 1.5;
@@ -598,10 +589,6 @@ function zoom(view, direction) {
   if (newZoom >= minZoom && newZoom <= maxZoom) {
     settings[key] = newZoom;
   }
-
-  const zp = settings.zoomPoint,
-        z = settings.playbackZoom / 2;
-  settings.zoomBox = [zp[0] - z, zp[1] - z, zp[0] + z, zp[1] + z];
 }
 
 function setEditMode(mode) {

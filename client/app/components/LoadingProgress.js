@@ -2,14 +2,17 @@ import React from "react";
 import PropTypes from "prop-types";
 
 const LoadingProgress = props => {
+  const v1 = Math.min(props.value1 + 1, props.max1);
+  const v2 = Math.min(props.value2 + 1, props.max2);
+
   const style1 = {
-    width: props.value1 / props.max1 * 50 + "%",
-    transition: props.value1 === props.max1 ? "none" : null
+    width: props.max1 === 0 ? 0 : v1 / props.max1 * 50 + "%",
+    transition: v1 === props.max1 ? "none" : null
   };
 
   const style2 = {
-    width: props.value2 / props.max2 * 50 + "%",
-    transition: props.value2 === props.max2 ? "none" : null
+    width: props.max2 === 0 ? 0 : v2 / props.max2 * 50 + "%",
+    transition: v2 === props.max2 ? "none" : null
   };
 
   return (
