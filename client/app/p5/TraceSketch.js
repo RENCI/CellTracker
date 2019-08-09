@@ -403,7 +403,7 @@ export default function(sketch) {
     moveMouse = true;
 
     switch (editMode) {
-      case "plafilyback":
+      case "filmstrip":
       break;
 
       case "vertex":
@@ -513,16 +513,15 @@ export default function(sketch) {
 
     switch (editMode) {
       case "filmstrip":
+      case "regionSelect":
         if (!moveMouse) {
           // Select segmentation region
-          if (regions) {
-            if (currentRegion) {
-              onSelectRegion(frame, currentRegion);
-            }
-            else if (onSelectZoomPoint) {
-              onSelectZoomPoint(frame, normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])));
-            }  
+          if (currentRegion) {
+            onSelectRegion(frame, currentRegion);
           }
+          else if (onSelectZoomPoint) {
+            onSelectZoomPoint(frame, normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY])));
+          }  
         }
 
         break;
@@ -647,15 +646,6 @@ export default function(sketch) {
         onEditRegion(frame, newRegion);
 
         break;
-
-      case "regionSelect":
-        if (moveMouse) return;
-
-        if (currentRegion) {
-          onSelectRegion(frame, currentRegion);
-        }
-
-        break;
     }
 
     highlight();
@@ -769,7 +759,9 @@ export default function(sketch) {
       case "regionCopy":
       case "regionSelect":
       case "merge":
-        actionString = editMode === "regionEdit" ? "Add region" : ""; 
+        actionString = 
+          editMode === "regionEdit" ? "Add region" : 
+          editMode === "filmstrip" || editMode === "regionSelect" ? "Center on point": ""; 
 
         // Test regions
         const p = normalizePoint(m);
@@ -786,11 +778,10 @@ export default function(sketch) {
               editMode === "regionEdit" ? "Remove region" : 
               editMode === "regionMove" ? "Move region" :
               editMode === "regionRotate" ? "Rotate region" :
-              editMode === "regionCopy" ? "Copy region" :
-              editMode === "regionSelect" ? "Center on region" : 
+              editMode === "regionCopy" ? "Copy region" : 
               editMode === "merge" && !mergeRegion ? "Select first merge region" :
               editMode === "merge" && mergeRegion ? "Select second merge region" :
-              editMode === "filmstrip" ? "Center on region" : ""; 
+              editMode === "filmstrip" || editMode === "regionSelect" ? "Center on region" : ""; 
 
             break;
           }

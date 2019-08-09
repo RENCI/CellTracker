@@ -12,6 +12,10 @@ function handleSelectRegion(frame, region) {
   ViewActionCreators.selectRegion(frame, region);
 }
 
+function handleSelectZoomPoint(frame, point) {
+  ViewActionCreators.selectZoomPoint(frame, point);
+}
+
 const Filmstrip = props => {
   const divRef = useRef(null);
   const [width, setWidth] = useState(0);
@@ -65,7 +69,8 @@ const Filmstrip = props => {
           frame={valid ? i : 0}
           stabilize={props.settings.stabilize}
           onHighlightRegion={handleHighlightRegion}
-          onSelectRegion={handleSelectRegion} />
+          onSelectRegion={handleSelectRegion}
+          onSelectZoomPoint={handleSelectZoomPoint} />
       </div>
     );      
   }

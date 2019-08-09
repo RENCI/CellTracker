@@ -74,7 +74,7 @@ const EditControls = props => {
       </div>
       <div className={"btn-group-sm" + spacing}>
         <IconButton
-          iconName="oi-map-marker" callback={onRegionSelectClick} active={props.editMode === "regionSelect"} tooltip="Center on region" />
+          iconName="oi-map-marker" callback={onRegionSelectClick} active={props.editMode === "regionSelect"} tooltip="Center view" />
         <IconButton 
           iconName="oi-wrench" callback={onRegionEditClick} active={props.editMode === "regionEdit"} tooltip="Add/remove region" />
         <IconButton 
