@@ -389,12 +389,16 @@ function selectRegion(frame, region) {
     settings.zoomPoint = region.center.slice();
 
     setZoomLevels(region);
+
+    setEditMode("vertex");
   }
   else {
     experiment.centerRegion = null;
     settings.zoom = 1;
     settings.filmstripZoom = 1;
     settings.zoomPoint = [0.5, 0.5];
+
+    setEditMode("regionSelect");
   }
   pushHistory();
 }
@@ -405,6 +409,8 @@ function selectZoomPoint(frame, point) {
   settings.zoomPoint = point.slice();
 
   setZoomLevels(point);
+  
+  setEditMode("vertex");
 
   pushHistory();
 }
@@ -423,6 +429,10 @@ function editRegion(frame, region) {
       break;
 
     case "regionPaste":
+    case "regionEdit":
+    case "regionEdit":
+    case "regionMove":
+    case "regionRotate":
       break;
 
     default:
