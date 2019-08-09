@@ -2,7 +2,8 @@ import * as d3 from "d3";
 import { lineSegmentIntersection, insidePolygon, pointLineSegmentDistance } from "../utils/MathUtils";
 import { 
   addVertex, removeVertex, mergeRegions, splitRegion, trimRegion, 
-  removeRegion, addRegion, moveRegion, rotateRegion, copiedRegion, copyRegion, pasteRegion } from "../utils/RegionEditing";
+  removeRegion, addRegion, moveRegion, rotateRegion, 
+  copiedRegion, copyRegion, pasteRegion } from "../utils/RegionEditing";
 
 export default function(sketch) {
   // Current experiment
@@ -468,9 +469,12 @@ export default function(sketch) {
           actionString = "Rotating region";
 
           const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+          const c = currentRegion.center;;
 
-          const dx = m[0] - dragStartX;
-          const theta = dx * 50;
+          const v1 = [dragStartX - c[0], dragStartY - c[1]];
+          const v2 = [m[0] - c[0], m[1] - c[1]];
+
+          const theta = Math.atan2(v1[0], v1[1]) - Math.atan2(v2[0], v2[1]);
 
           rotateRegion(currentRegion, dragVertices, theta);
         }
