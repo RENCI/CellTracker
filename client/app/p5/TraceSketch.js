@@ -4,6 +4,7 @@ import {
   addVertex, removeVertex, mergeRegions, splitRegion, trimRegion, 
   removeRegion, addRegion, moveRegion, rotateRegion, 
   copiedRegion, copyRegion, pasteRegion } from "../utils/RegionEditing";
+import { selectZoomPoint } from "../actions/ViewActionCreators";
 
 export default function(sketch) {
   // Current experiment
@@ -41,6 +42,7 @@ export default function(sketch) {
   let onHighlightRegion = null,
       onSelectRegion = null,
       onSelectZoomPoint = null,
+      onTranslate = null,
       onEditRegion = null;
 
   // Editing
@@ -55,6 +57,7 @@ export default function(sketch) {
       // XXX: Need to keep the previous mouse position because mouse moved is firing on mouse pressed
       oldMouseX = -1, oldMouseY = -1,
       dragStartX = -1, dragStartY = -1,
+      dragPointX = -1, dragPointY = -1,
       dragVertices = null,
       splitLine = null,
       actionString = "";
@@ -104,6 +107,7 @@ export default function(sketch) {
     onHighlightRegion = props.onHighlightRegion;
     onSelectRegion = props.onSelectRegion;
     onSelectZoomPoint = props.onSelectZoomPoint;
+    onTranslate = props.onTranslate;
     onEditRegion = props.onEditRegion;
 
     editView = editMode !== "filmstrip";
@@ -384,6 +388,13 @@ export default function(sketch) {
         dragVertices = currentRegion.vertices.slice();
       }
     }
+    else if (editMode === "filmstrip" || editMode === "regionSelect") {
+      dragStartX = sketch.mouseX;
+      dragStartY = sketch.mouseY;
+
+      dragPointX = zoomPoint[0];
+      dragPointY = zoomPoint[1];
+    }
   }
 
   function mouseMoved(e) {
@@ -405,7 +416,16 @@ export default function(sketch) {
 
     switch (editMode) {
       case "filmstrip":
-      break;
+      case "regionSelect":
+        if (sketch.mouseIsPressed) {
+          const m = [sketch.mouseX, sketch.mouseY];
+          let v = [m[0] - dragStartX, m[1] - dragStartY];
+          v = normalizePoint([v[0] / zoom, v[1] / zoom]);
+          const p = [dragPointX - v[0], dragPointY - v[1]];
+
+          onTranslate(p);
+        }
+        break;
 
       case "vertex":
         if (sketch.mouseIsPressed && handle) {
@@ -482,7 +502,6 @@ export default function(sketch) {
 
       case "regionCopy":
       case "regionPaste":
-      case "regionSelect":
         break;
     }
 

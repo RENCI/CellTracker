@@ -68,7 +68,7 @@ const EditControls = props => {
         <IconButton 
           iconName="oi-zoom-in" callback={onZoomInClick} tooltip="Zoom in" />
         <IconButton 
-          iconName="oi-zoom-out" callback={onZoomOutClick} tooltip="Zoom out" />
+          iconName="oi-zoom-out" callback={onZoomOutClick} tooltip="Zoom out" />        
         <IconButton 
           iconName="oi-home" callback={onResetClick} tooltip="Reset" />
       </div>

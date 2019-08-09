@@ -107,6 +107,13 @@ export function selectZoomPoint(frame, point) {
   });
 };
 
+export function translate(point) {
+  AppDispatcher.dispatch({
+    actionType: Constants.TRANSLATE,
+    point: point
+  });
+};
+
 export function editRegion(frame, region) {
   AppDispatcher.dispatch({
     actionType: Constants.EDIT_REGION,

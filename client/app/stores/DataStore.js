@@ -409,10 +409,14 @@ function selectZoomPoint(frame, point) {
   settings.zoomPoint = point.slice();
 
   setZoomLevels(point);
-  
+
   setEditMode("vertex");
 
   pushHistory();
+}
+
+function translate(point) {
+  settings.zoomPoint = point.slice();
 }
 
 function editRegion(frame, region) {
@@ -740,6 +744,11 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       selectZoomPoint(action.frame, action.point);
       DataStore.emitChange();
       break;
+
+    case Constants.TRANSLATE:
+        translate(action.point);
+        DataStore.emitChange();
+        break;
 
     case Constants.EDIT_REGION:
       editRegion(action.frame, action.region);

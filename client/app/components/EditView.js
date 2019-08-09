@@ -43,6 +43,10 @@ function handleSelectZoomPoint(frame, point) {
   ViewActionCreators.selectZoomPoint(frame, point);
 }
 
+function handleTranslate(point) {
+  ViewActionCreators.translate(point);
+}
+
 function handleEditRegion(frame, region) {
   ViewActionCreators.editRegion(frame, region);
 }
@@ -100,6 +104,7 @@ const PlaybackView = props => {
             onHighlightRegion={handleHighlightRegion}
             onSelectRegion={handleSelectRegion}
             onSelectZoomPoint={handleSelectZoomPoint}
+            onTranslate={handleTranslate}
             onEditRegion={handleEditRegion} />
           <MediaControls {...props} />
         </div>
