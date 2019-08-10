@@ -2,6 +2,7 @@ import AppDispatcher from "../dispatcher/AppDispatcher";
 import { EventEmitter } from "events";
 import assign from "object-assign";
 import Constants from "../constants/Constants";
+import { normalizeVector } from "../utils/MathUtils";
 
 const CHANGE_EVENT = "change";
 
@@ -382,15 +383,75 @@ function highlightRegion(frame, region) {
 }
 
 function selectRegion(frame, region) {
+  function lerp(a, b, t) {
+    return a + (b - a) * t;
+  }
+
+  function world2screen(p, t, s) {
+    return [
+      (p[0] - t[0]) * s,
+      (p[1] - t[1]) * s,
+    ];
+  }
+
   if (region) {
     setFrame(frame);
     experiment.centerRegion = region;
+    
+    const oldZoom = settings.zoom;
+    const oldFilmstripZoom = settings.filmstripZoom;
 
+    setZoomLevels(region);
+
+    const newZoom = settings.zoom;
+    const newFilmstripZoom = settings.filmstripZoom;
+    const newZoomPoint = region.center.slice();
+
+    settings.zoom = oldZoom;
+    settings.filmstripZoom = oldFilmstripZoom;
+
+    const n = 10;
+    let i = 1;
+    const interval = setInterval(() => {
+      const t = i / n;
+
+      const tx = [settings.zoomPoint[0], settings.zoomPoint[1]];
+
+      const tps1 = world2screen(newZoomPoint, tx, settings.zoom);
+      const t2 = Math.pow(t, 2);
+      const ps1 = [
+        lerp(tps1[0], 0, t),
+        lerp(tps1[1], 0, t)
+      ];
+
+      settings.zoom = lerp(oldZoom, newZoom, t);
+      settings.filmstripZoom = lerp(oldFilmstripZoom, newFilmstripZoom, t);
+      
+      const ps2 = world2screen(newZoomPoint, tx, settings.zoom);
+
+      let tx2 = [ps2[0] - ps1[0], ps2[1] - ps1[1]];
+      tx2[0] /= settings.zoom;
+      tx2[1] /= settings.zoom;
+
+      settings.zoomPoint[0] += tx2[0];
+      settings.zoomPoint[1] += tx2[1];
+
+      i++;
+
+      if (i > n) {
+        clearInterval(interval);
+      }
+
+      DataStore.emitChange();
+    }, 10);
+
+/*    
     settings.zoomPoint = region.center.slice();
 
     setZoomLevels(region);
 
     setEditMode("vertex");
+*/    
   }
   else {
     experiment.centerRegion = null;
@@ -400,6 +461,7 @@ function selectRegion(frame, region) {
 
     setEditMode("regionSelect");
   }
+
   pushHistory();
 }
 
