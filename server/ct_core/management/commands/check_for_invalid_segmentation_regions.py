@@ -3,7 +3,6 @@ import json
 import logging
 
 from django.core.management.base import BaseCommand
-from django.conf import settings
 
 from ct_core.utils import get_seg_collection
 

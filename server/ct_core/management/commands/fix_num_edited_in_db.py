@@ -30,3 +30,4 @@ class Command(BaseCommand):
                 print('The old num_edited value {} is replaced with the new value {} for '
                       'experiment {} and user {}'.format(old_val, edit_cnt, exp.exp_id,
                                                          exp.user.username))
+        return
