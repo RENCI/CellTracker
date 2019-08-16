@@ -63,7 +63,8 @@ class Command(BaseCommand):
             for u in edit_users:
                 uids = {}
                 ulids = {}
-                for useg in UserSegmentation.objects.filter(exp_id=exp_id, user__username=u):
+                for useg in UserSegmentation.objects.filter(exp_id=exp_id,
+                                                            user__username=u['username']):
                     uid_list = []
                     ulid_list = []
                     ufno = useg.frame_no
