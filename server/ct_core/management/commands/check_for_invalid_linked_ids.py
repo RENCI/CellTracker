@@ -89,5 +89,5 @@ class Command(BaseCommand):
                         else:
                             print(
                             'key error: i=' + str(i) + ', ulid=' + str(ulid) +
-                            ', exp_id=' + exp_id + ', user=' + u)
+                            ', exp_id=' + exp_id + ', user=' + u['username'])
         return
