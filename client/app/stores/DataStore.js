@@ -1,8 +1,8 @@
 import AppDispatcher from "../dispatcher/AppDispatcher";
 import { EventEmitter } from "events";
 import assign from "object-assign";
+import RBush from "rbush";
 import Constants from "../constants/Constants";
-import { normalizeVector } from "../utils/MathUtils";
 
 const CHANGE_EVENT = "change";
 
@@ -137,10 +137,24 @@ function receiveSegmentationFrame(frame, regions) {
     regions = [];
   }
 
+  // Create an RBush tree for these regions
+  const tree = new RBush();
+
+  regions.forEach(region => {
+    tree.insert({
+      minX: region.min[0],
+      minY: region.min[1],
+      maxX: region.max[0],
+      maxY: region.max[1],
+      region: region
+    });
+  });
+
   experiment.segmentationData[frame] = {
     frame: experiment.start + frame,
     edited: false,
-    regions: regions
+    regions: regions,
+    tree: tree
   };
 
   loading.segFramesLoaded++;
@@ -177,7 +191,7 @@ function generateTrajectoryIds() {
   experiment.segmentationData.slice().reverse().forEach((frame, i, a) => {
     frame.regions.forEach(region => {
       if (!region.trajectory_id || region.trajectory_id === "collision") {
-        let id = ("" + counter++).padStart(4, "0");
+        const id = ("" + counter++).padStart(4, "0");
         region.trajectory_id = "trajectory_" + id;          
       }
 
@@ -193,6 +207,7 @@ function generateTrajectoryIds() {
         }
         else {
           console.log("Invalid link_id: " + region.link_id);
+          console.log(linked);
           console.log(region);
           console.log(frame);
           console.log(experiment.segmentationData);

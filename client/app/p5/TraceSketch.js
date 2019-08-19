@@ -164,11 +164,12 @@ export default function(sketch) {
         const z = 1 / zoom / 2,
               area = [zoomPoint[0] - z, zoomPoint[1] - z, 
                       zoomPoint[0] + z, zoomPoint[1] + z];
-        visibleRegions = allRegions.filter(region => {
-          // Just use bounding box
-          return region.min[0] <= area[2] && region.min[1] <= area[3] &&
-                region.max[0] >= area[0] && region.max[1] >= area[1]; 
-        });
+
+        const tree = segmentationData[frame].tree;
+
+        visibleRegions = tree.search({
+          minX: area[0], minY: area[1], maxX: area[2], maxY: area[3]
+        }).map(d => d.region);       
       }
       else {
         visibleRegions = allRegions;
