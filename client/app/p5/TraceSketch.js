@@ -305,9 +305,13 @@ export default function(sketch) {
         }
         sketch.endShape();        
 
-        const showVertices = editMode === "vertex" || editMode === "merge" || editMode === "split" || editMode === "trim";
+        const showVertices = 
+          (editMode === "vertex" && region === currentRegion) || 
+          (editMode === "merge" && (region === mergeRegion || region === currentRegion)) ||
+          editMode === "split" || 
+          editMode === "trim";
 
-        if (showVertices && highlightRegion) {
+        if (showVertices) {
           // Draw points
           sketch.ellipseMode(sketch.RADIUS);
           sketch.fill(handleColor);          
