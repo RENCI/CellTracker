@@ -457,10 +457,16 @@ export default function(sketch) {
           splitLine[1] = [m[0], m[1]];
 
           // Highlight based on intersections with split line
-          // XXX: Possible to speed this up with RBush?
-          regions.forEach(region => {
-            const intersections = regionLineSegmentIntersections(region, splitLine);
-            if (intersections > 0 && intersections % 2 === 0) activeRegions.push(region);
+          const tree = segmentationData[frame].tree;
+
+          tree.search({
+            minX: Math.min(splitLine[0][0], splitLine[1][0]),
+            minY: Math.min(splitLine[0][1], splitLine[1][1]),
+            maxX: Math.max(splitLine[0][0], splitLine[1][0]),
+            maxY: Math.max(splitLine[0][1], splitLine[1][1])
+          }).forEach(d => {
+            const intersections = regionLineSegmentIntersections(d.region, splitLine);
+            if (intersections > 0 && intersections % 2 === 0) activeRegions.push(d.region);
           });
 
           const numRegions = activeRegions.length;
@@ -599,13 +605,19 @@ export default function(sketch) {
 
       case "split":
         if (splitLine) {
+          const editedRegions = [];
+
           activeRegions.forEach(region => {
             const newRegion = splitRegion(region, splitLine, 0.5 / images[0].width, allRegions);
             
             if (newRegion) {
-              onEditRegion(frame, region);
-              onEditRegion(frame, newRegion);
+              editedRegions.push(region);
+              editedRegions.push(newRegion);
             }
+          });
+
+          editedRegions.forEach(region => {
+            onEditRegion(frame, region);
           });
         }
 
