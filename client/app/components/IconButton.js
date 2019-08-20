@@ -7,7 +7,7 @@ const IconButton = props => {
   if (props.dropDown) classes += " dropdown-toggle";
   classes = classes.trim();
 
-  let dataToggle = "";
+  let dataToggle = "button ";
   if (props.tooltip) dataToggle += " tooltip";
   if (props.dropDown) dataToggle += " dropdown";  
   dataToggle = dataToggle.trim();
@@ -36,7 +36,7 @@ IconButton.propTypes = {
 };
 
 IconButton.defaultProps = {
-  classes: "btn btn-outline-secondary",
+  classes: "btn btn-outline-secondary shadow-none",
   disabled: false,
   active: false,
   dropDown: false
