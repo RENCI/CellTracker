@@ -203,7 +203,8 @@ export default function(sketch) {
     const im = colorImages[frame];
 
     // Get regions    
-    const regions = visibleRegions;
+    const regions = visibleRegions ? visibleRegions.slice() : null;
+    if (regions && editMode === "regionPaste" && copiedRegion) regions.push(copiedRegion);
 
     // Set scale and translation
     let p = null;
@@ -233,7 +234,7 @@ export default function(sketch) {
     sketch.background(127, 127, 127);
 
     // Draw the image
-    sketch.push()
+    sketch.push();
     sketch.scale(sketch.width / im.width);
     sketch.image(im, 0, 0);
     sketch.pop();
@@ -247,34 +248,44 @@ export default function(sketch) {
 
     if (regions) {
       regions.forEach(function(region, i, a) {
-        const highlightRegion = region.highlight || 
+        const highlightRegion =               
+              region.highlight || 
               region === currentRegion || 
+              region === mergeRegion ||
               activeRegions.indexOf(region) !== -1;
+
         let weight = highlightRegion ? lineHighlightWeight : lineWeight;
+        weight /= zoom;
 
-        weight /= zoom;        
+        sketch.push();
+        if (region === copiedRegion) {
+          const m = applyZoom([sketch.mouseX, sketch.mouseY]);
+          const c = scalePoint(region.center);
 
-        // Draw outline background
-        sketch.stroke(lineBackground);
-        sketch.strokeWeight(weight + 1 / zoom);
-        sketch.noFill();
-
-        sketch.beginShape();
-        region.vertices.forEach(function(vertex) {
-          const v = scalePoint(vertex);
-          sketch.vertex(v[0], v[1]);
-        });
-        if (region.vertices.length > 0) {
-          const v = scalePoint(region.vertices[0]);
-          sketch.vertex(v[0], v[1]);
+          sketch.translate(m[0] - c[0], m[1] - c[1]);         
         }
-        sketch.endShape();
+        else {
+          // Draw outline background
+          sketch.stroke(lineBackground);
+          sketch.strokeWeight(weight + 1 / zoom);
+          sketch.noFill();
+
+          sketch.beginShape();
+          region.vertices.forEach(function(vertex) {
+            const v = scalePoint(vertex);
+            sketch.vertex(v[0], v[1]);
+          });
+          if (region.vertices.length > 0) {
+            const v = scalePoint(region.vertices[0]);
+            sketch.vertex(v[0], v[1]);
+          }
+          sketch.endShape();
+        }
 
         // Draw outline
         sketch.stroke(strokeColorMap(region.trajectory_id));
-        sketch.strokeWeight(weight);
-        
-        //sketch.canvas.getContext("2d").setLineDash(region.unsavedEdit ? dashArray : []);
+        sketch.strokeWeight(weight);        
+        sketch.canvas.getContext("2d").setLineDash(region === copiedRegion ? dashArray : []);
 
         //if (region.edited) sketch.fill(fillColorMap(region.trajectory_id));
         //else sketch.noFill();
@@ -294,9 +305,9 @@ export default function(sketch) {
         }
         sketch.endShape();        
 
-        const showVertices = editMode == "vertex" || editMode == "merge" || editMode == "split" || editMode == "trim";
+        const showVertices = editMode === "vertex" || editMode === "merge" || editMode === "split" || editMode === "trim";
 
-        if (showVertices) {
+        if (showVertices && highlightRegion) {
           // Draw points
           sketch.ellipseMode(sketch.RADIUS);
           sketch.fill(handleColor);          
@@ -330,6 +341,7 @@ export default function(sketch) {
             
         sketch.ellipse(c[0], c[1], r);
 */        
+        sketch.pop();
       });
     }
 
@@ -656,7 +668,6 @@ export default function(sketch) {
           );
 
           onEditRegion(frame, newRegion);
-          onSelectRegion(frame, newRegion);
         }
 
         break;
