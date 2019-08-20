@@ -7,7 +7,7 @@ const IconButton = props => {
   if (props.dropDown) classes += " dropdown-toggle";
   classes = classes.trim();
 
-  let dataToggle = "button ";
+  let dataToggle = "";
   if (props.tooltip) dataToggle += " tooltip";
   if (props.dropDown) dataToggle += " dropdown";  
   dataToggle = dataToggle.trim();

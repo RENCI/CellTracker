@@ -396,7 +396,7 @@ export default function() {
       let frameEnter = frame.enter().append("g")
           .attr("class", "frame")
           .on("mouseover", function(d, i) {
-            dispatcher.call("setFrame", this, i);
+            //dispatcher.call("setFrame", this, i);
           });
 
       frameEnter.append("rect")
