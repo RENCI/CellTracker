@@ -416,8 +416,8 @@ function animateZoom(newZoom, newFilmstripZoom, newZoomPoint) {
   const oldZoom = settings.zoom;
   const oldFilmstripZoom = settings.filmstripZoom;
 
-  const point = newZoom > oldZoom ? newZoomPoint : settings.zoomPoint.slice();
-  const screen = newZoom > oldZoom ? [0, 0] : world2screen(settings.zoomPoint, [0.5, 0.5], 1);
+  const point = newZoom >= oldZoom ? newZoomPoint : settings.zoomPoint.slice();
+  const screen = newZoom >= oldZoom ? [0, 0] : world2screen(settings.zoomPoint, newZoomPoint, 1);
 
   const n = 10;
   let i = 1;
@@ -674,21 +674,32 @@ function zoom(view, direction) {
   const minZoom = 1;
   const maxZoom = 50;
 
-  // Set the key for the parameter to adjust
-  const key = view === "filmstrip" ? "filmstripZoom" : "zoom";
-
   // Zoom in or out
   let s = 1.5;
   if (direction === "out") s = 1 / s;
 
-  // Calculate the zoom
-  const newZoom = settings[key] * s;
+  if (view === "filmstrip") {
+    // Calculate the zoom
+    const newZoom = settings.filmstripZoom * s;
 
-  // Check for valid zoom amount
-  if (newZoom >= minZoom && newZoom <= maxZoom) {
-    settings[key] = newZoom;
-    settings[key + "Default"] = newZoom;
+    // Check for valid zoom amount
+    if (newZoom >= minZoom && newZoom <= maxZoom) {
+      settings.filmstripZoomDefault = newZoom;
+      
+      animateZoom(settings.zoom, newZoom, settings.zoomPoint);
+    }
   }
+  else {
+    // Calculate the zoom
+    const newZoom = settings.zoom * s;
+
+    // Check for valid zoom amount
+    if (newZoom >= minZoom && newZoom <= maxZoom) {
+      settings.zoomDefault = newZoom;
+      
+      animateZoom(newZoom, settings.filmstripZoom, settings.zoomPoint);
+    }
+  }  
 }
 
 function setEditMode(mode) {
