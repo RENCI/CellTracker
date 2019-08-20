@@ -22,24 +22,43 @@ function generateId(regions) {
 function setVertices(region, vertices) {
   region.vertices = vertices;
 
-  // Get extent
-  let x = vertices.map(vertex => vertex[0]);
-  let y = vertices.map(vertex => vertex[1]);
+  updateExtent(region);
+}
 
+function regionCenter(region) {
+  return [
+    (region.min[0] + region.max[0]) / 2,
+    (region.min[1] + region.max[1]) / 2
+  ];
+}
+
+function updateExtent(region) {
+  const vertices = region.vertices;
+
+  const x = vertices.map(vertex => vertex[0]);
+  const y = vertices.map(vertex => vertex[1]);
+ 
   region.min = [
     x.reduce((p, c) => Math.min(p, c)),
     y.reduce((p, c) => Math.min(p, c))
   ];
-
+ 
   region.max = [
     x.reduce((p, c) => Math.max(p, c)),
     y.reduce((p, c) => Math.max(p, c))
   ];
+ 
+  region.center = regionCenter(region);
+}
 
-  region.center = [
-    (region.min[0] + region.max[0]) / 2,
-    (region.min[1] + region.max[1]) / 2
-  ];
+function updateExtentFromVertex(region, vertex) {
+  if (vertex[0] < region.min[0]) region.min[0] = vertex[0];
+  else if (vertex[0] > region.max[0]) region.max[0] = vertex[0];
+
+  if (vertex[1] < region.min[1]) region.min[1] = vertex[1];
+  else if (vertex[1] > region.max[1]) region.max[1] = vertex[1];
+
+  region.center = regionCenter(region);
 }
 
 export function removeVertex(region, vertex) {
@@ -51,6 +70,8 @@ export function removeVertex(region, vertex) {
 
   if (i !== -1) {
     vertices.splice(i, 1);
+    updateExtent(region);
+
     return true;
   }
 
@@ -75,6 +96,15 @@ export function addVertex(region, point) {
 
   // Insert new point
   vertices.splice(segments[segment.i][1], 0, point);
+
+  updateExtentFromVertex(region, point);
+}
+
+export function moveVertex(region, vertex, position) {
+  vertex[0] = position[0];
+  vertex[1] = position[1];
+
+  updateExtentFromVertex(region, vertex);
 }
 
 export function mergeRegions(region1, region2, regionArray) {

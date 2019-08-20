@@ -1,7 +1,9 @@
 import * as d3 from "d3";
+import rbush from "rbush";
+import knn from "rbush-knn";
 import { lineSegmentIntersection, insidePolygon, pointLineSegmentDistance } from "../utils/MathUtils";
 import { 
-  addVertex, removeVertex, mergeRegions, splitRegion, trimRegion, 
+  addVertex, removeVertex, moveVertex, mergeRegions, splitRegion, trimRegion, 
   removeRegion, addRegion, moveRegion, rotateRegion, 
   copiedRegion, copyRegion, pasteRegion } from "../utils/RegionEditing";
 import { selectZoomPoint } from "../actions/ViewActionCreators";
@@ -170,6 +172,8 @@ export default function(sketch) {
         visibleRegions = tree.search({
           minX: area[0], minY: area[1], maxX: area[2], maxY: area[3]
         }).map(d => d.region);       
+
+        // XXX: Create new tree from visible regions for highlighting?
       }
       else {
         visibleRegions = allRegions;
@@ -437,8 +441,7 @@ export default function(sketch) {
 
         if (moveHandle) {
           const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
-          handle[0] = m[0];
-          handle[1] = m[1];
+          moveVertex(currentRegion, handle, m);
         }
 
         break;
@@ -454,6 +457,7 @@ export default function(sketch) {
           splitLine[1] = [m[0], m[1]];
 
           // Highlight based on intersections with split line
+          // XXX: Possible to speed this up with RBush?
           regions.forEach(region => {
             const intersections = regionLineSegmentIntersections(region, splitLine);
             if (intersections > 0 && intersections % 2 === 0) activeRegions.push(region);
@@ -768,7 +772,7 @@ export default function(sketch) {
     // Clear highlighting
     handle = null;
     const previousRegion = currentRegion;
-    currentRegion = null;
+    if (editMode !== "vertex") currentRegion = null;
     if (editMode !== "merge") mergeRegion = null;
 
     const regions = visibleRegions;
@@ -782,7 +786,7 @@ export default function(sketch) {
       case "regionRotate":
       case "regionCopy":
       case "regionSelect":
-      case "merge":
+      case "merge": {
         actionString = 
           editMode === "regionEdit" ? "Add region" : 
           editMode === "filmstrip" || editMode === "regionSelect" ? "Center on point": ""; 
@@ -790,31 +794,43 @@ export default function(sketch) {
         // Test regions
         const p = normalizePoint(m);
 
-        for (var i = 0; i < regions.length; i++) {
-          const region = regions[i];        
+        const tree = segmentationData[frame].tree;
+        const nearest = knn(tree, p[0], p[1], 1, d => {
+          return insidePolygon(p, d.region.vertices, [d.region.min, d.region.max]);
+        });
 
-          if (insidePolygon(p, region.vertices, [region.min, region.max])) {
-            currentRegion = region;
+        if (nearest.length > 0) {
+          currentRegion = nearest[0].region;
 
-            sketch.cursor(sketch.HAND);
+          sketch.cursor(sketch.HAND);
 
-            actionString = 
-              editMode === "regionEdit" ? "Remove region" : 
-              editMode === "regionMove" ? "Move region" :
-              editMode === "regionRotate" ? "Rotate region" :
-              editMode === "regionCopy" ? "Copy region" : 
-              editMode === "merge" && !mergeRegion ? "Select first merge region" :
-              editMode === "merge" && mergeRegion ? "Select second merge region" :
-              editMode === "filmstrip" || editMode === "regionSelect" ? "Center on region" : ""; 
-
-            break;
-          }
+          actionString = 
+            editMode === "regionEdit" ? "Remove region" : 
+            editMode === "regionMove" ? "Move region" :
+            editMode === "regionRotate" ? "Rotate region" :
+            editMode === "regionCopy" ? "Copy region" : 
+            editMode === "merge" && !mergeRegion ? "Select first merge region" :
+            editMode === "merge" && mergeRegion ? "Select second merge region" :
+            editMode === "filmstrip" || editMode === "regionSelect" ? "Center on region" : ""; 
         }
 
         break;
+      }
 
-      case "vertex":
+      case "vertex": {
         sketch.cursor(sketch.CROSS);
+
+        // Test regions
+        const p = normalizePoint(m);
+
+        const tree = segmentationData[frame].tree;
+        const nearest = knn(tree, p[0], p[1], 1, d => {
+          return insidePolygon(p, d.region.vertices, [d.region.min, d.region.max]);
+        });
+
+        if (nearest.length > 0) {
+          currentRegion = nearest[0].region;
+        }
 
         // Radius
         const r = handleHighlightRadius / zoom;
@@ -822,28 +838,18 @@ export default function(sketch) {
         // Find closest point and line segment
         let closestVertex = null;
         let closestVertexDistance = null;
-        let closestSegmentDistance = null;
-        regions.forEach(region => {
-          region.vertices.forEach((v1, i, a) => {
-            const p1 = scalePoint(v1);
-            const p2 = scalePoint(a[i === a.length - 1 ? 0 : i + 1]);
-
-            const dVertex = sketch.dist(m[0], m[1], p1[0], p1[1]);
-            const dSegment = pointLineSegmentDistance(m, p1, p2);
-
-            if (!closestVertexDistance || dVertex < closestVertexDistance) {
-              closestVertex = v1;
-              closestVertexDistance = dVertex;
-            }
-
-            if (!closestSegmentDistance || dSegment < closestSegmentDistance) {
-              closestSegmentDistance = dSegment;
-              currentRegion = region;
-            }
-          });
-        });
 
         if (currentRegion) {
+          currentRegion.vertices.forEach(vertex => {
+            const p1 = scalePoint(vertex);
+            const dVertex = sketch.dist(m[0], m[1], p1[0], p1[1]);
+
+            if (!closestVertexDistance || dVertex < closestVertexDistance) {
+              closestVertex = vertex;
+              closestVertexDistance = dVertex;
+            }
+          });
+
           actionString = "Add vertex";
 
           if (closestVertexDistance < r) {
@@ -852,9 +858,10 @@ export default function(sketch) {
 
             actionString = "Remove vertex";
           }
-        }
+        }        
 
         break;
+      }
 
       case "regionPaste":
         actionString = "Paste region";

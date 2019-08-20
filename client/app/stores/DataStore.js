@@ -1,7 +1,7 @@
 import AppDispatcher from "../dispatcher/AppDispatcher";
 import { EventEmitter } from "events";
 import assign from "object-assign";
-import RBush from "rbush";
+import rbush from "rbush";
 import Constants from "../constants/Constants";
 
 const CHANGE_EVENT = "change";
@@ -138,17 +138,8 @@ function receiveSegmentationFrame(frame, regions) {
   }
 
   // Create an RBush tree for these regions
-  const tree = new RBush();
-
-  regions.forEach(region => {
-    tree.insert({
-      minX: region.min[0],
-      minY: region.min[1],
-      maxX: region.max[0],
-      maxY: region.max[1],
-      region: region
-    });
-  });
+  const tree = new rbush();
+  updateRBush(tree, regions);
 
   experiment.segmentationData[frame] = {
     frame: experiment.start + frame,
@@ -166,6 +157,19 @@ function receiveSegmentationFrame(frame, regions) {
   }
 
   updateLoading();
+}
+
+function updateRBush(tree, regions) {
+  tree.clear();
+  tree.load(regions.map(region => {
+    return {
+      minX: region.min[0],
+      minY: region.min[1],
+      maxX: region.max[0],
+      maxY: region.max[1],
+      region: region    
+    };
+  }));
 }
 
 function generateTrajectoryIds() {
@@ -397,7 +401,7 @@ function highlightRegion(frame, region) {
   pushHistory();
 }
 
-function selectRegion(frame, region) {
+function animateZoom(newZoom, newFilmstripZoom, newZoomPoint) {
   function lerp(a, b, t) {
     return a + (b - a) * t;
   }
@@ -409,70 +413,61 @@ function selectRegion(frame, region) {
     ];
   }
 
+  const oldZoom = settings.zoom;
+  const oldFilmstripZoom = settings.filmstripZoom;
+
+  const point = newZoom > oldZoom ? newZoomPoint : settings.zoomPoint.slice();
+  const screen = newZoom > oldZoom ? [0, 0] : world2screen(settings.zoomPoint, [0.5, 0.5], 1);
+
+  const n = 10;
+  let i = 1;
+  const interval = setInterval(() => {
+    const t = i / n;
+
+    const tx = [settings.zoomPoint[0], settings.zoomPoint[1]];
+
+    const tps1 = world2screen(point, tx, settings.zoom);
+    const ps1 = [
+      lerp(tps1[0], screen[0], t), 
+      lerp(tps1[1], screen[1], t) 
+    ];
+
+    settings.zoom = lerp(oldZoom, newZoom, t);
+    settings.filmstripZoom = lerp(oldFilmstripZoom, newFilmstripZoom, t);
+    
+    const ps2 = world2screen(point, tx, settings.zoom);
+
+    let tx2 = [ps2[0] - ps1[0], ps2[1] - ps1[1]];
+    tx2[0] /= settings.zoom;
+    tx2[1] /= settings.zoom;
+
+    settings.zoomPoint[0] += tx2[0];
+    settings.zoomPoint[1] += tx2[1];
+
+    i++;
+
+    if (i > n) {
+      clearInterval(interval);
+    }
+
+    DataStore.emitChange();
+  }, 10);
+}
+
+function selectRegion(frame, region) {
   if (region) {
     setFrame(frame);
     experiment.centerRegion = region;
-    
-    const oldZoom = settings.zoom;
-    const oldFilmstripZoom = settings.filmstripZoom;
 
-    setZoomLevels(region);
+    const { zoom, filmstripZoom } = getZoomLevels(region);    
+    animateZoom(zoom, filmstripZoom, region.center.slice());
 
-    const newZoom = settings.zoom;
-    const newFilmstripZoom = settings.filmstripZoom;
-    const newZoomPoint = region.center.slice();
-
-    settings.zoom = oldZoom;
-    settings.filmstripZoom = oldFilmstripZoom;
-
-    const n = 10;
-    let i = 1;
-    const interval = setInterval(() => {
-      const t = i / n;
-
-      const tx = [settings.zoomPoint[0], settings.zoomPoint[1]];
-
-      const tps1 = world2screen(newZoomPoint, tx, settings.zoom);
-      const t2 = Math.pow(t, 2);
-      const ps1 = [
-        lerp(tps1[0], 0, t),
-        lerp(tps1[1], 0, t)
-      ];
-
-      settings.zoom = lerp(oldZoom, newZoom, t);
-      settings.filmstripZoom = lerp(oldFilmstripZoom, newFilmstripZoom, t);
-      
-      const ps2 = world2screen(newZoomPoint, tx, settings.zoom);
-
-      let tx2 = [ps2[0] - ps1[0], ps2[1] - ps1[1]];
-      tx2[0] /= settings.zoom;
-      tx2[1] /= settings.zoom;
-
-      settings.zoomPoint[0] += tx2[0];
-      settings.zoomPoint[1] += tx2[1];
-
-      i++;
-
-      if (i > n) {
-        clearInterval(interval);
-      }
-
-      DataStore.emitChange();
-    }, 10);
-
-/*    
-    settings.zoomPoint = region.center.slice();
-
-    setZoomLevels(region);
-
-    setEditMode("vertex");
-*/    
+//    setEditMode("vertex");    
   }
   else {
     experiment.centerRegion = null;
-    settings.zoom = 1;
-    settings.filmstripZoom = 1;
-    settings.zoomPoint = [0.5, 0.5];
+
+    animateZoom(1, 1, [0.5, 0.5]);
 
     setEditMode("regionSelect");
   }
@@ -481,11 +476,11 @@ function selectRegion(frame, region) {
 }
 
 function selectZoomPoint(frame, point) {
+  setFrame(frame);
   experiment.centerRegion = null;
 
-  settings.zoomPoint = point.slice();
-
-  setZoomLevels(point);
+  const { zoom, filmstripZoom } = getZoomLevels(point);
+  animateZoom(zoom, filmstripZoom, point);
 
   setEditMode("vertex");
 
@@ -500,6 +495,9 @@ function editRegion(frame, region) {
   if (region) {
     region.unsavedEdit = true;
     experiment.segmentationData[frame].edited = true;
+
+    // Update rbush
+    updateRBush(experiment.segmentationData[frame].tree, experiment.segmentationData[frame].regions);
   }
 
   pushHistory();
@@ -622,12 +620,12 @@ function toggleStabilize() {
   settings.stabilize = !settings.stabilize;
 }
 
-function setZoomLevels(item) {
-  if (settings.zoomDefault) {
-    settings.zoom = settings.zoomDefault;
-    settings.filmstripZoom = settings.filmstripZoomDefault;
-
-    return;
+function getZoomLevels(item) {
+  if (settings.zoomDefault && settings.filmstripZoomDefault) {
+    return {
+      zoom: settings.zoomDefault,
+      filmstripZoom: settings.filmstripZoomDefault
+    };
   }
 
   // Default
@@ -662,8 +660,13 @@ function setZoomLevels(item) {
 
   const zoom = 1 / (s * 2);
 
-  settings.zoom = settings.zoomDefault = zoom;
-  settings.filmstripZoom = settings.filmstripZoomDefault = zoom / 2;
+  if (!settings.zoomDefault) settings.zoomDefault = zoom;
+  if (!settings.filmstripZoomDefault) settings.filmstripZoomDefault = zoom / 2;
+
+  return {
+    zoom: settings.zoomDefault,
+    filmstripZoom: settings.filmstripZoomDefault
+  };
 }
 
 function zoom(view, direction) {
