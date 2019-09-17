@@ -64,35 +64,35 @@ const EditControls = props => {
 
   return (
     <div className="form-inline" ref={ref}>
-      <div className="btn-group-sm">       
+      <div className="btn-group-sm">
+        <IconButton 
+          iconName="oi-home" callback={onResetClick} tooltip="Reset" />
         <IconButton 
           iconName="oi-zoom-in" callback={onZoomInClick} tooltip="Zoom in" />
         <IconButton 
-          iconName="oi-zoom-out" callback={onZoomOutClick} tooltip="Zoom out" />        
-        <IconButton 
-          iconName="oi-home" callback={onResetClick} tooltip="Reset" />
-      </div>
-      <div className={"btn-group-sm" + spacing}>
+          iconName="oi-zoom-out" callback={onZoomOutClick} tooltip="Zoom out" />
         <IconButton
           iconName="oi-map-marker" callback={onRegionSelectClick} active={props.editMode === "regionSelect"} tooltip="Center view" />
+      </div>
+      <div className={"btn-group-sm" + spacing}>        
         <IconButton 
           iconName="oi-wrench" callback={onRegionEditClick} active={props.editMode === "regionEdit"} tooltip="Add/remove region" />
         <IconButton 
-          iconName="oi-move" callback={onRegionMoveClick} active={props.editMode === "regionMove"} tooltip="Move region" />
+          iconName="oi-fullscreen-enter" callback={onSplitClick} active={props.editMode === "split"} tooltip="Split region" />
         <IconButton 
-          iconName="oi-loop-circular" callback={onRegionRotateClick} active={props.editMode === "regionRotate"} tooltip="Rotate region" />
+          iconName="oi-fullscreen-exit" callback={onMergeClick} active={props.editMode === "merge"} tooltip="Merge regions" />
         <IconButton 
           iconName="oi-tag" callback={onRegionCopy} active={props.editMode === "regionCopy"} tooltip="Copy region" />
         <IconButton 
-          iconName="oi-tags" callback={onRegionPaste} active={props.editMode === "regionPaste"} tooltip="Paste region" />        
+          iconName="oi-tags" callback={onRegionPaste} active={props.editMode === "regionPaste"} tooltip="Paste region" /> 
       </div>
       <div className={"btn-group-sm" + spacing}>
         <IconButton 
           iconName="oi-pencil" callback={onVertexEditClick} active={props.editMode === "vertex"} tooltip="Vertex edit" />
         <IconButton 
-          iconName="oi-fullscreen-exit" callback={onMergeClick} active={props.editMode === "merge"} tooltip="Merge regions" />
+          iconName="oi-move" callback={onRegionMoveClick} active={props.editMode === "regionMove"} tooltip="Move region" />
         <IconButton 
-          iconName="oi-fullscreen-enter" callback={onSplitClick} active={props.editMode === "split"} tooltip="Split region" />
+          iconName="oi-loop-circular" callback={onRegionRotateClick} active={props.editMode === "regionRotate"} tooltip="Rotate region" />   
         <IconButton 
           iconName="oi-crop" callback={onTrimClick} active={props.editMode === "trim"} tooltip="Trim region" />
       </div>

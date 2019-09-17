@@ -501,8 +501,6 @@ function translate(point) {
 }
 
 function editRegion(frame, region) {
-console.log(frame, region);
-
   if (region) {
     region.unsavedEdit = true;
     experiment.segmentationData[frame].edited = true;
