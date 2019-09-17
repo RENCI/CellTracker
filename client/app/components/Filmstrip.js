@@ -29,8 +29,13 @@ const Filmstrip = props => {
   });
   
   const numFrames = 5;
-  const center = props.playback.frame;
   const framePad = Math.floor(numFrames / 2);
+  const active = props.playback.frame;
+  
+  let start = Math.max(active - framePad, 0);
+  const end = Math.min(start + numFrames - 1, props.experiment.frames - 1);
+  start = end - numFrames + 1;
+
 
   const w = Math.min(props.height / numFrames, width);
   
@@ -47,9 +52,7 @@ const Filmstrip = props => {
   const pad = "4%";
 
   let key = 0;
-  for (let i = center - framePad; i <= center + framePad; i++) {
-    const valid = i >= 0 && i < props.experiment.frames;
-
+  for (let i = start; i <= end; i++) {
     const frameStyle = {
       flex: "0 0 auto",
       width: w,
@@ -58,19 +61,17 @@ const Filmstrip = props => {
       paddingBottom: pad,
       paddingLeft: pad,
       paddingRight: pad,
-      background: i === center ? "#007bff" : "none",
-      borderRadius: pad, 
-      visibility: valid ? "visible" : "hidden"
+      background: i === active ? "#007bff" : "none",
+      borderRadius: pad
     };
      
-    // Avoid unmounting by making invalid frames invisible, and set to the first frame
     frames.push(
       <div style={frameStyle} key={key++}>          
         <TraceSketchWrapper
           experiment={props.experiment}
           zoom={props.settings.filmstripZoom}
           zoomPoint={props.settings.zoomPoint}
-          frame={valid ? i : 0}
+          frame={i}
           stabilize={props.settings.stabilize}
           onHighlightRegion={handleHighlightRegion}
           onSelectRegion={handleSelectRegion}
