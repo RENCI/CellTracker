@@ -401,6 +401,12 @@ function highlightRegion(frame, region) {
   pushHistory();
 }
 
+function setZoom(newZoom, newFilmstripZoom, newZoomPoint) {
+  settings.zoom = newZoom;
+  settings.filmstripZoom = newFilmstripZoom;
+  settings.zoomPoint = newZoomPoint;
+}
+
 function animateZoom(newZoom, newFilmstripZoom, newZoomPoint) {
   function lerp(a, b, t) {
     return a + (b - a) * t;
@@ -460,14 +466,16 @@ function selectRegion(frame, region) {
     experiment.centerRegion = region;
 
     const { zoom, filmstripZoom } = getZoomLevels(region);    
-    animateZoom(zoom, filmstripZoom, region.center.slice());
+//    animateZoom(zoom, filmstripZoom, region.center.slice());
+    setZoom(zoom, filmstripZoom, region.center.slice());
 
 //    setEditMode("vertex");    
   }
   else {
     experiment.centerRegion = null;
 
-    animateZoom(1, 1, [0.5, 0.5]);
+//    animateZoom(1, 1, [0.5, 0.5]);
+    setZoom(1, 1, [0.5, 0.5]);
 
     setEditMode("regionSelect");
   }
@@ -480,7 +488,8 @@ function selectZoomPoint(frame, point) {
   experiment.centerRegion = null;
 
   const { zoom, filmstripZoom } = getZoomLevels(point);
-  animateZoom(zoom, filmstripZoom, point);
+//  animateZoom(zoom, filmstripZoom, point);
+  setZoom(zoom, filmstripZoom, point);
 
   setEditMode("vertex");
 
@@ -696,7 +705,8 @@ function zoom(view, direction) {
     if (newZoom >= minZoom && newZoom <= maxZoom) {
       settings.zoomDefault = newZoom;
       
-      animateZoom(newZoom, settings.filmstripZoom, settings.zoomPoint);
+//      animateZoom(newZoom, settings.filmstripZoom, settings.zoomPoint);
+      setZoom(newZoom, settings.filmstripZoom, settings.zoomPoint);
     }
   }  
 }
