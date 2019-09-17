@@ -501,6 +501,8 @@ function translate(point) {
 }
 
 function editRegion(frame, region) {
+console.log(frame, region);
+
   if (region) {
     region.unsavedEdit = true;
     experiment.segmentationData[frame].edited = true;
@@ -516,14 +518,18 @@ function editRegion(frame, region) {
       setEditMode("regionPaste");
       break;
 
-    case "regionPaste":
     case "regionEdit":
-    case "regionMove":
-    case "regionRotate":
+      if (experiment.segmentationData[frame].regions.indexOf(region) !== -1) {
+        // Region was added
+        setEditMode("vertex");
+      }
       break;
 
-    default:
+    case "regionSplit":
+    case "regionMerge":
+    case "regionTrim":
       setEditMode("vertex");
+      break;
   }
 }
 
