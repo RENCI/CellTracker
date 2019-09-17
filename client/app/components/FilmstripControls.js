@@ -17,8 +17,8 @@ const FilmstripControls = props => {
   useTooltip(ref); 
 
   return (
-    <div className="form-inline" ref={ref}>
-      <div className="btn-group-sm mx-auto">       
+    <div className="form-inline justify-content-center" ref={ref}>
+      <div className="btn-group-sm">       
         <IconButton 
           iconName="oi-zoom-in" callback={onZoomInClick} tooltip="Zoom in" />
         <IconButton 

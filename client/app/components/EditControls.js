@@ -63,7 +63,7 @@ const EditControls = props => {
   const spacing = " ml-3";
 
   return (
-    <div className="form-inline" ref={ref}>
+    <div className="form-inline justify-content-center" ref={ref}>
       <div className="btn-group-sm">
         <IconButton 
           iconName="oi-home" callback={onResetClick} tooltip="Reset" />
