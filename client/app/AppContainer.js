@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import MainSection from "./components/MainSection";
 import ResizeListener from "./components/ResizeListener";
 import DataStore from "./stores/DataStore";
-import { getExperimentList } from "./actions/ViewActionCreators";
+import { getExperimentList, keyPress } from "./actions/ViewActionCreators";
 
 function getStateFromStore() {
   return {
@@ -27,6 +27,10 @@ const AppContainer = () => {
     forceUpdate([]);
   }
 
+  const onKeyUp = event => {
+    keyPress(event.key);
+  }
+
   useEffect(() => {
     DataStore.addChangeListener(onDataChange);
 
@@ -41,8 +45,16 @@ const AppContainer = () => {
     }
   }, []);
 
+  useEffect(() => {
+    document.addEventListener("keyup", onKeyUp, true);
+
+    return () => {
+      document.removeEventListener("keyup", onKeyUp);
+    }
+  }, []);
+
   return (
-    <div className="container-fluid">
+    <div className="container-fluid" onKeyUp={onKeyUp}>
       <MainSection {...state} />
       <ResizeListener onResize={onResize} />
     </div>

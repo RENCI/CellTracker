@@ -162,3 +162,10 @@ export function setEditMode(mode) {
     mode: mode
   });
 };
+
+export function keyPress(key) {
+  AppDispatcher.dispatch({
+    actionType: Constants.KEY_PRESS,
+    key: key
+  });
+}

@@ -509,7 +509,6 @@ function editRegion(frame, region) {
 
     case "regionPaste":
     case "regionEdit":
-    case "regionEdit":
     case "regionMove":
     case "regionRotate":
       break;
@@ -837,9 +836,9 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       break;
 
     case Constants.TRANSLATE:
-        translate(action.point);
-        DataStore.emitChange();
-        break;
+      translate(action.point);
+      DataStore.emitChange();
+      break;
 
     case Constants.EDIT_REGION:
       editRegion(action.frame, action.region);
@@ -875,6 +874,55 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       setEditMode(action.mode);
       DataStore.emitChange();
       break;
+
+    case Constants.KEY_PRESS: {
+      switch (action.key) {
+        case "a":
+          setEditMode("regionEdit");
+          DataStore.emitChange();
+          break;
+
+        case "e":
+          setEditMode("vertex");
+          DataStore.emitChange();
+          break;
+
+        case "r":
+          setEditMode("regionRotate");
+          DataStore.emitChange();
+          break;
+
+        case "t":
+          setEditMode("regionMove");
+          DataStore.emitChange();
+          break;
+
+        case "c":
+          setEditMode("regionSelect");
+          DataStore.emitChange();
+          break;
+
+        case "q":
+          setEditMode("regionCopy");
+          DataStore.emitChange();
+          break;
+
+        case " ":
+          selectRegion(-1, null);
+          DataStore.emitChange();
+          break;
+          
+        case "+":
+          zoom("edit", "in");
+          DataStore.emitChange();
+          break;
+
+        case "-":
+          zoom("edit", "out");
+          DataStore.emitChange();
+          break;
+      }
+    }
   }
 });
 

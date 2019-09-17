@@ -30,5 +30,7 @@ export default keyMirror({
   TOGGLE_STABILIZE: null,
 
   ZOOM: null,
-  SET_EDIT_MODE: null
+  SET_EDIT_MODE: null,
+
+  KEY_PRESS: null
 });
