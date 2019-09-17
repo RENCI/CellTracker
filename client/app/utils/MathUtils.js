@@ -19,16 +19,10 @@ export function distance2(p1, p2) {
   return x * x + y * y;
 }
 
-export function dotProduct(v1, v2) {
-  return v1[0] * v2[0] + v1[1] * v2[1];
-}
-
-export function determinant(v1, v2) {
-  return v1[0] * v2[1] - v1[1] * v2[0];
-}
-
 // Adapted from: http://paulbourke.net/geometry/polygonmesh/
 export function insidePolygon(p, polygon, bb) {
+  if (polygon.length <= 2) return true;
+
   // Check bounding box
   if (p[0] < bb[0][0] || p[0] > bb[1][0] ||
       p[1] < bb[0][1] || p[1] > bb[1][1]) return false;

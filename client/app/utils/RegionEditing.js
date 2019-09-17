@@ -408,7 +408,8 @@ export function removeRegion(region, regionArray) {
 }
 
 export function addRegion(point, radius, regionArray) {
-  // Equilateral triangle
+  // Equilateral triangle  
+/*  
   const a = Math.PI / 6;
   const x = Math.cos(a) * radius;
   const y = Math.sin(a) * radius;
@@ -424,6 +425,17 @@ export function addRegion(point, radius, regionArray) {
       [point[0] - x, point[1] + y],
       [point[0], point[1] - radius]
     ]
+  };
+*/
+
+  // Point
+  const region = {
+    center: point.slice(),
+    id: generateId(regionArray),
+    min: point.slice(),
+    max: point.slice(),
+    selected: false,
+    vertices: [ point.slice() ]
   };
 
   regionArray.push(region);
