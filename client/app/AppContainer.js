@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useLayoutEffect, useEffect, useRef } from 'react';
 import MainSection from "./components/MainSection";
 import ResizeListener from "./components/ResizeListener";
 import DataStore from "./stores/DataStore";
@@ -17,19 +17,24 @@ function getStateFromStore() {
 
 const AppContainer = () => {
   const [state, setState] = useState(getStateFromStore());
-  const [, forceUpdate] = useState([]);
+  const [width, setWidth] = useState(0);
+  const ref = useRef(null);
+
+  const onResize = () => {
+    // XXX: Hack to account for controls
+    const yPad = 40;
+    const w = ref.current.clientWidth;
+    const h = window.innerHeight - yPad;
+
+    // XXX: Hack assuming 2 x 8 x 2 column widths in EditView
+    setWidth(Math.min(w, h * 4 / 3));
+  }
+
+  useLayoutEffect(onResize, [width]); 
 
   const onDataChange = () => {
     setState(getStateFromStore());
   };
-
-  const onResize = () => {
-    forceUpdate([]);
-  }
-
-  const onKeyUp = event => {
-    keyPress(event.key);
-  }
 
   useEffect(() => {
     DataStore.addChangeListener(onDataChange);
@@ -45,6 +50,10 @@ const AppContainer = () => {
     }
   }, []);
 
+  const onKeyUp = event => {
+    keyPress(event.key);
+  }
+
   useEffect(() => {
     document.addEventListener("keyup", onKeyUp, true);
 
@@ -54,8 +63,10 @@ const AppContainer = () => {
   }, []);
 
   return (
-    <div className="container-fluid" onKeyUp={onKeyUp}>
-      <MainSection {...state} />
+    <div ref={ref}>
+      <div className="container-fluid" style={{width: width}} onKeyUp={onKeyUp}>   
+        <MainSection {...state} width={width} />
+      </div>
       <ResizeListener onResize={onResize} />
     </div>
   );

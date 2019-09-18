@@ -770,13 +770,10 @@ export default function(sketch) {
   function resize() {
     if (images.length === 0) return;
 
-    // XXX: Hack to account for other visual elements
-    const availableHeight = Math.max(window.innerHeight - 420, 50);
-
     // Size canvas to image aspect ratio
     const im = images[0],
           aspect = im.width / im.height,
-          w = Math.min(innerWidth(sketch._userNode), availableHeight),
+          w = innerWidth(sketch._userNode),
           h = w / aspect;
 
     sketch.resizeCanvas(w, h);    

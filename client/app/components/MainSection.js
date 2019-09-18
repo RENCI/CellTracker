@@ -7,7 +7,7 @@ import EditView from "./EditView";
 const MainSection = props => {
   const divClass = props.loading ?
       "offset-md-2 col-md-8 text-center" :
-      "col-md-12";
+      "col";
 
   return (
     <div>
@@ -45,7 +45,8 @@ MainSection.propTypes = {
   history: PropTypes.object,
   settings: PropTypes.object,
   loading: PropTypes.object,
-  playback: PropTypes.object
+  playback: PropTypes.object,
+  width: PropTypes.number
 };
 
 export default MainSection;
