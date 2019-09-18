@@ -5,9 +5,6 @@
 {% block content %}
     {% csrf_token %}
     <div class="col-xs-12">
-        <label for="exp_select_list" class="col-form-label">
-            <strong>Select an experiment: </strong>
-        </label>
         <select id="exp_select_list">
         </select>
         <button type="button" class="btn btn-sm btn-danger" id="delete_exp" disabled>Delete</button>

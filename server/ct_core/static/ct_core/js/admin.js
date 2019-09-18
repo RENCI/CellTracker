@@ -34,7 +34,7 @@ var userEditFrames = {};
 
 // Create p5 instance for loading images
 var adminSketch = new p5(function (sk) {});
-
+var canvas;
 
 function request_exp_list_ajax() {
     $.ajaxSetup({
@@ -51,7 +51,7 @@ function request_exp_list_ajax() {
             exp_res = json_response;
             if (exp_res.length > 0) {
                 var select = document.getElementById("exp_select_list");
-                select.options[0] = new Option('-- Select --', 'null');
+                select.options[0] = new Option('-- Select an Experiment --', 'null');
                 if (select.options.length <= 1) {
                     $.each(exp_res, function(i, v) {
                        sel_idx =  select.options.length;
@@ -250,7 +250,7 @@ function setup() {
     startFrame = 1;
     request_exp_list_ajax();
     $('#seg_info').html('');
-    var canvas = adminSketch.createCanvas(100, 100);
+    canvas = adminSketch.createCanvas(100, 100);
     canvas.parent('frame-visualizer');
     adminSketch.frameRate(5);
     adminSketch.noLoop();
@@ -393,6 +393,7 @@ $('#exp_select_list').change(function(e) {
         request_exp_info_ajax(this.value);
         lastSelExpId = this.value;
         delete_dict(userEditFrames);
+        canvas.show();
     }
     else {
         $('#delete_exp').prop('disabled', true);
@@ -400,7 +401,8 @@ $('#exp_select_list').change(function(e) {
         $('#user_edit').hide();
         $('#user_edit_frm_info').html('');
         $('#player-control').hide();
-        $('frame-visualizer').hide();
+        adminSketch.clear();
+        canvas.hide();
         lastSelExpId = -1;
     }
 });
