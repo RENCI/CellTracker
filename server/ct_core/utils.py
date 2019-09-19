@@ -710,7 +710,7 @@ def create_user_segmentation_data_for_download(exp_id, username):
             json.dump(seg_obj.data, json_file, indent=2)
 
     # create the zip file
-    zip_filename_base = username + '_edit_data'
+    zip_filename_base = exp_id + '_' + username + '_edit_data'
     zip_with_path = os.path.join(local_dir_path, zip_filename_base)
     ret_filename = shutil.make_archive(zip_with_path, 'zip', local_data_path)
     shutil.rmtree(local_data_path)

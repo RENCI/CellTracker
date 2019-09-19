@@ -5,12 +5,11 @@
 {% block content %}
     {% csrf_token %}
     <div class="col-xs-12">
-        <select id="exp_select_list">
+        <select id="exp_select_list" title="select an experiment from the list">
         </select>
-        <button type="button" class="btn btn-sm btn-danger" id="delete_exp" disabled>Delete</button>
+        <button type="button" class="btn btn-sm btn-danger" id="delete_exp" disabled title="delete an existing experiment"><i class="oi oi-minus"></i></button>
         &nbsp;&nbsp;
-        Create a new experiment:
-        <a id="create_new_exp" href="/create_new_experiment/">
+        <a id="create_new_exp" href="/create_new_experiment/" title="create a new experiment">
             <span class="oi oi-plus"></span>
         </a>
     </div>
