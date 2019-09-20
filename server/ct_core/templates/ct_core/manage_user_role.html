@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% load staticfiles %}
+
+{% block title %}Manage Power User Roles{% endblock %}
+{% block content %}
+  <div class="container">
+      <h2>Assign power user roles to users</h2>
+      <ul>
+        <li>Move users between two lists, then click on <b>Update</b> button to assign users with power or regular user roles.</li>
+        <li>Edits from power users will be automatically accepted.</li>
+        <li>Edits from regular users will be reviewed by data admin and accepted at data admin's discretion.</li>
+      </ul>
+      <form class="form-horizontal" role="form" method="POST">
+        {% csrf_token %}
+        <div class="row style-select">
+          <div class="col-md-12">
+            <div class="info-box">
+              <label class="bold_text">Regular Users</label>
+              <select multiple class="form-control" id="ru_lstbox">
+                {% for key, val in reg_users.items %}
+                    <option value="{{ key }}">{{ val }} ({{ key }})</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="info-arrows text-center">
+              <br />
+              <br />
+              <button id='btnRight' class="btn btn-light" title="move selected users from regular users list to power users list">
+                  <i class="oi oi-arrow-thick-right"></i></button>
+              <br />
+              <button id='btnLeft' class="btn btn-light btn-arrow"title="move selected users from power users list to regular users list">
+                  <i class="oi oi-arrow-thick-left"></i></button>
+            </div>
+
+            <div class="info-box">
+              <label class="bold_text">Power Users</label>
+              <select multiple class="form-control" id="pu_lstbox">
+                  {% for key, val in power_users.items %}
+                    <option value="{{ key }}">{{ val }} ({{ key }})</option>
+                {% endfor %}
+              </select>
+            </div>
+             <div class="clearfix"></div>
+          </div>
+        </div>
+
+        <hr/>
+
+        <div class="row">
+          <button id="btnUpdateUserRole" type="submit" class="col-sm-6 btn btn-primary btn-lg btn-block">Update</button>
+          <a href="/" class="btn btn-default col-sm-6" type=button">Go back to data manager page</a>
+        </div>
+        <div class="row">
+            <div id="errmsg" class="warning-msg"></div>
+            <div id="infomsg" class="info-msg"></div>
+        </div>
+      </form>
+  </div>
+    {% block extra_js %}
+        <script type="text/javascript" src="{% static 'ct_core/js/select_list_actions.js' %}"></script>
+    {% endblock %}
+{% endblock %}
