@@ -921,6 +921,22 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
           DataStore.emitChange();
           break;
 
+        case "s":
+            setEditMode("regionSplit");
+            DataStore.emitChange();
+            break;
+
+        case "d":
+          setEditMode("regionMerge");
+          DataStore.emitChange();
+          break;
+
+        case "w":
+          setEditMode("regionTrim");
+          DataStore.emitChange();
+          break;
+
+        case "f":
         case " ":
           selectRegion(-1, null);
           DataStore.emitChange();
@@ -933,6 +949,21 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
 
         case "-":
           zoom("edit", "out");
+          DataStore.emitChange();
+          break;
+
+        case "Enter":
+          saveSegmentationData();
+          DataStore.emitChange();
+          break;
+
+        case "ArrowLeft":
+          frameDelta(-1);
+          DataStore.emitChange();
+          break;
+
+        case "ArrowRight":
+          frameDelta(1);
           DataStore.emitChange();
           break;
       }
