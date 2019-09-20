@@ -543,8 +543,7 @@ function pushHistory() {
   // Add to the end
   history.index = history.edits.push({
     segmentationData: cloneData(experiment.segmentationData),
-    zoom: settings.zoom,    
-    filmstripZoom: settings.filmstripZoom
+    settings: cloneData(settings)
   }) - 1;
 
   // Remove first if too long
@@ -573,8 +572,13 @@ function getHistory() {
   let edit = history.edits[history.index];
 
   experiment.segmentationData = cloneData(edit.segmentationData);
-  settings.zoom = edit.zoom;
-  settings.filmstripZoom = edit.filmstripZoom;
+  settings = cloneData(edit.settings);
+
+  experiment.segmentationData.forEach(frame => {
+    // Regenerate rtree
+    frame.tree = new rbush();
+    updateRBush(frame.tree, frame.regions);
+  });
 
   // XXX: ANY OF THIS NECESSARY NOW?
 //  updateSelectedRegionFromHistory();
