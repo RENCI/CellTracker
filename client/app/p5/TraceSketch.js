@@ -3,7 +3,7 @@ import rbush from "rbush";
 import knn from "rbush-knn";
 import { lineSegmentIntersection, insidePolygon, pointLineSegmentDistance } from "../utils/MathUtils";
 import { 
-  addVertex, removeVertex, moveVertex, mergeRegions, splitRegion, trimRegion, 
+  addVertex, removeVertex, moveVertex, mergeRegions, splitRegion, splitRegionWithPoint, trimRegion, 
   removeRegion, addRegion, moveRegion, rotateRegion, 
   copiedRegion, copyRegion, pasteRegion } from "../utils/RegionEditing";
 import { selectZoomPoint } from "../actions/ViewActionCreators";
@@ -113,7 +113,8 @@ export default function(sketch) {
     onEditRegion = props.onEditRegion;
 
     editView = editMode !== "filmstrip";
-    if (editMode !== "regionSplit" && editMode !== "regionTrim") splitLine = null;
+//    if (editMode !== "regionSplit" && editMode !== "regionTrim") splitLine = null;
+    if (editMode !== "regionTrim") splitLine = null;
   
     // Image smoothing
     //sketch.canvas.getContext("2d").imageSmoothingEnabled = editMode === "filmstrip" ? true : false;
@@ -391,7 +392,8 @@ export default function(sketch) {
     oldMouseY = sketch.mouseY;
     moveMouse = false;
 
-    if (editMode === "regionSplit" || editMode === "regionTrim") {
+//    if (editMode === "regionSplit" || editMode === "regionTrim") {
+    if (editMode === "regionTrim") {
       const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
       splitLine = [
@@ -465,7 +467,7 @@ export default function(sketch) {
       case "regionMerge":
       break;
 
-      case "regionSplit":
+//      case "regionSplit":
       case "regionTrim":
         if (sketch.mouseIsPressed) {
           const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
@@ -488,7 +490,8 @@ export default function(sketch) {
           const numRegions = activeRegions.length;
 
           if (numRegions > 0) {
-            actionString = editMode === "regionSplit" ? "Split region" : "Trim region";
+//            actionString = editMode === "regionSplit" ? "Split region" : "Trim region";
+            actionString = "Trim region";
             if (numRegions > 1) actionString += "s";
           }
         }
@@ -620,6 +623,19 @@ export default function(sketch) {
         break;
 
       case "regionSplit":
+        if (currentRegion) {
+          const p = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+          const newRegion = splitRegion(currentRegion, p, 0.5 / images[0].width, allRegions);
+
+          if (newRegion) {
+            onEditRegion(frame, region);
+            onEditRegion(frame, newRegion);
+          }
+        }
+
+        break;
+
+      case "regionSplitOLD":
         if (splitLine) {
           const editedRegions = [];
 
@@ -813,7 +829,8 @@ export default function(sketch) {
       case "regionRotate":
       case "regionCopy":
       case "regionSelect":
-      case "regionMerge": {
+      case "regionMerge":
+      case "regionSplit": {
         actionString = 
           editMode === "regionEdit" ? "Add region" : 
           editMode === "filmstrip" || editMode === "regionSelect" ? "Center on point": ""; 
@@ -838,6 +855,7 @@ export default function(sketch) {
             editMode === "regionCopy" ? "Copy region" : 
             editMode === "regionMerge" && !mergeRegion ? "Select first merge region" :
             editMode === "regionMerge" && mergeRegion ? "Select second merge region" :
+            editMode === "regionSplit" ? "Split region" :
             editMode === "filmstrip" || editMode === "regionSelect" ? "Center on region" : ""; 
         }
 
@@ -894,8 +912,8 @@ export default function(sketch) {
         actionString = "Paste region";
         break;
 
-      case "regionSplit":
-        break;
+//      case "regionSplit":
+//        break;
 
       case "regionTrim":
         break;

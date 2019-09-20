@@ -329,6 +329,116 @@ export function splitRegion(region, line, offset, regionArray) {
   return newRegion;
 }
 
+export function splitRegionWithPoint(region, point, offset, regionArray) {
+  const vertices = region.vertices;
+
+  // Find closest line segment
+  let minDistance = Number.MAX_VALUE;
+  let segment1 = null;
+  let closestPoint = null;
+
+  for (let i = 0; i < vertices.length; i++) {
+    const j = i === vertices.length - 1 ? 0 : i + 1;
+
+    const v1 = vertices[i],
+          v2 = vertices[j];
+
+    const p = pointLineSegmentClosestPoint(point, v1, v2);
+    const d = distance(point, p);
+
+    if (d < minDistance) {
+      minDistance = d;
+      segment1 = [i, j];
+      closestPoint = p;
+    }
+  }
+
+  // Find closest line segment in the other direction
+  // Normalized vector should be long enough, as we are operating in normalized coordinates
+  const v = normalizeVector([point[0] - closestPoint[0], point[1] - closestPoint[1]]);
+  const lineStart = point;
+  const lineEnd = [point[0] + v[0], point[1] + v[1]];
+
+  minDistance = Number.MAX_VALUE;
+  let segment2 = null;
+  closestPoint = null;
+
+  for (let i = 0; i < vertices.length; i++) {
+    const j = i === vertices.length - 1 ? 0 : i + 1;
+
+    if (i === segment1[0] && j === segment1[1]) continue;
+
+    const v1 = vertices[i],
+          v2 = vertices[j];
+
+    const p = lineSegmentIntersection(lineStart, lineEnd, v1, v2);
+    const d = distance(point, p);
+
+    if (d < minDistance) {
+      minDistance = d;
+      segment2 = [i, j];
+      closestPoint = p;
+    }
+  }
+
+  // Create sections between each intersection
+  let intersections = [segment1, segment2];
+  let sections = [[]];
+  for (let i = 0; i < vertices.length; i++) {
+    const v = vertices[i];
+
+    // Add vertex
+    sections[sections.length - 1].push(v);
+
+    // Check for intersection
+    for (let j = 0; j < intersections.length; j++) {
+      const ix = intersections[j];
+
+      if (i === ix[0]) {
+        // Compute offset from intersection point
+        const x = normalizeVector([point[0] - v[0], point[1] - v[1]]);
+        x[0] *= offset;
+        x[1] *= offset;
+
+        const p1 = [point[0] - x[0], point[1] - x[1]];
+        const p2 = [point[0] + x[0], point[1] + x[1]];
+
+        // Add intersection point
+        sections[sections.length - 1].push(p1);
+
+        // Start new section
+        sections.push([p2]);        
+
+        break;
+      }
+    }
+  }
+
+  // Combine first and last sections
+  sections[0] = sections.pop().concat(sections[0]);
+
+  // Combine every other section
+  let vertices1 = [];
+  let vertices2 = [];
+  sections.forEach((section, i) => {
+    if (i % 2 === 0) vertices1 = vertices1.concat(section);
+    else vertices2 = vertices2.concat(section);
+  });
+
+  // Set vertices on original region and add new one
+  const newRegion = {
+    id: generateId(regionArray),
+    selected: false
+  };
+
+  setVertices(region, vertices1);
+  setVertices(newRegion, vertices2);
+
+  regionArray.push(newRegion);
+
+  return newRegion;
+}
+
 export function trimRegion(region, line) {
   // Find intersections with region line segments
   const vertices = region.vertices;
