@@ -113,7 +113,7 @@ export default function(sketch) {
     onEditRegion = props.onEditRegion;
 
     editView = editMode !== "filmstrip";
-    if (editMode !== "split" && editMode !== "trim") splitLine = null;
+    if (editMode !== "regionSplit" && editMode !== "regionTrim") splitLine = null;
   
     // Image smoothing
     //sketch.canvas.getContext("2d").imageSmoothingEnabled = editMode === "filmstrip" ? true : false;
@@ -307,9 +307,9 @@ export default function(sketch) {
 
         const showVertices = 
           (editMode === "vertex" && region === currentRegion) || 
-          (editMode === "merge" && (region === mergeRegion || region === currentRegion)) ||
-          editMode === "split" || 
-          editMode === "trim";
+          (editMode === "regionMerge" && (region === mergeRegion || region === currentRegion)) ||
+          editMode === "regionSplit" || 
+          editMode === "regionTrim";
 
         if (showVertices) {
           // Draw points
@@ -391,7 +391,7 @@ export default function(sketch) {
     oldMouseY = sketch.mouseY;
     moveMouse = false;
 
-    if (editMode === "split" || editMode === "trim") {
+    if (editMode === "regionSplit" || editMode === "regionTrim") {
       const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
       splitLine = [
@@ -462,11 +462,11 @@ export default function(sketch) {
 
         break;
 
-      case "merge":
+      case "regionMerge":
       break;
 
-      case "split":
-      case "trim":
+      case "regionSplit":
+      case "regionTrim":
         if (sketch.mouseIsPressed) {
           const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
@@ -488,7 +488,7 @@ export default function(sketch) {
           const numRegions = activeRegions.length;
 
           if (numRegions > 0) {
-            actionString = editMode === "split" ? "Split region" : "Trim region";
+            actionString = editMode === "regionSplit" ? "Split region" : "Trim region";
             if (numRegions > 1) actionString += "s";
           }
         }
@@ -602,7 +602,7 @@ export default function(sketch) {
 
         break;
 
-      case "merge":
+      case "regionMerge":
         if (!moveMouse) {
           if (mergeRegion && currentRegion && mergeRegion !== currentRegion) {
             mergeRegions(mergeRegion, currentRegion, allRegions);
@@ -619,7 +619,7 @@ export default function(sketch) {
 
         break;
 
-      case "split":
+      case "regionSplit":
         if (splitLine) {
           const editedRegions = [];
 
@@ -641,7 +641,7 @@ export default function(sketch) {
 
         break;
 
-      case "trim":
+      case "regionTrim":
         if (splitLine) {
           activeRegions.forEach(region => {
             if (trimRegion(region, splitLine)) {
@@ -800,7 +800,7 @@ export default function(sketch) {
     handle = null;
     const previousRegion = currentRegion;
     if (editMode !== "vertex") currentRegion = null;
-    if (editMode !== "merge") mergeRegion = null;
+    if (editMode !== "regionMerge") mergeRegion = null;
 
     const regions = visibleRegions;
 
@@ -813,7 +813,7 @@ export default function(sketch) {
       case "regionRotate":
       case "regionCopy":
       case "regionSelect":
-      case "merge": {
+      case "regionMerge": {
         actionString = 
           editMode === "regionEdit" ? "Add region" : 
           editMode === "filmstrip" || editMode === "regionSelect" ? "Center on point": ""; 
@@ -836,8 +836,8 @@ export default function(sketch) {
             editMode === "regionMove" ? "Move region" :
             editMode === "regionRotate" ? "Rotate region" :
             editMode === "regionCopy" ? "Copy region" : 
-            editMode === "merge" && !mergeRegion ? "Select first merge region" :
-            editMode === "merge" && mergeRegion ? "Select second merge region" :
+            editMode === "regionMerge" && !mergeRegion ? "Select first merge region" :
+            editMode === "regionMerge" && mergeRegion ? "Select second merge region" :
             editMode === "filmstrip" || editMode === "regionSelect" ? "Center on region" : ""; 
         }
 
@@ -894,10 +894,10 @@ export default function(sketch) {
         actionString = "Paste region";
         break;
 
-      case "split":
+      case "regionSplit":
         break;
 
-      case "trim":
+      case "regionTrim":
         break;
     }
 

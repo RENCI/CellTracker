@@ -9,15 +9,15 @@ function onVertexEditClick() {
 }
 
 function onMergeClick() {
-  ViewActionCreators.setEditMode("merge");
+  ViewActionCreators.setEditMode("regionMerge");
 }
 
 function onSplitClick() {
-  ViewActionCreators.setEditMode("split");
+  ViewActionCreators.setEditMode("regionSplit");
 }
 
 function onTrimClick() {
-  ViewActionCreators.setEditMode("trim");
+  ViewActionCreators.setEditMode("regionTrim");
 }
 
 function onRegionEditClick() {
@@ -78,9 +78,9 @@ const EditControls = props => {
         <IconButton 
           iconName="oi-wrench" callback={onRegionEditClick} active={props.editMode === "regionEdit"} tooltip="Add/remove region" />
         <IconButton 
-          iconName="oi-fullscreen-enter" callback={onSplitClick} active={props.editMode === "split"} tooltip="Split region" />
+          iconName="oi-fullscreen-enter" callback={onSplitClick} active={props.editMode === "regionSplit"} tooltip="Split region" />
         <IconButton 
-          iconName="oi-fullscreen-exit" callback={onMergeClick} active={props.editMode === "merge"} tooltip="Merge regions" />
+          iconName="oi-fullscreen-exit" callback={onMergeClick} active={props.editMode === "regionMerge"} tooltip="Merge regions" />
         <IconButton 
           iconName="oi-tag" callback={onRegionCopy} active={props.editMode === "regionCopy"} tooltip="Copy region" />
         <IconButton 
@@ -94,7 +94,7 @@ const EditControls = props => {
         <IconButton 
           iconName="oi-loop-circular" callback={onRegionRotateClick} active={props.editMode === "regionRotate"} tooltip="Rotate region" />   
         <IconButton 
-          iconName="oi-crop" callback={onTrimClick} active={props.editMode === "trim"} tooltip="Trim region" />
+          iconName="oi-crop" callback={onTrimClick} active={props.editMode === "regionTrim"} tooltip="Trim region" />
       </div>
     </div>
   );

@@ -922,9 +922,9 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
           break;
 
         case "s":
-            setEditMode("regionSplit");
-            DataStore.emitChange();
-            break;
+          setEditMode("regionSplit");
+          DataStore.emitChange();
+          break;
 
         case "d":
           setEditMode("regionMerge");
