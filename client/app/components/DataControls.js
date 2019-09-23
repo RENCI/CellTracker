@@ -60,8 +60,8 @@ const DataControls = props => {
   const buttonClasses = "btn btn-primary";
 
   return (
-    <div className="form-row mb-3">
-      <div className="col-7">
+    <div className="d-flex mb-3">
+      <div className="flex-grow-1 flex-shrink-1">
         <select
           id="experimentSelect"
           className="form-control"
@@ -71,7 +71,7 @@ const DataControls = props => {
             {options}
         </select>
       </div>
-      <div className="col-5">
+      <div className="flex-grow-0 flex-shrink-0">
         <div className="btn-toolbar">
           <div className="btn-group mr-2">
             <IconButton
