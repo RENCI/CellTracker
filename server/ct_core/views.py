@@ -23,6 +23,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils.datastructures import MultiValueDictKeyError
 from django.db import IntegrityError
+from django.contrib.auth.models import User
 from rest_framework import status
 
 from irods.session import iRODSSession
@@ -153,8 +154,10 @@ def edit_user(request, pk):
                 messages.info(request, "Your profile is updated successfully")
                 return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
+    is_pu = True if user.user_profile.role == UserProfile.POWERUSER else False
     return render(request, 'accounts/account_update.html', {"profile_form": user_form,
-                                                     "formset": formset})
+                                                            "formset": formset,
+                                                            "is_poweruser": is_pu})
 
 
 @login_required
@@ -387,6 +390,14 @@ def update_user_role(request):
         else:
             return JsonResponse(status=status.HTTP_200_OK,
                                 data={'message': "No users to update roles for"})
+
+    for u in User.objects.all().filter(is_staff=False, is_superuser=False, is_active=True):
+        if u.username in power_users:
+            u.user_profile.role = UserProfile.POWERUSER
+            u.user_profile.save()
+        elif u.username in reg_users:
+            u.user_profile.role = UserProfile.REGULARUSER
+            u.user_profile.save()
 
     return JsonResponse(status=status.HTTP_200_OK,
                         data={'message': "User roles are updated successfully"})

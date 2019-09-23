@@ -36,7 +36,7 @@
             <h5>Welcome to TRACE, {{ user.first_name }}!</h5>
             <div>
               Your username is <strong>{{ user.username }}</strong>.
-              Update your profile <a href="{% url 'account_update' user.id %}">here</a>
+              Look or uppdate your profile <a href="{% url 'account_update' user.id %}">here</a>
             </div>
             <div>Have fun and when you are done, you can <a href="{% url 'logout' %}">logout</a></div>
           </div>

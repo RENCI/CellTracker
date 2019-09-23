@@ -36,7 +36,7 @@ class UserProfile(models.Model):
         (REGULARUSER, 'Regular'),
     )
 
-    user = models.OneToOneField(User, related_name='user')
+    user = models.OneToOneField(User, related_name='user_profile')
     # cannot use email field in User model in order to guarantee uniqueness of emails at DB level
     email = models.EmailField(blank=True, null=True, unique=True)
     grade = models.PositiveIntegerField(blank=True, null=True, validators=[MaxValueValidator(12),

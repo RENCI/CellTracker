@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="col s12 m8 offset-m2">
-    <h2 class="flow-text">Update your profile information</h2>
+    <h2 class="flow-text">Look or update your profile information</h2>
     {% if messages %}
       {% for message in messages %}
         <div class="alert alert-success alert-dismissible" role="alert">
@@ -24,6 +24,11 @@
                 {{ formset.management_form }}
                 {{ formset.as_table }}
             </div>
+            {% if is_poweruser %}
+                <div class="alert alert-success">
+                    You are assigned as a power user, so your saved edits will update system data automatically.
+                </div>
+            {% endif %}
             <button type="submit" class="btn btn-primary btn-save-profile">Save changes</button>
             <a href="/" class="btn btn-default" type=button">Go back to home page</a>
         </form>
