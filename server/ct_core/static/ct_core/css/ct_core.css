@@ -227,3 +227,52 @@ float the buttons inside it. This prevents collapsing. */
 .bold_text {
     font-weight: bold;
 }
+
+.style-select select {
+    padding: 0;
+}
+
+.style-select select option {
+    padding: 4px 10px 4px 10px;
+}
+
+.style-select select option:hover {
+      background: #EEEEEE;
+}
+
+.info-box {
+    float: left;
+    width: 45%;
+    height: 200px;
+}
+
+.info-box select {
+    height: 400px;
+    padding: 0;
+}
+
+.info-box select option {
+    padding: 4px 10px 4px 10px;
+}
+
+.info-box select option:hover {
+    background: #EEEEEE;
+}
+
+.info-arrows {
+    float: left;
+    width: 10%;
+}
+
+.info-arrows input {
+    width: 70%;
+    margin-bottom: 5px;
+}
+
+.info-arrows option:hover {
+    background: #EEEEEE;
+}
+
+.btn-arrow {
+    margin-top: 10px;
+}

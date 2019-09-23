@@ -19,7 +19,7 @@ from django_irods.icommands import SessionException
 
 from wand.image import Image
 
-from ct_core.models import Segmentation, UserSegmentation, get_path
+from ct_core.models import Segmentation, UserSegmentation, UserProfile, get_path
 from ct_core.task_utils  import get_exp_frame_no, validate_user
 
 
@@ -842,3 +842,15 @@ def create_seg_data_from_csv(exp_id, input_csv_file, irods_path):
     except Exception as ex:
         shutil.rmtree(outf_path)
         return ex.message
+
+
+def get_users():
+    pu_list = {}
+    ru_list = {}
+    for up in UserProfile.objects.all():
+        if up.role == UserProfile.POWERUSER:
+            pu_list[up.user.username] = up.user.get_full_name()
+        else:
+            ru_list[up.user.username] = up.user.get_full_name()
+
+    return pu_list, ru_list

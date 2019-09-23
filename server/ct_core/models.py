@@ -29,12 +29,20 @@ def get_path(instance, filename=''):
 
 # Create your models here.
 class UserProfile(models.Model):
+    POWERUSER = 'PU'
+    REGULARUSER = 'RU'
+    USER_ROLE_CHOICES = (
+        (POWERUSER, 'Power'),
+        (REGULARUSER, 'Regular'),
+    )
+
     user = models.OneToOneField(User, related_name='user')
     # cannot use email field in User model in order to guarantee uniqueness of emails at DB level
     email = models.EmailField(blank=True, null=True, unique=True)
     grade = models.PositiveIntegerField(blank=True, null=True, validators=[MaxValueValidator(12),
                                                                            MinValueValidator(1)])
     school = models.CharField(max_length=100, blank=True, null=True, default='')
+    role = models.CharField(max_length=2, choices=USER_ROLE_CHOICES, default=REGULARUSER)
 
     def __str__(self):
         return self.user.username
