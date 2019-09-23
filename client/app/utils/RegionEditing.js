@@ -79,20 +79,49 @@ export function removeVertex(region, vertex) {
 }
 
 export function addVertex(region, point) {
-  let vertices = region.vertices;
+  const vertices = region.vertices;
 
   // Get indeces for pairs of vertices
-  let segments = vertices.reduce((p, c, i, a) => {
+  const segments = vertices.reduce((p, c, i, a) => {
     if (i === a.length - 1) p.push([i, 0]);
     else p.push([i, i + 1]);
     return p;
   }, []);
 
   // Find closest line segment to this point
-  let segment = segments.reduce((p, c, i) => {
-    let d = pointLineSegmentDistance(point, vertices[c[0]], vertices[c[1]]);
-    return d < p.d ? { d: d, i: i } : p;
+  const segment = segments.reduce((p, c, i) => {
+    // Check distance
+    const v1 = vertices[c[0]];
+    const v2 = vertices[c[1]];
+
+    let d = pointLineSegmentDistance(point, v1, v2);
+
+    if (d <= p.d) {    
+      // Check for intersection
+      for (let j = 0; j < segments.length; j++) {
+        if (j === i) continue;
+
+        const v3 = vertices[segments[j][0]];
+        const v4 = vertices[segments[j][1]];
+
+        const ip1 = lineSegmentIntersection(point, v1, v3, v4);        
+        if (ip1 && !(ip1[0] === v1[0] && ip1[1] === v1[1])) return p;
+
+        const ip2 = lineSegmentIntersection(point, v2, v3, v4);        
+        if (ip2 && !(ip2[0] === v2[0] && ip2[1] === v2[1])) return p;
+      }
+
+      // Closest and doesn't intersect
+      return { d: d, i: i };
+    }
+
+    return p;
   }, { d: 1.0, i: -1 });
+
+  if (segment.i === -1) {
+    console.log("Problem adding vertex");
+    return;
+  }
 
   // Insert new point
   vertices.splice(segments[segment.i][1], 0, point);

@@ -81,7 +81,7 @@ export function pointLineSegmentClosestPoint(p, p1, p2) {
   }
   else {
     // Return closest line segment end point
-    return distance(p, p1) < distance(p, p2) ? p1.slice() : p2.slice();
+    return distance2(p, p1) < distance2(p, p2) ? p1.slice() : p2.slice();
   }
 }
 
