@@ -57,10 +57,14 @@ export function insidePolygon(p, polygon, bb) {
 // Return the distance between a point p and a line segment p1p2
 // Based on technique described here: http://paulbourke.net/geometry/pointlineplane/
 export function pointLineSegmentDistance(p, p1, p2) {
+  return distance(p, pointLineSegmentClosestPoint(p, p1, p2));
+}
+
+export function pointLineSegmentClosestPoint(p, p1, p2) {
   // Check for coincident p1 and p2
   if (p1[0] === p2[0] && p1[1] === p2[1]) {
-    // Return distance to one of the points
-    return distance(p, p1);
+    // Return one of the points
+    return p1.slice();
   }
 
   // Compute u
@@ -73,11 +77,11 @@ export function pointLineSegmentDistance(p, p1, p2) {
     const p3 = [ p1[0] + u * (p2[0] - p1[0]),
                  p1[1] + u * (p2[1] - p1[1]) ];
 
-    return distance(p, p3);
+    return p3;
   }
   else {
     // Return closest line segment end point
-    return Math.min(distance(p, p1), distance(p, p2));
+    return distance(p, p1) < distance(p, p2) ? p1.slice() : p2.slice();
   }
 }
 

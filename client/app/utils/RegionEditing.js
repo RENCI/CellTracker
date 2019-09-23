@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { 
   distance, distance2, normalizeVector, 
-  lineSegmentIntersection, pointLineSegmentDistance 
+  lineSegmentIntersection, pointLineSegmentDistance, pointLineSegmentClosestPoint
 } from "./MathUtils";
 
 function left(i, a) {
@@ -372,58 +372,34 @@ export function splitRegionWithPoint(region, point, offset, regionArray) {
           v2 = vertices[j];
 
     const p = lineSegmentIntersection(lineStart, lineEnd, v1, v2);
-    const d = distance(point, p);
 
-    if (d < minDistance) {
-      minDistance = d;
-      segment2 = [i, j];
-      closestPoint = p;
-    }
-  }
+    if (p) {
+      const d = distance(point, p);
 
-  // Create sections between each intersection
-  let intersections = [segment1, segment2];
-  let sections = [[]];
-  for (let i = 0; i < vertices.length; i++) {
-    const v = vertices[i];
-
-    // Add vertex
-    sections[sections.length - 1].push(v);
-
-    // Check for intersection
-    for (let j = 0; j < intersections.length; j++) {
-      const ix = intersections[j];
-
-      if (i === ix[0]) {
-        // Compute offset from intersection point
-        const x = normalizeVector([point[0] - v[0], point[1] - v[1]]);
-        x[0] *= offset;
-        x[1] *= offset;
-
-        const p1 = [point[0] - x[0], point[1] - x[1]];
-        const p2 = [point[0] + x[0], point[1] + x[1]];
-
-        // Add intersection point
-        sections[sections.length - 1].push(p1);
-
-        // Start new section
-        sections.push([p2]);        
-
-        break;
+      if (d < minDistance) {
+        minDistance = d;
+        segment2 = [i, j];
+        closestPoint = p;
       }
     }
   }
 
-  // Combine first and last sections
-  sections[0] = sections.pop().concat(sections[0]);
+  // Perpendicular vector
+  const v2 = [v[1], -v[0]];
+  v2[0] *= offset;
+  v2[1] *= offset;
 
-  // Combine every other section
-  let vertices1 = [];
-  let vertices2 = [];
-  sections.forEach((section, i) => {
-    if (i % 2 === 0) vertices1 = vertices1.concat(section);
-    else vertices2 = vertices2.concat(section);
-  });
+  const vertices1 = [[point[0] + v2[0], point[1] + v2[1]]];
+  for (let i = segment1[1]; i !== segment2[0]; i = (i + 1) % (vertices.length)) {
+    vertices1.push(vertices[i]);
+  }
+  vertices1.push(vertices[segment2[0]]);
+
+  const vertices2 = [[point[0] - v2[0], point[1] - v2[1]]];
+  for (let i = segment2[1]; i !== segment1[0]; i = (i + 1) % (vertices.length)) {
+    vertices2.push(vertices[i]);
+  }
+  vertices2.push(vertices[segment1[0]]);
 
   // Set vertices on original region and add new one
   const newRegion = {

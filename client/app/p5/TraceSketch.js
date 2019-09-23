@@ -625,10 +625,10 @@ export default function(sketch) {
       case "regionSplit":
         if (currentRegion) {
           const p = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
-          const newRegion = splitRegion(currentRegion, p, 0.5 / images[0].width, allRegions);
+          const newRegion = splitRegionWithPoint(currentRegion, p, 0.5 / images[0].width, allRegions);
 
           if (newRegion) {
-            onEditRegion(frame, region);
+            onEditRegion(frame, currentRegion);
             onEditRegion(frame, newRegion);
           }
         }
