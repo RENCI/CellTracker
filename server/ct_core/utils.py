@@ -44,7 +44,7 @@ def get_experiment_list_util():
                 col_md = col.metadata.get_one(key)
                 exp_dict['name'] = col_md.value
             except KeyError:
-                exp_dict['name'] = ''
+                exp_dict['name'] = col.name
             exp_list.append(exp_dict)
         return exp_list, err_msg
 

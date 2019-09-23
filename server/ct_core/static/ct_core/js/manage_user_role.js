@@ -79,4 +79,4 @@ $('#btnUpdateUserRole').click(function(e) {
 
     // don't submit the form
     return false;
-    });
+});

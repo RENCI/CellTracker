@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% load staticfiles %}
+
+{% block title %}Sort Experiment Task List in Descending Order{% endblock %}
+{% block content %}
+  <div class="container">
+      <h2>Sort experiment task list in descending order</h2>
+      <ul>
+        <li>Move experiment task item up or down in the list to sort the task list by priority in descending order,
+            then click on <b>Update</b> button to update task priorities in the system.</li>
+        <li>The experiment tasks will be displayed in the task selection dropdown list by priority sorted in descending order.</li>
+      </ul>
+      <form class="form-horizontal" role="form" method="POST">
+        {% csrf_token %}
+        <div class="row style-select col-md-12">
+          <label class="bold_text">Experiment tasks to sort by priority in descending order</label>
+          <div class="selected-left">
+              <select multiple class="form-control" id="task_lstbox">
+                {% for key, val in tasks.items %}
+                    <option value="{{ key }}">{{ val }} ({{ key }})</option>
+                {% endfor %}
+              </select>
+          </div>
+          <div class="selected-right">
+              <button type="button" class="btn btn-default btn-sm" id="btnUp">
+                <i class="oi oi-arrow-thick-top"></i></button>
+              </button>
+              <button type="button" class="btn btn-default btn-sm" id="btnDown">
+                <i class="oi oi-arrow-thick-bottom"></i></button>
+              </button>
+          </div>
+
+            <div class="clearfix"></div>
+          </div>
+        </div>
+
+        <hr/>
+
+        <div class="row">
+          <button id="btnUpdateTaskLst" type="submit" class="col-sm-6 btn btn-primary btn-lg btn-block">Update</button>
+          <a href="/" class="btn btn-default col-sm-6" type=button">Go back to data manager page</a>
+        </div>
+        <div class="row">
+            <div id="errmsg" class="warning-msg"></div>
+            <div id="infomsg" class="info-msg"></div>
+        </div>
+      </form>
+  </div>
+    {% block extra_js %}
+        <script type="text/javascript" src="{% static 'ct_core/js/sort_task_priority.js' %}"></script>
+    {% endblock %}
+{% endblock %}
