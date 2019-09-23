@@ -403,6 +403,39 @@ def update_user_role(request):
                         data={'message': "User roles are updated successfully"})
 
 
+def sort_task_priority(request):
+    if request.user.is_authenticated() and request.user.is_superuser:
+        template = loader.get_template('ct_core/sort_task_priority.html')
+        exp_list, err_msg = get_experiment_list_util()
+        if exp_list:
+            task_dict = {}
+            for exp_dict in exp_list:
+                task_dict[exp_dict['id']] = exp_dict['name']
+            context = {
+                'tasks': task_dict
+            }
+            return HttpResponse(template.render(context, request))
+        if err_msg:
+            return HttpResponse(json.dumps({'error': 'Cannot connect to iRODS data server'}),
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    else:
+        return HttpResponseForbidden('You must log in as data manager to sort task priorities')
+
+
+def update_task_priority(request):
+    # request should be AJAX
+    task_list = request.POST.get('task_list', '')
+    if not task_list:
+        return JsonResponse(status=status.HTTP_400_BAD_REQUEST,
+                            data={'status': 'false',
+                                  'message': "Request task list to set priority is empty"})
+
+
+    return JsonResponse(status=status.HTTP_200_OK,
+                        data={'message': "Experiment task priority order is updated successfully"})
+
+
 def add_experiment_to_server(request):
     if request.user.is_authenticated() and request.user.is_superuser:
         exp_name = request.POST.get('exp_name', '')
