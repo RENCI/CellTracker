@@ -659,10 +659,16 @@ export default function(sketch) {
 
       case "regionTrim":
         if (splitLine) {
+          const editedRegions = [];
+
           activeRegions.forEach(region => {
             if (trimRegion(region, splitLine)) {
-              onEditRegion(frame, region);
+              editedRegions.push(region);
             }
+          });
+
+          editedRegions.forEach(region => {
+            onEditRegion(frame, region);
           });
         }
 

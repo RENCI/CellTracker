@@ -61,7 +61,7 @@ const DataControls = props => {
 
   return (
     <div className="d-flex mb-3">
-      <div className="flex-grow-1 flex-shrink-1">
+      <div className="flex-grow-1 flex-shrink-1 mr-2">
         <select
           id="experimentSelect"
           className="form-control"

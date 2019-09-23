@@ -422,7 +422,7 @@ export function trimRegion(region, line) {
 
   for (let i = 0; i < vertices.length; i++) {
     const v1 = vertices[i],
-        v2 = vertices[i === vertices.length - 1 ? 0 : i + 1];
+          v2 = vertices[i === vertices.length - 1 ? 0 : i + 1];
 
     const p = lineSegmentIntersection(line[0], line[1], v1, v2);
 
