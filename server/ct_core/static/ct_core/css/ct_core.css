@@ -276,3 +276,29 @@ float the buttons inside it. This prevents collapsing. */
 .btn-arrow {
     margin-top: 10px;
 }
+
+.selected-left {
+  float: left;
+  width: 88%;
+}
+
+.selected-right {
+  float: left;
+}
+
+.selected-right button {
+  display: block;
+  margin-left: 4px;
+  margin-bottom: 2px;
+}
+
+@media (max-width: 517px) {
+  .selected-right button {
+    display: inline;
+    margin-bottom: 5px;
+  }
+}
+
+#task_lstbox {
+    height: 500px;
+}
