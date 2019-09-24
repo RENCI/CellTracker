@@ -60,8 +60,20 @@ $('#btnUpdateUserRole').click(function(e) {
             }
         }
     });
-    reg_users_data = JSON.stringify($('#ru_lstbox option').val());
-    power_users_data = JSON.stringify($('#pu_lstbox option').val());
+    let ru_list = [], pu_list = [];
+    let ru_item_list = $('#ru_lstbox option');
+    let idx;
+    for (idx=0; idx < ru_item_list.length; idx++) {
+        ru_list[idx] = ru_item_list[idx].value;
+    }
+    let pu_item_list = $('#pu_lstbox option');
+    for (idx=0; idx < pu_item_list.length; idx++) {
+        pu_list[idx] = pu_item_list[idx].value;
+    }
+
+    var reg_users_data = JSON.stringify(ru_list);
+    var power_users_data = JSON.stringify(pu_list);
+
     $.ajax({
         type: "POST",
         url: "/update_user_role/",

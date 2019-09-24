@@ -62,7 +62,15 @@ $('#btnUpdateTaskLst').click(function(e) {
             }
         }
     });
-    task_data = JSON.stringify($('#task_lstbox option').val());
+
+    let task_list = [];
+    let item_list = $('#task_lstbox option');
+    let idx;
+    for (idx=0; idx < item_list.length; idx++) {
+        task_list[idx] = item_list[idx].value;
+    }
+
+    var task_data = JSON.stringify(task_list);
     $.ajax({
         type: "POST",
         url: "/update_task_priority/",

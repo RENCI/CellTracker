@@ -122,7 +122,7 @@ def sync_seg_data_to_irods(exp_id='', username='', json_data={}, irods_path=''):
         json.dump(json_data, json_file, indent=2)
 
     istorage = IrodsStorage()
-    istorage.saveFile(local_data_file, irods_path, True)
+    istorage.save_file(local_data_file, irods_path, True)
 
     shutil.rmtree(local_data_path)
 

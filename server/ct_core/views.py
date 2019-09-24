@@ -8,8 +8,8 @@ import json
 from uuid import uuid4
 import logging
 import mimetypes
+from collections import OrderedDict
 
-from django.contrib.auth.models import User
 from django.template import loader
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseServerError, StreamingHttpResponse, \
@@ -33,7 +33,7 @@ from ct_core.utils import get_experiment_list_util, read_video, \
     extract_images_from_video_to_irods, read_image_frame, get_seg_collection, \
     save_user_seg_data_to_db, get_start_frame, get_exp_image, get_edited_frames, get_all_edit_users, \
     create_user_segmentation_data_for_download, get_frame_info, create_seg_data_from_csv, \
-    sync_seg_data_to_db, delete_one_experiment, get_users
+    sync_seg_data_to_db, delete_one_experiment, get_users, update_experiment_priority, pack_zeros
 from ct_core.task_utils import get_exp_frame_no
 from ct_core.forms import SignUpForm, UserProfileForm, UserPasswordResetForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
@@ -246,7 +246,7 @@ def stream_video(request, exp_id):
     if os.path.exists(video_path):
         shutil.rmtree(video_path)
     istorage = IrodsStorage()
-    dpath = istorage.getVideo(exp_id, video_path)
+    dpath = istorage.get_video(exp_id, video_path)
     for vfile in os.listdir(dpath):
         # there is supposed to be only one video
         vfilepath = os.path.join(dpath, vfile)
@@ -408,7 +408,7 @@ def sort_task_priority(request):
         template = loader.get_template('ct_core/sort_task_priority.html')
         exp_list, err_msg = get_experiment_list_util()
         if exp_list:
-            task_dict = {}
+            task_dict = OrderedDict()
             for exp_dict in exp_list:
                 task_dict[exp_dict['id']] = exp_dict['name']
             context = {
@@ -431,6 +431,13 @@ def update_task_priority(request):
                             data={'status': 'false',
                                   'message': "Request task list to set priority is empty"})
 
+    try:
+        task_list = json.loads(task_list)
+        update_experiment_priority(task_list)
+    except Exception as ex:
+        return JsonResponse(status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            data={'status': 'false',
+                                  'message': ex.message})
 
     return JsonResponse(status=status.HTTP_200_OK,
                         data={'message': "Experiment task priority order is updated successfully"})
@@ -515,9 +522,9 @@ def add_experiment_to_server(request):
             try:
                 irods_path = exp_id + '/data/image/jpg/'
                 # create image collection first
-                istorage.saveFile('', irods_path, create_directory=True)
+                istorage.save_file('', irods_path, create_directory=True)
                 for f in exp_img_files:
-                    istorage.saveFile(f.temporary_file_path(), irods_path + f.name)
+                    istorage.save_file(f.temporary_file_path(), irods_path + f.name)
             except SessionException as ex:
                 messages.error(request, ex.stderr)
                 return HttpResponseRedirect(request.META['HTTP_REFERER'])
@@ -529,6 +536,7 @@ def add_experiment_to_server(request):
                           password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
             coll = session.collections.get(cpath)
             coll.metadata.add('experiment_name', exp_name)
+            coll.metadata.add('priority', pack_zeros(str(len(exp_list))))
 
         if seg_filename:
             if seg_csv:
@@ -545,9 +553,9 @@ def add_experiment_to_server(request):
                 try:
                     irods_path = cpath + '/data/segmentation/'
                     # create image collection first
-                    istorage.saveFile('', irods_path, create_directory=True)
+                    istorage.save_file('', irods_path, create_directory=True)
                     for f in seg_files:
-                        istorage.saveFile(f.temporary_file_path(), irods_path + f.name)
+                        istorage.save_file(f.temporary_file_path(), irods_path + f.name)
                 except SessionException as ex:
                     messages.error(request, ex.stderr)
                     return HttpResponseRedirect(request.META['HTTP_REFERER'])

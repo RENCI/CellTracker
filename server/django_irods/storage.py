@@ -14,8 +14,7 @@ class IrodsStorage(Storage):
         self.session = GLOBAL_SESSION
         self.environment = GLOBAL_ENVIRONMENT
 
-
-    def getVideo(self, exp_id, dest_path):
+    def get_video(self, exp_id, dest_path):
         """
         Get the experiement video
         :param exp_id: experiment id
@@ -26,8 +25,7 @@ class IrodsStorage(Storage):
         self.session.run("iget", None, '-rf', src_path, dest_path)
         return dest_path
 
-
-    def getAllImages(self, exp_id, dest_path):
+    def get_all_images(self, exp_id, dest_path):
         """
         Get all image sequences of an experiment
         :param exp_id: experiment id
@@ -38,8 +36,7 @@ class IrodsStorage(Storage):
         self.session.run("iget", None, '-rf', src_path, dest_path)
         return os.path.join(dest_path, 'image')
 
-
-    def getOneImageFrame(self, exp_id, image_type, image_name, dest_path):
+    def get_one_image_frame(self, exp_id, image_type, image_name, dest_path):
         """
         Get one image frame from an experiment.
         :param exp_id: experiment id
@@ -53,12 +50,10 @@ class IrodsStorage(Storage):
         self.session.run("iget", None, '-rf', src_path, dest_path)
         return dest_path
 
-
-    def getFile(self, src_name, dest_name):
+    def get_file(self, src_name, dest_name):
         self.session.run("iget", None, '-f', src_name, dest_name)
 
-
-    def saveFile(self, from_name, to_name, create_directory=False, data_type_str=''):
+    def save_file(self, from_name, to_name, create_directory=False, data_type_str=''):
         """
         Parameters:
         :param
@@ -94,7 +89,6 @@ class IrodsStorage(Storage):
         self.session.run("iget", None, '-f', name, tmp.name)
         return tmp
 
-
     def _save(self, name, content):
         self.session.run("imkdir", None, '-p', name.rsplit('/', 1)[0])
         with NamedTemporaryFile(delete=False) as f:
@@ -110,10 +104,8 @@ class IrodsStorage(Storage):
             os.unlink(f.name)
         return name
 
-
     def delete(self, name):
         self.session.run("irm", None, "-rf", name)
-
 
     def exists(self, name):
         try:
@@ -122,28 +114,103 @@ class IrodsStorage(Storage):
         except SessionException:
             return False
 
+    def _list_files(self, path):
+        """
+        internal method to only list data objects/files under path
+        :param path: iRODS collection/directory path
+        :return: ordered filename_list
+        """
+
+        fname_list = []
+
+        # the query below returns name of all data objects/files under the path collection/directory
+        qrystr = "select DATA_NAME where DATA_REPL_STATUS != '0' AND " \
+                 "COLL_NAME like '%{}'".format(path)
+        stdout = self.session.run("iquest", None, "--no-page", "%s",
+                                  qrystr)[0].split("\n")
+
+        for i in range(len(stdout)):
+            if not stdout[i] or "CAT_NO_ROWS_FOUND" in stdout[i]:
+                break
+            fname_list.append(stdout[i])
+
+        return fname_list
+
+    def _list_sub_dirs(self, path):
+        """
+        internal method to only list sub-collections/sub-directories under path
+        :param path: iRODS collection/directory path
+        :return: sub-collection/directory name list
+        """
+        subdir_list = []
+        # the query below returns name of all sub-collections/sub-directories
+        # under the path collection/directory
+        qrystr = "select COLL_NAME where COLL_PARENT_NAME like '%{}'".format(path)
+        stdout = self.session.run("iquest", None, "--no-page", "%s",
+                                  qrystr)[0].split("\n")
+        for i in range(len(stdout)):
+            if not stdout[i] or "CAT_NO_ROWS_FOUND" in stdout[i]:
+                break
+            dirname = stdout[i]
+            # remove absolute path prefix to only show relative sub-dir name
+            idx = dirname.find(path)
+            if idx > 0:
+                dirname = dirname[idx + len(path) + 1:]
+
+            subdir_list.append(dirname)
+
+        return subdir_list
 
     def listdir(self, path):
-        stdout = self.session.run("ils", None, path)[0].split("\n")
-        listing = ([], [])
-        directory = stdout[0][0:-1]
-        directory_prefix = "  C- " + directory + "/"
-        for i in range(1, len(stdout)):
-            if stdout[i][:len(directory_prefix)] == directory_prefix:
-                dirname = stdout[i][len(directory_prefix):].strip()
-                if dirname:
-                    listing[0].append(dirname)
-            else:
-                filename = stdout[i].strip()
-                if filename:
-                    listing[1].append(filename)
+        """
+        return list of sub-collections/sub-directories and data objects/files
+        :param path: iRODS collection/directory path
+        :return: (sub_directory_list, file_name_list)
+        """
+        # remove any trailing slashes if any; otherwise, iquest would fail
+        path = path.strip()
+        while path.endswith('/'):
+            path = path[:-1]
+
+        # check first whether the path is an iRODS collection/directory or not, and if not, need
+        # to raise SessionException, and if yes, can proceed to get files and sub-dirs under it
+        qrystr = "select COLL_NAME where COLL_NAME like '%{}'".format(path)
+        stdout = self.session.run("iquest", None, "%s", qrystr)[0]
+        if "CAT_NO_ROWS_FOUND" in stdout:
+            raise SessionException(-1, '', 'folder {} does not exist'.format(path))
+
+        fname_list = self._list_files(path)
+
+        subdir_list = self._list_sub_dirs(path)
+
+        listing = (subdir_list, fname_list)
+
         return listing
 
-
     def size(self, name):
+        """
+        return the size of the data object/file with file name being passed in
+        :param name: file name
+        :return: the size of the file
+        """
+        file_info = name.rsplit('/', 1)
+        if len(file_info) < 2:
+            raise ValidationError('{} is not a valid file path to retrieve file size '
+                                  'from iRODS'.format(name))
+        coll_name = file_info[0]
+        file_name = file_info[1]
+        qrystr = "select DATA_SIZE where DATA_REPL_STATUS != '0' AND " \
+                 "COLL_NAME like '%{}' AND DATA_NAME = '{}'".format(coll_name, file_name)
+        stdout = self.session.run("iquest", None, "%s", qrystr)[0]
+
+        if "CAT_NO_ROWS_FOUND" in stdout:
+            raise ValidationError("{} cannot be found in iRODS to retrieve "
+                                  "file size".format(name))
+        return int(stdout)
+
+
         stdout = self.session.run("ils", None, "-l", name)[0].split()
         return int(stdout[3])
-
 
     def get_available_name(self, name):
         """
@@ -152,3 +219,18 @@ class IrodsStorage(Storage):
         if self.exists(name):
             raise ValidationError(str.format("File {} already exists.", name))
         return name
+
+    def get_sorted_exp_list(self):
+        qrystr = "select COLL_NAME, order_desc(META_COLL_ATTR_VALUE) where " \
+                 "META_COLL_ATTR_NAME = 'priority'"
+        stdout = self.session.run("iquest", None, "--no-page", "%s %s",
+                                  qrystr)[0].split("\n")
+        exp_lst = []
+        for i in range(len(stdout)):
+            if not stdout[i] or "CAT_NO_ROWS_FOUND" in stdout[i]:
+                break
+            coll_path = stdout[i].split()[0]
+            exp_id = coll_path.rsplit('/', 1)[1]
+            exp_lst.append(exp_id)
+
+        return exp_lst

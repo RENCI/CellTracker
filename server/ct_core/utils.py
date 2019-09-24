@@ -23,31 +23,65 @@ from ct_core.models import Segmentation, UserSegmentation, UserProfile, get_path
 from ct_core.task_utils  import get_exp_frame_no, validate_user
 
 
+MAX_PRIORITY_STRING_LEN = 10
+
+
+def pack_zeros(input_str):
+    ilen = len(input_str)
+    if ilen >= MAX_PRIORITY_STRING_LEN:
+        return input_str
+
+    zero_cnt = MAX_PRIORITY_STRING_LEN - ilen
+    pack_str = ''
+    for i in range(0, zero_cnt):
+        pack_str += '0'
+    return pack_str + input_str
+
+
 def get_experiment_list_util():
     """
     Get all experiments from iRODS and return it as a list of dicts along with error message
     if any
     :return: experiment list and error message
     """
+    istorage = IrodsStorage()
+    exp_sorted_list = istorage.get_sorted_exp_list()
     exp_list = []
-    err_msg = ''
     with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
                       password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
-        hpath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER
-        coll = session.collections.get(hpath)
-        for col in coll.subcollections:
-            exp_dict = {}
-            exp_dict['id'] = col.name
-            try:
-                # str() is needed by python irods client metadata method
+        hpath = '/{}/home/{}'.format(settings.IRODS_ZONE, settings.IRODS_USER)
+        if not exp_sorted_list:
+            # the list is not sorted by priority yet, so sort it now
+            coll = session.collections.get(hpath)
+            index = len(coll.subcollections) - 1
+            for col in coll.subcollections:
+                exp_dict = {}
+                exp_dict['id'] = col.name
+                try:
+                    # str() is needed by python irods client metadata method
+                    key = str('experiment_name')
+                    col_md = col.metadata.get_one(key)
+                    exp_dict['name'] = col_md.value
+                except KeyError:
+                    exp_dict['name'] = col.name
+
+                key = str('priority')
+                def_pri = pack_zeros(str(index))
+                col.metadata.add(key, def_pri)
+                exp_list.append(exp_dict)
+                index -= 1
+        else:
+            for exp_id in exp_sorted_list:
+                exp_dict = {}
+                exp_dict['id'] = exp_id
+                exp_path = hpath + '/' + exp_id
+                col = session.collections.get(exp_path)
                 key = str('experiment_name')
                 col_md = col.metadata.get_one(key)
                 exp_dict['name'] = col_md.value
-            except KeyError:
-                exp_dict['name'] = col.name
-            exp_list.append(exp_dict)
-        return exp_list, err_msg
+                exp_list.append(exp_dict)
 
+        return exp_list, ''
     return exp_list, 'Cannot connect to iRODS data server'
 
 
@@ -127,12 +161,12 @@ def extract_images_from_video_to_irods(exp_id='', video_input_file='', istorage=
         irods_path = exp_id + '/data/video/' + video_filename
 
         # put video file to irods first
-        istorage.saveFile(video_file_path, irods_path, create_directory=True)
+        istorage.save_file(video_file_path, irods_path, create_directory=True)
 
         irods_path = exp_id + '/data/image/jpg/'
 
         # create image collection first
-        istorage.saveFile('', irods_path, create_directory=True)
+        istorage.save_file('', irods_path, create_directory=True)
 
         # write to iRODS
         for i in range(count):
@@ -142,7 +176,7 @@ def extract_images_from_video_to_irods(exp_id='', video_input_file='', istorage=
             for j in range(0, zero_cnt):
                 packstr += '0'
             ofile = 'frame' + packstr + str(i + 1) + '.jpg'
-            istorage.saveFile(ifile, irods_path + ofile)
+            istorage.save_file(ifile, irods_path + ofile)
             # clean up
             os.remove(ifile)
         # success
@@ -185,7 +219,7 @@ def get_exp_image_size(exp_id):
             rows, cols = img.shape
             return rows, cols
         else:
-            dest_path = istorage.getOneImageFrame(exp_id, 'jpg', img_name, image_path)
+            dest_path = istorage.get_one_image_frame(exp_id, 'jpg', img_name, image_path)
             ifile = os.path.join(dest_path, img_name)
             if os.path.isfile(ifile):
                 img = cv2.imread(ifile, cv2.IMREAD_GRAYSCALE)
@@ -252,7 +286,7 @@ def get_exp_image(exp_id, frame_no, type='jpg'):
     if os.path.isfile(ifile):
         return ifile, None
     else:
-        dest_path = istorage.getOneImageFrame(exp_id, type, img_name, image_path)
+        dest_path = istorage.get_one_image_frame(exp_id, type, img_name, image_path)
         ifile = os.path.join(dest_path, img_name)
         if os.path.isfile(ifile):
             return ifile, None
@@ -462,6 +496,29 @@ def save_user_seg_data_to_db(user, eid, fno, udata, num_edited):
     return
 
 
+def update_experiment_priority(exp_list):
+    """
+    Update experiment priority as iRODS metadata for corresponding experiments in the ordered list
+    :param exp_list: the priority-sorted experiment list to update priority for
+    :return: raise exception if failure
+    """
+    with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
+                      password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
+        index = len(exp_list) - 1
+        key = str('priority')
+        for exp_id in exp_list:
+            cpath = '/{}/home/{}/{}'.format(settings.IRODS_ZONE, settings.IRODS_USER, exp_id)
+            col = session.collections.get(cpath)
+            pstr = pack_zeros(str(index))
+            try:
+                col_md = col.metadata.get_one(key)
+                col.metadata.remove(col_md.name, col_md.value, col_md.units)
+                col.metadata.add(key, pstr)
+            except KeyError:
+                col.metadata.add(key, pstr)
+            index -= 1
+
+
 def compute_time_series_and_put_in_irods(exp_id, username=''):
     """
     compute average intensity for each cell and output time series data in csv format to iRODS for
@@ -612,7 +669,7 @@ def compute_time_series_and_put_in_irods(exp_id, username=''):
     # write csv file to iRODS
     istorage = IrodsStorage()
     irods_path = exp_id + '/data/segmentation/' + output_file
-    istorage.saveFile(output_file_with_path, irods_path, True)
+    istorage.save_file(output_file_with_path, irods_path, True)
 
     os.remove(output_file_with_path)
 
@@ -631,7 +688,7 @@ def put_image_list_to_irods(exp_id, files):
     istorage = IrodsStorage()
 
     # create image collection first
-    istorage.saveFile('', irods_path, create_directory=True)
+    istorage.save_file('', irods_path, create_directory=True)
 
     # write to iRODS
     for f in files:
