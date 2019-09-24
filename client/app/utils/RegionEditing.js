@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import { 
-  distance, distance2, normalizeVector, 
-  lineSegmentIntersection, pointLineSegmentDistance, pointLineSegmentClosestPoint
+  distance, distance2, normalizeVector, dotProduct,
+  lineSegmentIntersection, pointLineSegmentClosestPoint
 } from "./MathUtils";
 
 function left(i, a) {
@@ -94,34 +94,33 @@ export function addVertex(region, point) {
     const v1 = vertices[c[0]];
     const v2 = vertices[c[1]];
 
-    let d = pointLineSegmentDistance(point, v1, v2);
+    const cp = pointLineSegmentClosestPoint(point, v1, v2);
+    const d = distance(point, cp);
 
-    if (d <= p.d) {    
-      // Check for intersection
-      for (let j = 0; j < segments.length; j++) {
-        if (j === i) continue;
+    // Other point, if closest point is an endpoint
+    const op = cp[0] === v1[0] && cp[1] === v1[1] ? v2 :
+               cp[0] === v2[0] && cp[1] === v2[1] ? v1 : null;
 
-        const v3 = vertices[segments[j][0]];
-        const v4 = vertices[segments[j][1]];
+    // Check for same point
+    if (op && p.op && cp[0] === p.cp[0] && cp[1] === p.cp[1]) {
+      // Check angle to other points for these segments
+      const pointVec = normalizeVector([point[0] - p.cp[0], point[1] - p.cp[1]]);
+      const currentVec = normalizeVector([p.op[0] - p.cp[0], p.op[1] - p.cp[1]]);
+      const newVec = normalizeVector([op[0] - cp[0], op[1] - cp[1]]);
 
-        const ip1 = lineSegmentIntersection(point, v1, v3, v4);        
-        if (ip1 && !(ip1[0] === v1[0] && ip1[1] === v1[1])) return p;
+      const currentDot = dotProduct(pointVec, currentVec);
+      const newDot = dotProduct(pointVec, newVec);
 
-        const ip2 = lineSegmentIntersection(point, v2, v3, v4);        
-        if (ip2 && !(ip2[0] === v2[0] && ip2[1] === v2[1])) return p;
-      }
-
-      // Closest and doesn't intersect
-      return { d: d, i: i };
+      return newDot > currentDot ? { d: d, i: i, cp: cp, op: op } : p;
     }
 
-    return p;
-  }, { d: 1.0, i: -1 });
+    return d < p.d ? { d: d, i: i, cp: cp, op: op } : p;
+  }, { d: 1.0, i: -1, cp: null, op: null });
 
   if (segment.i === -1) {
     console.log("Problem adding vertex");
     return;
-  }
+  }  
 
   // Insert new point
   vertices.splice(segments[segment.i][1], 0, point);

@@ -19,6 +19,10 @@ export function distance2(p1, p2) {
   return x * x + y * y;
 }
 
+export function dotProduct(v1, v2) {
+  return v1[0] * v2[0] + v1[1] * v2[1];
+}
+
 // Adapted from: http://paulbourke.net/geometry/polygonmesh/
 export function insidePolygon(p, polygon, bb) {
   if (polygon.length <= 2) return true;
