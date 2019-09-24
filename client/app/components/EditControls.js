@@ -44,6 +44,14 @@ function onRegionSelectClick() {
   ViewActionCreators.setEditMode("regionSelect");
 }
 
+function onRegionLinkClick() {
+  ViewActionCreators.setEditMode("regionLink");
+}
+
+function onRegionBreakLinkClick() {
+  ViewActionCreators.setEditMode("regionBreakLink");
+}
+
 function onZoomInClick() {
   ViewActionCreators.zoom("edit", "in");
 }
@@ -95,6 +103,12 @@ const EditControls = props => {
           iconName="oi-loop-circular" callback={onRegionRotateClick} active={props.editMode === "regionRotate"} tooltip="Rotate region" />   
         <IconButton 
           iconName="oi-crop" callback={onTrimClick} active={props.editMode === "regionTrim"} tooltip="Trim region" />
+      </div>
+      <div className={"btn-group-sm" + spacing}>
+        <IconButton 
+          iconName="oi-link-intact" callback={onRegionLinkClick} active={props.editMode === "regionLink"} tooltip="Link regions" />
+        <IconButton 
+          iconName="oi-link-broken" callback={onRegionBreakLinkClick} active={props.editMode === "regionBreakLink"} tooltip="Break region links" />
       </div>
     </div>
   );

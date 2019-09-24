@@ -3,6 +3,7 @@ import { EventEmitter } from "events";
 import assign from "object-assign";
 import rbush from "rbush";
 import Constants from "../constants/Constants";
+import { getExperimentInfo } from "../utils/WebAPIUtils";
 
 const CHANGE_EVENT = "change";
 
@@ -41,6 +42,12 @@ let settings = {
   editMode: "regionSelect",
   stabilize: true
 };
+
+// Linking 
+let linking = {
+  frame: -1,
+  region: null
+}
 
 function setExperimentList(newList) {
   experimentList = newList;
@@ -531,6 +538,68 @@ function editRegion(frame, region) {
   }
 }
 
+function linkRegion(frame, region) {
+  switch (settings.editMode) {
+    case "regionLink":
+      if (!region) {
+        // Clear linking region
+        linking.frame = -1;
+        linking.region = region;
+      }
+      else if (!linking.region) {
+        // Set linking region
+        linking.frame = frame;
+        linking.region = region;
+      }
+      else if (frame === linking.frame - 1) {
+        // XXX: ALLOW THIS?        
+        // Link
+        linking.region.link_id = region.id;
+        linking.region.manual_link = true;
+        linking.region.unsavedEdit = true;
+
+        experiment.segmentationData[frame].edited = true;
+
+        linking.frame = frame;
+        linking.region = region;
+
+        generateTrajectoryIds();        
+
+        pushHistory();
+      } 
+      else if (frame === linking.frame + 1) {
+        // Link
+        region.link_id = linking.region.id;
+        region.manual_link = true;
+        region.unsavedEdit = true;
+
+        experiment.segmentationData[frame].edited = true;
+
+        linking.frame = frame;
+        linking.region = region;
+
+        generateTrajectoryIds();
+
+        pushHistory();
+      }
+
+      break;
+
+    case "regionBreakLink":
+      region.link_id = null;
+      region.manual_link = true;
+      region.unsavedEdit = true;
+
+      experiment.segmentationData[frame].edited = true;
+
+      generateTrajectoryIds();
+
+      pushHistory();
+
+      break;
+  }
+}
+
 function resetHistory() {
   history.edits = [];
   history.index = -1;
@@ -722,6 +791,11 @@ function zoom(view, direction) {
 function setEditMode(mode) {
   settings.editMode = mode;
 
+  if (mode === "regionLink") {
+    linking.frame = -1;
+    linking.region = null;
+  }
+
   pushHistory();
 }
 
@@ -752,6 +826,9 @@ const DataStore = assign({}, EventEmitter.prototype, {
   },
   getPlayback: function () {
     return playback;
+  },
+  getLinking: function () {
+    return linking;
   }
 });
 
@@ -860,6 +937,11 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
 
     case Constants.EDIT_REGION:
       editRegion(action.frame, action.region);
+      DataStore.emitChange();
+      break;
+
+    case Constants.LINK_REGION:
+      linkRegion(action.frame, action.region);
       DataStore.emitChange();
       break;
 

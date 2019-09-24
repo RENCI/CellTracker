@@ -23,6 +23,7 @@ export default keyMirror({
   SELECT_ZOOM_POINT: null,
   TRANSLATE: null,
   EDIT_REGION: null,
+  LINK_REGION: null,
   SAVE_SEGMENTATION_DATA: null,
   UNDO_HISTORY: null,
   REDO_HISTORY: null,

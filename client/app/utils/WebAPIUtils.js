@@ -174,7 +174,9 @@ export function saveSegmentationData(id, data) {
       const sendRegion = {
         id: region.id,
         vertices: region.vertices,
-        edited: region.edited || region.unsavedEdit
+        edited: region.edited || region.unsavedEdit,
+        link_id: region.link_id,
+        manual_link: region.manual_link
       };
 
       return sendRegion;

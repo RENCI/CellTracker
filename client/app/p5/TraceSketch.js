@@ -45,7 +45,8 @@ export default function(sketch) {
       onSelectRegion = null,
       onSelectZoomPoint = null,
       onTranslate = null,
-      onEditRegion = null;
+      onEditRegion = null,
+      onLinkRegion = null;
 
   // Editing
   let editView = false,
@@ -111,6 +112,7 @@ export default function(sketch) {
     onSelectZoomPoint = props.onSelectZoomPoint;
     onTranslate = props.onTranslate;
     onEditRegion = props.onEditRegion;
+    onLinkRegion = props.onLinkRegion;
 
     editView = editMode !== "filmstrip";
 //    if (editMode !== "regionSplit" && editMode !== "regionTrim") splitLine = null;
@@ -533,6 +535,10 @@ export default function(sketch) {
       case "regionCopy":
       case "regionPaste":
         break;
+
+      case "regionLink":
+      case "regionBreakLink":
+        break;
     }
 
     highlight();
@@ -723,6 +729,27 @@ export default function(sketch) {
         onEditRegion(frame, newRegion);
 
         break;
+
+      case "regionLink":
+        if (moveMouse) return;
+
+        if (currentRegion) {
+          onLinkRegion(frame, currentRegion);
+        }
+        else {
+          onLinkRegion(-1, null)
+        }
+
+        break;
+
+      case "regionBreakLink":
+        if (moveMouse) return;
+
+        if (currentRegion) {
+          onLinkRegion(frame, currentRegion);
+        }
+
+        break;
     }
 
     highlight();
@@ -836,7 +863,9 @@ export default function(sketch) {
       case "regionCopy":
       case "regionSelect":
       case "regionMerge":
-      case "regionSplit": {
+      case "regionSplit":
+      case "regionLink":
+      case "regionBreakLink": {
         actionString = 
           editMode === "regionEdit" ? "Add region" : 
           editMode === "filmstrip" || editMode === "regionSelect" ? "Center on point": ""; 
@@ -862,6 +891,8 @@ export default function(sketch) {
             editMode === "regionMerge" && !mergeRegion ? "Select first merge region" :
             editMode === "regionMerge" && mergeRegion ? "Select second merge region" :
             editMode === "regionSplit" ? "Split region" :
+            editMode === "regionLink" ? "Link region" :
+            editMode === "regionBreakLink" ? "Break region link" :
             editMode === "filmstrip" || editMode === "regionSelect" ? "Center on region" : ""; 
         }
 

@@ -51,10 +51,9 @@ function handleEditRegion(frame, region) {
   ViewActionCreators.editRegion(frame, region);
 }
 
-const frameDivStyle = {
-  display: "flex",
-  marginBottom: "5px"
-};
+function handleLinkRegion(frame, region) {
+  ViewActionCreators.linkRegion(frame, region);
+}
 
 const PlaybackView = props => {
   const [sketchWidth, setSketchWidth] = useState(100);
@@ -105,7 +104,8 @@ const PlaybackView = props => {
             onSelectRegion={handleSelectRegion}
             onSelectZoomPoint={handleSelectZoomPoint}
             onTranslate={handleTranslate}
-            onEditRegion={handleEditRegion} />
+            onEditRegion={handleEditRegion}
+            onLinkRegion={handleLinkRegion} />
           <MediaControls {...props} />
         </div>
         <div className="col-md-2 text-center">

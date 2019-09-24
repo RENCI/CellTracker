@@ -44,7 +44,8 @@ TraceSketchWrapper.propTypes = {
   onHighlightRegion: PropTypes.func.isRequired,
   onSelectRegion: PropTypes.func.isRequired,
   onSelectZoomPoint: PropTypes.func,
-  onEditRegion: PropTypes.func
+  onEditRegion: PropTypes.func,
+  onLinkRegion: PropTypes.func
 };
 
 TraceSketchWrapper.defaultProps = {
