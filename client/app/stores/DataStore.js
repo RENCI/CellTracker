@@ -239,7 +239,7 @@ function updateTracking(trackingData) {
       for (let i = 0; i < segFrame.regions.length; i++) {
         const region = segFrame.regions[i];
         if (region.id === ids.id) {
-          region.link_id = ids.linked_id;
+          region.link_id = ids.link_id;
         }
       }
     });

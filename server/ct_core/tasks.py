@@ -37,7 +37,7 @@ def add_tracking(exp_id, username='', frm_idx=-1):
     fno = get_exp_frame_no(exp_id)
     if fno < 0:
         # the experiment does not exist
-        logger.warn('cannot add tracking to experiment ' + exp_id + ' that does not exist')
+        logger.warning('cannot add tracking to experiment ' + exp_id + ' that does not exist')
         return ret_result
     if username and not validate_user(username):
         logger.warning('cannot add tracking for experiment ' + exp_id + ' for an invalid user '
@@ -101,16 +101,21 @@ def add_tracking(exp_id, username='', frm_idx=-1):
             return_regions = []
         pre_frm = fi - 1
         for cur_re in range(0, centroids_xy[fi].shape[0]):
+            if username and frm_idx > 0:
+                if 'manual_link' in seg_obj.data[cur_re] and 'link_id' in seg_obj.data[cur_re]:
+                    if seg_obj.data[cur_re]['manual_link'].lower() == 'true':
+                        # skip automatic tracking update since it is manually updated by user
+                        continue
             # xy1 contains centroid x, y for one region on frame fi
             xy1 = np.array([centroids_xy[fi][cur_re]])
-            # xy2 contains all centroids for all regions on the next frame fj
+            # xy2 contains all centroids for all regions on the previous frame
             xy2 = centroids_xy[pre_frm]
             min_idx = np.argmin(distance_between_point_sets(xy1, xy2))
             linked_id = ids[pre_frm][min_idx]
             seg_obj.data[cur_re]['link_id'] = linked_id
             if username and frm_idx > 0:
                 return_regions.append({'id': ids[fi][cur_re],
-                                       'linked_id': linked_id})
+                                       'link_id': linked_id})
         seg_obj.save()
         if username and frm_idx > 0:
             ret_result.append({'frame_no': fi+1,
@@ -143,7 +148,7 @@ def add_tracking(exp_id, username='', frm_idx=-1):
             if 'link_id' in region:
                 region.pop('link_id')
                 changed = True
-        changed = True
+
         if changed:
             seg_obj.save()
             # update iRODS data to be in sync with updated data in DB
