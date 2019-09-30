@@ -560,10 +560,10 @@ def add_experiment_to_server(request):
                     messages.error(request, ex.stderr)
                     return HttpResponseRedirect(request.META['HTTP_REFERER'])
             # populate segmentation data in DB from iRODS
-            sync_seg_data_to_db(exp_id)
-
-            # add tracking
-            add_tracking.apply_async((exp_id,), countdown=1)
+            tracking_exist = sync_seg_data_to_db(exp_id)
+            if not tracking_exist:
+                # add tracking
+                add_tracking.apply_async((exp_id,), countdown=1)
 
         messages.info(request, 'New experiment is added successfully.')
         return HttpResponseRedirect(request.META['HTTP_REFERER'])
