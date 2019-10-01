@@ -1,12 +1,10 @@
 import * as d3 from "d3";
-import rbush from "rbush";
 import knn from "rbush-knn";
-import { lineSegmentIntersection, insidePolygon, pointLineSegmentDistance } from "../utils/MathUtils";
+import { lineSegmentIntersection, insidePolygon, normalizeVector } from "../utils/MathUtils";
 import { 
-  addVertex, removeVertex, moveVertex, mergeRegions, splitRegion, splitRegionWithPoint, trimRegion, 
+  addVertex, removeVertex, moveVertex, mergeRegions, splitRegionPointDirection, trimRegion, 
   removeRegion, addRegion, moveRegion, rotateRegion, 
   copiedRegion, copyRegion, pasteRegion } from "../utils/RegionEditing";
-import { selectZoomPoint } from "../actions/ViewActionCreators";
 
 export default function(sketch) {
   // Current experiment
@@ -36,7 +34,7 @@ export default function(sketch) {
       })),
       fillColorMap = d3.scaleOrdinal(colors.map(c => {
         const color = d3.color(c);
-        color.opacity = 0.25;
+        color.opacity = 0.75;
         return color.toString();
       }));
 
@@ -115,8 +113,7 @@ export default function(sketch) {
     onLinkRegion = props.onLinkRegion;
 
     editView = editMode !== "filmstrip";
-//    if (editMode !== "regionSplit" && editMode !== "regionTrim") splitLine = null;
-    if (editMode !== "regionTrim") splitLine = null;
+    if (editMode !== "regionSplit" && editMode !== "regionTrim") splitLine = null;
   
     // Image smoothing
     //sketch.canvas.getContext("2d").imageSmoothingEnabled = editMode === "filmstrip" ? true : false;
@@ -243,14 +240,15 @@ export default function(sketch) {
     sketch.pop();
 
     // Draw segmentation data
-    const dashArray = [5 / zoom, 5 / zoom];
     const handleColor = 200;
     const lineBackground = 0;
 
     sketch.strokeJoin(sketch.ROUND);
 
     if (regions) {
-      regions.forEach(function(region, i, a) {
+      regions.forEach(region => {
+        if (region.vertices.length < 1) return;
+
         const highlightRegion =               
               region.highlight || 
               region === currentRegion || 
@@ -259,6 +257,8 @@ export default function(sketch) {
 
         let weight = highlightRegion ? lineHighlightWeight : lineWeight;
         weight /= zoom;
+
+        const closedVertices = region.vertices.concat([region.vertices[0]]);
 
         sketch.push();
         if (region === copiedRegion) {
@@ -274,39 +274,49 @@ export default function(sketch) {
           sketch.noFill();
 
           sketch.beginShape();
-          region.vertices.forEach(function(vertex) {
+          closedVertices.forEach(vertex => {
             const v = scalePoint(vertex);
             sketch.vertex(v[0], v[1]);
           });
-          if (region.vertices.length > 0) {
-            const v = scalePoint(region.vertices[0]);
-            sketch.vertex(v[0], v[1]);
-          }
           sketch.endShape();
         }
 
         // Draw outline
         sketch.stroke(strokeColorMap(region.trajectory_id));
         sketch.strokeWeight(weight);        
-        sketch.canvas.getContext("2d").setLineDash(region === copiedRegion ? dashArray : []);
+        sketch.canvas.getContext("2d").setLineDash(region === copiedRegion ? [5 / zoom, 5 / zoom] : []);
 
         //if (region.edited) sketch.fill(fillColorMap(region.trajectory_id));
         //else sketch.noFill();
         //if (region.highlight) sketch.noFill();
         //else sketch.fill(fillColorMap(region.trajectory_id));
         sketch.noFill();
+        //if (editMode === "filmstrip" && region.highlight) sketch.fill(fillColorMap(region.trajectory_id));
+        //else sketch.noFill();
 
-        // Draw outline
         sketch.beginShape();
-        region.vertices.forEach(function(vertex) {
+        closedVertices.forEach(vertex => {
           const v = scalePoint(vertex);
           sketch.vertex(v[0], v[1]);
         });
-        if (region.vertices.length > 0) {
-          const v = scalePoint(region.vertices[0]);
-          sketch.vertex(v[0], v[1]);
-        }
         sketch.endShape();        
+
+        // Draw highlight outline
+        if (editMode === "filmstrip" && region.highlight) {
+          sketch.strokeWeight(lineWeight / zoom);        
+          sketch.canvas.getContext("2d").setLineDash([3 / zoom, 3 / zoom]);
+
+          sketch.beginShape();
+          closedVertices.forEach(vertex => {
+            const offset = normalizeVector([vertex[0] - region.center[0], vertex[1] - region.center[1]]);
+            offset[0] *= 0.075 / zoom;
+            offset[1] *= 0.075 / zoom;
+            const v = scalePoint([vertex[0] + offset[0], vertex[1] + offset[1]]);
+            sketch.vertex(v[0], v[1]);
+          });
+          sketch.endShape();             
+        }
+
 
         const showVertices = 
           (editMode === "vertex" && region === currentRegion) || 
@@ -394,8 +404,7 @@ export default function(sketch) {
     oldMouseY = sketch.mouseY;
     moveMouse = false;
 
-//    if (editMode === "regionSplit" || editMode === "regionTrim") {
-    if (editMode === "regionTrim") {
+    if (editMode === "regionSplit" || editMode === "regionTrim") {
       const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
       splitLine = [
@@ -473,8 +482,7 @@ export default function(sketch) {
       case "regionTrim":
         if (sketch.mouseIsPressed) {
           const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
-
-          splitLine[1] = [m[0], m[1]];
+          splitLine[1] = m;
 
           // Highlight based on intersections with split line
           const tree = segmentationData[frame].tree;
@@ -496,6 +504,14 @@ export default function(sketch) {
             actionString = "Trim region";
             if (numRegions > 1) actionString += "s";
           }
+        }
+
+        break;
+
+      case "regionSplit":
+        if (sketch.mouseIsPressed) {
+          const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+          splitLine[1] = m;
         }
 
         break;
@@ -629,6 +645,19 @@ export default function(sketch) {
         break;
 
       case "regionSplit":
+          if (currentRegion) {
+            const newRegion = splitRegionPointDirection(currentRegion, splitLine, 0.5 / images[0].width, allRegions);
+  
+            if (newRegion) {
+              onEditRegion(frame, currentRegion);
+              onEditRegion(frame, newRegion);
+            }
+          }
+  
+          break;
+
+/*        
+      case "regionSplitPOINT":
         if (currentRegion) {
           const p = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
           const newRegion = splitRegionWithPoint(currentRegion, p, 0.5 / images[0].width, allRegions);
@@ -662,7 +691,7 @@ export default function(sketch) {
         splitLine = null;        
 
         break;
-
+*/
       case "regionTrim":
         if (splitLine) {
           const editedRegions = [];

@@ -443,6 +443,100 @@ export function splitRegionWithPoint(region, point, offset, regionArray) {
   return newRegion;
 }
 
+export function splitRegionPointDirection(region, line, offset, regionArray) {
+  const vertices = region.vertices;
+
+  // Find closest line segment in the direction of the line
+  // Normalized vector should be long enough, as we are operating in normalized coordinates
+  const start = line[0];
+  let v = normalizeVector([line[1][0] - start[0], line[1][1] - start[1]]);
+  let end = [start[0] + v[0], start[1] + v[1]];
+
+  let minDistance = Number.MAX_VALUE;
+  let segment1 = null;
+
+  for (let i = 0; i < vertices.length; i++) {
+    const j = i === vertices.length - 1 ? 0 : i + 1;
+
+    const v1 = vertices[i],
+          v2 = vertices[j];
+
+    const p = lineSegmentIntersection(start, end, v1, v2);
+
+    if (p) {
+      const d = distance(start, p);
+
+      if (d < minDistance) {
+        minDistance = d;
+        segment1 = [i, j];
+      }
+    }
+  }
+
+  // Find closest line segment in the other direction
+  v = [-v[0], -v[1]];
+  end = [start[0] + v[0], start[1] + v[1]];
+
+  minDistance = Number.MAX_VALUE;
+  let segment2 = null;
+
+  for (let i = 0; i < vertices.length; i++) {
+    const j = i === vertices.length - 1 ? 0 : i + 1;
+
+    if (i === segment1[0] && j === segment1[1]) continue;
+
+    const v1 = vertices[i],
+          v2 = vertices[j];
+
+    const p = lineSegmentIntersection(start, end, v1, v2);
+
+    if (p) {
+      const d = distance(start, p);
+
+      if (d < minDistance) {
+        minDistance = d;
+        segment2 = [i, j];
+      }
+    }
+  }
+
+  // Perpendicular vector
+  const v2 = [v[1], -v[0]];
+  v2[0] *= offset;
+  v2[1] *= offset;
+
+  const p1 = vertices[segment1[1]];
+  if (distance(p1, start) < distance(p1, [start[0] + v2[0], start[1] + v2[1]])) {
+    v2[0] *= -1;
+    v2[1] *= -1;
+  }
+
+  const vertices1 = [[start[0] + v2[0], start[1] + v2[1]]];
+  for (let i = segment1[1]; i !== segment2[0]; i = (i + 1) % (vertices.length)) {
+    vertices1.push(vertices[i]);
+  }
+  vertices1.push(vertices[segment2[0]]);
+
+  const vertices2 = [[start[0] - v2[0], start[1] - v2[1]]];
+  for (let i = segment2[1]; i !== segment1[0]; i = (i + 1) % (vertices.length)) {
+    vertices2.push(vertices[i]);
+  }
+  vertices2.push(vertices[segment1[0]]);
+
+  // Set vertices on original region and add new one
+  const newRegion = {
+    id: generateId(regionArray),
+    selected: false
+  };
+
+  setVertices(region, vertices1);
+  setVertices(newRegion, vertices2);
+
+  regionArray.push(newRegion);
+
+  return newRegion;
+}
+
 export function trimRegion(region, line) {
   // Find intersections with region line segments
   const vertices = region.vertices;

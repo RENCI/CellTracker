@@ -405,7 +405,7 @@ function highlightRegion(frame, region) {
   if (region) region.highlight = true;
   if (frame) setFrame(frame);
 
-  pushHistory();
+//  pushHistory();
 }
 
 function setZoom(newZoom, newFilmstripZoom, newZoomPoint) {
@@ -771,7 +771,8 @@ function zoom(view, direction) {
     if (newZoom >= minZoom && newZoom <= maxZoom) {
       settings.filmstripZoomDefault = newZoom;
       
-      animateZoom(settings.zoom, newZoom, settings.zoomPoint);
+//      animateZoom(settings.zoom, newZoom, settings.zoomPoint);
+      setZoom(settings.zoom, newZoom, settings.zoomPoint);
     }
   }
   else {
@@ -796,7 +797,7 @@ function setEditMode(mode) {
     linking.region = null;
   }
 
-  pushHistory();
+//  pushHistory();
 }
 
 const DataStore = assign({}, EventEmitter.prototype, {
