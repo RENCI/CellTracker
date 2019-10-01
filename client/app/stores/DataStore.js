@@ -405,7 +405,7 @@ function highlightRegion(frame, region) {
   if (region) region.highlight = true;
   if (frame) setFrame(frame);
 
-  pushHistory();
+//  pushHistory();
 }
 
 function setZoom(newZoom, newFilmstripZoom, newZoomPoint) {
@@ -797,7 +797,7 @@ function setEditMode(mode) {
     linking.region = null;
   }
 
-  pushHistory();
+//  pushHistory();
 }
 
 const DataStore = assign({}, EventEmitter.prototype, {
