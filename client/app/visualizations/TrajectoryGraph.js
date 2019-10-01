@@ -343,7 +343,7 @@ export default function() {
           .attr("height", height)
           .style("fill", fill)
           .style("stroke", stroke)
-          .style("stroke-width", nodeStrokeWidth);
+          .style("stroke-width", strokeWidth);
 
       // Node exit
       node.exit().remove();
@@ -365,11 +365,17 @@ export default function() {
       }
 
       function fill(d) {
-        return "#fff";
+        //return "#fff";
+        return d.region.highlight ? colorMap(d.region.trajectory_id) : "#fff";
       }
 
       function stroke(d) {;
         return d.region.highlight ? "#333" : colorMap(d.region.trajectory_id);
+        //return d.region.highlight ? "#fff" : colorMap(d.region.trajectory_id);
+      }
+
+      function strokeWidth(d) {
+        return d.region.highlight ? nodeStrokeWidth * 2 : nodeStrokeWidth;
       }
     }
 

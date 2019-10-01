@@ -1,7 +1,7 @@
 import * as d3 from "d3";
 import rbush from "rbush";
 import knn from "rbush-knn";
-import { lineSegmentIntersection, insidePolygon, pointLineSegmentDistance } from "../utils/MathUtils";
+import { lineSegmentIntersection, insidePolygon, pointLineSegmentDistance, normalizeVector } from "../utils/MathUtils";
 import { 
   addVertex, removeVertex, moveVertex, mergeRegions, splitRegion, splitRegionWithPoint, trimRegion, 
   removeRegion, addRegion, moveRegion, rotateRegion, 
@@ -36,7 +36,7 @@ export default function(sketch) {
       })),
       fillColorMap = d3.scaleOrdinal(colors.map(c => {
         const color = d3.color(c);
-        color.opacity = 0.25;
+        color.opacity = 0.75;
         return color.toString();
       }));
 
@@ -243,14 +243,15 @@ export default function(sketch) {
     sketch.pop();
 
     // Draw segmentation data
-    const dashArray = [5 / zoom, 5 / zoom];
     const handleColor = 200;
     const lineBackground = 0;
 
     sketch.strokeJoin(sketch.ROUND);
 
     if (regions) {
-      regions.forEach(function(region, i, a) {
+      regions.forEach(region => {
+        if (region.vertices.length < 1) return;
+
         const highlightRegion =               
               region.highlight || 
               region === currentRegion || 
@@ -259,6 +260,8 @@ export default function(sketch) {
 
         let weight = highlightRegion ? lineHighlightWeight : lineWeight;
         weight /= zoom;
+
+        const closedVertices = region.vertices.concat([region.vertices[0]]);
 
         sketch.push();
         if (region === copiedRegion) {
@@ -274,39 +277,49 @@ export default function(sketch) {
           sketch.noFill();
 
           sketch.beginShape();
-          region.vertices.forEach(function(vertex) {
+          closedVertices.forEach(vertex => {
             const v = scalePoint(vertex);
             sketch.vertex(v[0], v[1]);
           });
-          if (region.vertices.length > 0) {
-            const v = scalePoint(region.vertices[0]);
-            sketch.vertex(v[0], v[1]);
-          }
           sketch.endShape();
         }
 
         // Draw outline
         sketch.stroke(strokeColorMap(region.trajectory_id));
         sketch.strokeWeight(weight);        
-        sketch.canvas.getContext("2d").setLineDash(region === copiedRegion ? dashArray : []);
+        sketch.canvas.getContext("2d").setLineDash(region === copiedRegion ? [5 / zoom, 5 / zoom] : []);
 
         //if (region.edited) sketch.fill(fillColorMap(region.trajectory_id));
         //else sketch.noFill();
         //if (region.highlight) sketch.noFill();
         //else sketch.fill(fillColorMap(region.trajectory_id));
         sketch.noFill();
+        //if (editMode === "filmstrip" && region.highlight) sketch.fill(fillColorMap(region.trajectory_id));
+        //else sketch.noFill();
 
-        // Draw outline
         sketch.beginShape();
-        region.vertices.forEach(function(vertex) {
+        closedVertices.forEach(vertex => {
           const v = scalePoint(vertex);
           sketch.vertex(v[0], v[1]);
         });
-        if (region.vertices.length > 0) {
-          const v = scalePoint(region.vertices[0]);
-          sketch.vertex(v[0], v[1]);
-        }
         sketch.endShape();        
+
+        // Draw highlight outline
+        if (editMode === "filmstrip" && region.highlight) {
+          sketch.strokeWeight(lineWeight / zoom);        
+          sketch.canvas.getContext("2d").setLineDash([3 / zoom, 3 / zoom]);
+
+          sketch.beginShape();
+          closedVertices.forEach(vertex => {
+            const offset = normalizeVector([vertex[0] - region.center[0], vertex[1] - region.center[1]]);
+            offset[0] *= 0.05;
+            offset[1] *= 0.05;
+            const v = scalePoint([vertex[0] + offset[0], vertex[1] + offset[1]]);
+            sketch.vertex(v[0], v[1]);
+          });
+          sketch.endShape();             
+        }
+
 
         const showVertices = 
           (editMode === "vertex" && region === currentRegion) || 
