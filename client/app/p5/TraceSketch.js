@@ -1,12 +1,10 @@
 import * as d3 from "d3";
-import rbush from "rbush";
 import knn from "rbush-knn";
-import { lineSegmentIntersection, insidePolygon, pointLineSegmentDistance, normalizeVector } from "../utils/MathUtils";
+import { lineSegmentIntersection, insidePolygon, normalizeVector } from "../utils/MathUtils";
 import { 
-  addVertex, removeVertex, moveVertex, mergeRegions, splitRegion, splitRegionWithPoint, trimRegion, 
+  addVertex, removeVertex, moveVertex, mergeRegions, splitRegionPointDirection, trimRegion, 
   removeRegion, addRegion, moveRegion, rotateRegion, 
   copiedRegion, copyRegion, pasteRegion } from "../utils/RegionEditing";
-import { selectZoomPoint } from "../actions/ViewActionCreators";
 
 export default function(sketch) {
   // Current experiment
@@ -115,8 +113,7 @@ export default function(sketch) {
     onLinkRegion = props.onLinkRegion;
 
     editView = editMode !== "filmstrip";
-//    if (editMode !== "regionSplit" && editMode !== "regionTrim") splitLine = null;
-    if (editMode !== "regionTrim") splitLine = null;
+    if (editMode !== "regionSplit" && editMode !== "regionTrim") splitLine = null;
   
     // Image smoothing
     //sketch.canvas.getContext("2d").imageSmoothingEnabled = editMode === "filmstrip" ? true : false;
@@ -407,8 +404,7 @@ export default function(sketch) {
     oldMouseY = sketch.mouseY;
     moveMouse = false;
 
-//    if (editMode === "regionSplit" || editMode === "regionTrim") {
-    if (editMode === "regionTrim") {
+    if (editMode === "regionSplit" || editMode === "regionTrim") {
       const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
 
       splitLine = [
@@ -486,8 +482,7 @@ export default function(sketch) {
       case "regionTrim":
         if (sketch.mouseIsPressed) {
           const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
-
-          splitLine[1] = [m[0], m[1]];
+          splitLine[1] = m;
 
           // Highlight based on intersections with split line
           const tree = segmentationData[frame].tree;
@@ -509,6 +504,14 @@ export default function(sketch) {
             actionString = "Trim region";
             if (numRegions > 1) actionString += "s";
           }
+        }
+
+        break;
+
+      case "regionSplit":
+        if (sketch.mouseIsPressed) {
+          const m = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
+          splitLine[1] = m;
         }
 
         break;
@@ -642,6 +645,19 @@ export default function(sketch) {
         break;
 
       case "regionSplit":
+          if (currentRegion) {
+            const newRegion = splitRegionPointDirection(currentRegion, splitLine, 0.5 / images[0].width, allRegions);
+  
+            if (newRegion) {
+              onEditRegion(frame, currentRegion);
+              onEditRegion(frame, newRegion);
+            }
+          }
+  
+          break;
+
+/*        
+      case "regionSplitPOINT":
         if (currentRegion) {
           const p = normalizePoint(applyZoom([sketch.mouseX, sketch.mouseY]));
           const newRegion = splitRegionWithPoint(currentRegion, p, 0.5 / images[0].width, allRegions);
@@ -675,7 +691,7 @@ export default function(sketch) {
         splitLine = null;        
 
         break;
-
+*/
       case "regionTrim":
         if (splitLine) {
           const editedRegions = [];
