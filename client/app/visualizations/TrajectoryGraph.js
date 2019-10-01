@@ -318,6 +318,8 @@ export default function() {
     }
 
     function drawNodes() {
+      const offset = nodeSize * 0.25;
+
       // Bind nodes
       let node = svg.select(".nodes").selectAll(".node")
           .data(nodes, d => d.id);
@@ -335,8 +337,8 @@ export default function() {
             dispatcher.call("selectRegion", this, d.frameIndex, d.region);
           })
         .merge(node)
-          .attr("rx", nodeSize / 2)
-          .attr("ry", nodeSize / 2)
+          .attr("rx", r)
+          .attr("ry", r)
           .attr("x", x)
           .attr("y", y)
           .attr("width", width)
@@ -346,22 +348,26 @@ export default function() {
           .style("stroke-width", strokeWidth);
 
       // Node exit
-      node.exit().remove();
+      node.exit().remove();      
+
+      function r(d) {
+        return d.region.highlight ? nodeSize / 2 + offset : nodeSize / 2;
+      }
 
       function x(d) {
-        return d.x0;
+        return d.region.highlight ? d.x0 - offset : d.x0;
       }
 
       function y(d) {
-        return d.y0;
+        return d.region.highlight ? d.y0 - offset : d.y0;
       }
 
       function width(d) {
-        return d.x1 - d.x0;
+        return d.region.highlight ? (d.x1 - d.x0) + offset * 2 : d.x1 - d.x0;
       }
 
       function height(d) {
-        return d.y1 - d.y0;
+        return d.region.highlight ? (d.y1 - d.y0) + offset * 2 : d.y1 - d.y0;
       }
 
       function fill(d) {
@@ -372,10 +378,12 @@ export default function() {
       function stroke(d) {;
         return d.region.highlight ? "#333" : colorMap(d.region.trajectory_id);
         //return d.region.highlight ? "#fff" : colorMap(d.region.trajectory_id);
+        //return colorMap(d.region.trajectory_id);
       }
 
       function strokeWidth(d) {
         return d.region.highlight ? nodeStrokeWidth * 2 : nodeStrokeWidth;
+        //return nodeStrokeWidth;
       }
     }
 
