@@ -302,7 +302,7 @@ export default function(sketch) {
         sketch.endShape();        
 
         // Draw highlight outline
-        if (editMode === "filmstrip" && region.highlight) {
+        if (editMode === "filmstrip" && (region.highlight || region.isLinkRegion)) {
           sketch.strokeWeight(lineWeight / zoom);        
           sketch.canvas.getContext("2d").setLineDash([3 / zoom, 3 / zoom]);
 
@@ -646,7 +646,7 @@ export default function(sketch) {
 
       case "regionSplit":
           if (currentRegion) {
-            const newRegion = splitRegionPointDirection(currentRegion, splitLine, 0.5 / images[0].width, allRegions);
+            const newRegion = splitRegionPointDirection(currentRegion, splitLine, 1.5 / images[0].width, allRegions);
   
             if (newRegion) {
               onEditRegion(frame, currentRegion);

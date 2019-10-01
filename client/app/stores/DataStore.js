@@ -539,17 +539,21 @@ function editRegion(frame, region) {
 }
 
 function linkRegion(frame, region) {
+  if (linking.region) linking.region.isLinkRegion = false;
+
   switch (settings.editMode) {
     case "regionLink":
       if (!region) {
         // Clear linking region
         linking.frame = -1;
-        linking.region = region;
+        linking.region = null;
       }
       else if (!linking.region) {
         // Set linking region
         linking.frame = frame;
         linking.region = region;
+        
+        region.isLinkRegion = true;
       }
       else if (frame === linking.frame - 1) {
         // XXX: ALLOW THIS?        
@@ -562,6 +566,8 @@ function linkRegion(frame, region) {
 
         linking.frame = frame;
         linking.region = region;
+
+        region.isLinkRegion = true;
 
         generateTrajectoryIds();        
 
@@ -577,6 +583,8 @@ function linkRegion(frame, region) {
 
         linking.frame = frame;
         linking.region = region;
+
+        region.isLinkRegion = true;
 
         generateTrajectoryIds();
 
@@ -792,10 +800,9 @@ function zoom(view, direction) {
 function setEditMode(mode) {
   settings.editMode = mode;
 
-  if (mode === "regionLink") {
-    linking.frame = -1;
-    linking.region = null;
-  }
+  if (linking.region) linking.region.isLinkRegion = false;
+  linking.frame = -1;
+  linking.region = null;
 
 //  pushHistory();
 }

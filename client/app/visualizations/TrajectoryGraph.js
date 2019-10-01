@@ -372,17 +372,17 @@ export default function() {
 
       function fill(d) {
         //return "#fff";
-        return d.region.highlight ? colorMap(d.region.trajectory_id) : "#fff";
+        return d.region.highlight || d.region.isLinkRegion ? colorMap(d.region.trajectory_id) : "#fff";
       }
 
       function stroke(d) {;
-        return d.region.highlight ? "#333" : colorMap(d.region.trajectory_id);
+        return d.region.highlight || d.region.isLinkRegion ? "#333" : colorMap(d.region.trajectory_id);
         //return d.region.highlight ? "#fff" : colorMap(d.region.trajectory_id);
         //return colorMap(d.region.trajectory_id);
       }
 
       function strokeWidth(d) {
-        return d.region.highlight ? nodeStrokeWidth * 2 : nodeStrokeWidth;
+        return d.region.highlight || d.region.isLinkRegion ? nodeStrokeWidth * 2 : nodeStrokeWidth;
         //return nodeStrokeWidth;
       }
     }
