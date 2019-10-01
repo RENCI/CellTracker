@@ -771,7 +771,8 @@ function zoom(view, direction) {
     if (newZoom >= minZoom && newZoom <= maxZoom) {
       settings.filmstripZoomDefault = newZoom;
       
-      animateZoom(settings.zoom, newZoom, settings.zoomPoint);
+//      animateZoom(settings.zoom, newZoom, settings.zoomPoint);
+      setZoom(settings.zoom, newZoom, settings.zoomPoint);
     }
   }
   else {
