@@ -309,8 +309,8 @@ export default function(sketch) {
           sketch.beginShape();
           closedVertices.forEach(vertex => {
             const offset = normalizeVector([vertex[0] - region.center[0], vertex[1] - region.center[1]]);
-            offset[0] *= 0.05;
-            offset[1] *= 0.05;
+            offset[0] *= 0.075 / zoom;
+            offset[1] *= 0.075 / zoom;
             const v = scalePoint([vertex[0] + offset[0], vertex[1] + offset[1]]);
             sketch.vertex(v[0], v[1]);
           });
