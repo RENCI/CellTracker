@@ -103,7 +103,8 @@ def add_tracking(exp_id, username='', frm_idx=-1):
         for cur_re in range(0, centroids_xy[fi].shape[0]):
             if username and frm_idx > 0:
                 if 'manual_link' in seg_obj.data[cur_re] and 'link_id' in seg_obj.data[cur_re]:
-                    if seg_obj.data[cur_re]['manual_link'].lower() == 'true':
+                    ml_flag = str(seg_obj.data[cur_re]['manual_link']).lower()
+                    if ml_flag == 'true':
                         # skip automatic tracking update since it is manually updated by user
                         continue
             # xy1 contains centroid x, y for one region on frame fi
