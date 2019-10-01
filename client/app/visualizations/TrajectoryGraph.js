@@ -192,12 +192,13 @@ export default function() {
     nodes = d3.merge(nodes);
 
     // Update width based on node size
-    width = -d3.min(nodes, d => d.x0) + margin.left + margin.right;
+    width = -d3.min(nodes, d => d.x0) + nodeSize + margin.left + margin.right;
 
     // Update x position
+    const xShift = innerWidth() - nodeSize / 2;
     nodes.forEach(node => {
-      node.x0 += innerWidth();
-      node.x1 += innerWidth();
+      node.x0 += xShift;
+      node.x1 += xShift;
     });
 
     // Position links
@@ -421,9 +422,9 @@ export default function() {
       frameUpdate.select(".foreground")
           .attr("rx", frameSize / 2)
           .attr("ry", frameSize / 2)
-          .attr("x", -diff)
+          .attr("x", 0)
           .attr("y", y)
-          .attr("width", innerWidth() + diff)
+          .attr("width", innerWidth())
           .attr("height", frameSize)
           .style("fill", fill);
 
