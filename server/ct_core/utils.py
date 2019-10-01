@@ -373,7 +373,13 @@ def convert_csv_to_json(exp_id):
 
 
 def sync_seg_data_to_db(eid):
+    """
+    Read segmentation data from iRODS and sync it to Django DB.
+    :param eid: experiment id
+    :return: True if link_id field is already in included in segmentation data, False if otherwise
+    """
     session, coll, coll_path = get_seg_collection(eid)
+    link_id_exist = False
     if coll:
         for obj in coll.data_objects:
             basename, ext = os.path.splitext(obj.name)
@@ -383,6 +389,11 @@ def sync_seg_data_to_db(eid):
             with logical_file.open('r') as json_f:
                 json_data = json.load(json_f)
                 frame_no = int(basename[len('frame'):])
+                if not link_id_exist and frame_no > 1:
+                    for item in json_data:
+                        if "link_id" in item:
+                            link_id_exist = True
+                            break
                 idx = obj.path.find(eid)
                 rel_path = obj.path[idx:]
                 obj, created = Segmentation.objects.get_or_create(exp_id=eid,
@@ -393,6 +404,7 @@ def sync_seg_data_to_db(eid):
                     # Segmentation object already exists, update it with new json data
                     obj.data = json_data
                     obj.save()
+    return link_id_exist
 
 
 def get_edited_frames(username, exp_id):
