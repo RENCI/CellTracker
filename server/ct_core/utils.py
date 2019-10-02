@@ -5,6 +5,8 @@ import shutil
 import csv
 import json
 import errno
+import datetime
+import pytz
 import numpy as np
 
 from irods.session import iRODSSession
@@ -20,10 +22,49 @@ from django_irods.icommands import SessionException
 from wand.image import Image
 
 from ct_core.models import Segmentation, UserSegmentation, UserProfile, get_path
-from ct_core.task_utils  import get_exp_frame_no, validate_user
+from ct_core.task_utils  import get_exp_frame_no, validate_user, is_power_user
 
 
 MAX_PRIORITY_STRING_LEN = 10
+
+
+def is_exp_locked(exp_id):
+    """
+    Check if experiment is locked, and if yes, check whether lock needs to be released
+    :param exp_id: experiment id
+    :return: True if it is locked, False otherwise
+    """
+    lock_obj = Segmentation.objects.filter(exp_id=exp_id, locked_time__isnull=False).first()
+    if lock_obj:
+        # this experiment is locked, check whether lock release is needed
+        elapsed_time = datetime.datetime.now(pytz.utc) - lock_obj.locked_time
+        if elapsed_time.seconds >= settings.LOCK_TIMEOUT_SECONDS:
+            # release the lock
+            lock_obj.locked_time = None
+            lock_obj.locked_user = None
+            lock_obj.save()
+            return False
+        else:
+            # experiment is locked
+            return True
+    else:
+        return False
+
+
+def lock_experiment(exp_id, u):
+    try:
+        # release lockes this user placed on other experiments before locking this experiment
+        for item in Segmentation.objects.filter(locked_user=u):
+            item.locked_time = None
+            item.locked_user = None
+            item.save()
+        # lock this experiment by this user
+        entry = Segmentation.objects.get(exp_id=exp_id, frame_no=1)
+        entry.locked_time = datetime.datetime.now(pytz.utc)
+        entry.locked_user = u
+        entry.save()
+    except ObjectDoesNotExist:
+        pass
 
 
 def pack_zeros(input_str):
@@ -38,10 +79,12 @@ def pack_zeros(input_str):
     return pack_str + input_str
 
 
-def get_experiment_list_util():
+def get_experiment_list_util(req_user=None):
     """
     Get all experiments from iRODS and return it as a list of dicts along with error message
     if any
+    :param: req_user: requesting user, optional. If None or requesting user is not power user,
+    no filtering of experiment list is needed. Otherwise, locked experiments need to be filtered out
     :return: experiment list and error message
     """
     istorage = IrodsStorage()
@@ -72,6 +115,10 @@ def get_experiment_list_util():
                 index -= 1
         else:
             for exp_id in exp_sorted_list:
+                if is_power_user(req_user):
+                    if is_exp_locked(exp_id):
+                        # experiment is locked - don't add it to the list
+                        continue
                 exp_dict = {}
                 exp_dict['id'] = exp_id
                 exp_path = hpath + '/' + exp_id
@@ -487,10 +534,11 @@ def save_user_seg_data_to_db(user, eid, fno, udata, num_edited):
     """
 
     json_data = json.loads(udata)
+    int_fno = int(fno)
     curr_time = timezone.now()
-    obj, created = UserSegmentation.objects.get_or_create(user= user,
+    obj, created = UserSegmentation.objects.get_or_create(user=user,
                                                           exp_id=eid,
-                                                          frame_no=int(fno),
+                                                          frame_no=int_fno,
                                                           defaults={'data': json_data,
                                                                     'num_edited': num_edited,
                                                                     'update_time': curr_time})
@@ -505,6 +553,13 @@ def save_user_seg_data_to_db(user, eid, fno, udata, num_edited):
         obj.num_edited = num_edited
         obj.update_time = curr_time
         obj.save()
+
+    # override system ground truth data for power users
+    if is_power_user(user):
+        sys_obj = Segmentation.objects.get(exp_id=eid, frame_no=int_fno)
+        sys_obj.data = json_data
+        sys_obj.save()
+
     return
 
 

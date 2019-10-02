@@ -16,9 +16,17 @@ from django.contrib.auth.models import User
 from django_irods.storage import IrodsStorage
 from django.core.exceptions import ObjectDoesNotExist
 
+from ct_core.models import get_path_by_paras, UserProfile
 
 frame_no_key = 'frame_no'
 logger = logging.getLogger(__name__)
+
+
+def is_power_user(u):
+    if u and not u.is_superuser and u.is_authenticated():
+        return True if u.user_profile.role == UserProfile.POWERUSER else False
+    else:
+        return False
 
 
 def validate_user(username):
@@ -123,6 +131,20 @@ def sync_seg_data_to_irods(exp_id='', username='', json_data={}, irods_path=''):
 
     istorage = IrodsStorage()
     istorage.save_file(local_data_file, irods_path, True)
+
+    if username:
+        try:
+            u = User.objects.get(username=username)
+            if is_power_user(u):
+                # backup old system data first before overriding it
+                backup_fname = 'bak_{}'.format(fname)
+                src_path = get_path_by_paras(exp_id, fname)
+                tgt_path = get_path_by_paras(exp_id, backup_fname)
+                istorage.move_file(src_path, tgt_path)
+                # override system ground truth data with user edit segmentation data
+                istorage.save_file(local_data_file, src_path)
+        except ObjectDoesNotExist:
+            pass
 
     shutil.rmtree(local_data_path)
 

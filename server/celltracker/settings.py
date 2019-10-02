@@ -174,6 +174,9 @@ LOGIN_URL = 'login'
 LOGOUT_URL = 'logout'
 LOGIN_REDIRECT_URL = 'index'
 
+# set experiment lock timeout to be 12 hours
+LOCK_TIMEOUT_SECONDS = 43200
+
 ####################
 # LOGGING SETTINGS #
 ####################

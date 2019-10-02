@@ -84,6 +84,25 @@ class IrodsStorage(Storage):
                     self.session.run("iput", None, '-f', from_name, to_name)
         return
 
+    def move_file(self, src_name, dest_name, create_dest_coll_as_needed=False):
+        """
+        Parameters:
+        :param
+        src_name: the iRODS data-object or collection name to be moved from.
+        dest_name: the iRODS data-object or collection name to be moved to
+        moveFile() moves/renames an irods data-object (file) or collection
+        (directory) to another data-object or collection
+        create_dest_coll_as_needed: optional indicating whether to create destination
+        collection as needed. Default is False
+        """
+        if src_name and dest_name:
+            if create_dest_coll_as_needed and '/' in dest_name:
+                splitstrs = dest_name.rsplit('/', 1)
+                if not self.exists(splitstrs[0]):
+                    self.session.run("imkdir", None, '-p', splitstrs[0])
+            self.session.run("imv", None, src_name, dest_name)
+        return
+
     def _open(self, name, mode='rb'):
         tmp = NamedTemporaryFile()
         self.session.run("iget", None, '-f', name, tmp.name)

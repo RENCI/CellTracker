@@ -33,8 +33,9 @@ from ct_core.utils import get_experiment_list_util, read_video, \
     extract_images_from_video_to_irods, read_image_frame, get_seg_collection, \
     save_user_seg_data_to_db, get_start_frame, get_exp_image, get_edited_frames, get_all_edit_users, \
     create_user_segmentation_data_for_download, get_frame_info, create_seg_data_from_csv, \
-    sync_seg_data_to_db, delete_one_experiment, get_users, update_experiment_priority, pack_zeros
-from ct_core.task_utils import get_exp_frame_no
+    sync_seg_data_to_db, delete_one_experiment, get_users, update_experiment_priority, pack_zeros, \
+    is_exp_locked, lock_experiment
+from ct_core.task_utils import get_exp_frame_no, is_power_user
 from ct_core.forms import SignUpForm, UserProfileForm, UserPasswordResetForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
 from django_irods.storage import IrodsStorage
@@ -154,7 +155,7 @@ def edit_user(request, pk):
                 messages.info(request, "Your profile is updated successfully")
                 return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
-    is_pu = True if user.user_profile.role == UserProfile.POWERUSER else False
+    is_pu = is_power_user(user)
     return render(request, 'accounts/account_update.html', {"profile_form": user_form,
                                                             "formset": formset,
                                                             "is_poweruser": is_pu})
@@ -198,12 +199,20 @@ def get_experiment_info(request, exp_id):
     :return:
     """
     exp_info = {}
+    exp_info['locked'] = 'false'
     exp_frame_no = get_exp_frame_no(exp_id)
 
     if exp_frame_no > 0:
         _, coll, _ = get_seg_collection(exp_id)
         if coll:
             exp_info['has_segmentation'] = 'true'
+            if is_power_user(request.user):
+                if is_exp_locked(exp_id):
+                    # experiment is locked
+                    exp_info['locked'] = 'true'
+                else:
+                    # lock the experiment
+                    lock_experiment(exp_id, request.user)
         else:
             exp_info['has_segmentation'] = 'false'
         exp_info['frames'] = exp_frame_no

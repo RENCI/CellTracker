@@ -9,6 +9,23 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django_irods.storage import IrodsStorage
 
 
+def get_path_by_paras(exp_id, filename, username=''):
+    """
+    Get iRODS path for segmentation data
+    :param exp_id: experiment id
+    :param filename: filename in the path
+    :param username: optional, default is empty, in which case system ground truth segmentation path
+    is returned; otherwise, a user segmentation path pertaining to the username is returned
+    :return: iRODS path for a segmentation object
+    """
+    if username:
+        return '{exp_id}/data/user_segmentation/{username}/{filename}'.format(
+            exp_id=exp_id, username=username, filename=filename)
+    else:
+        return '{exp_id}/data/segmentation/{filename}'.format(
+            exp_id=exp_id, filename=filename)
+
+
 def get_path(instance, filename=''):
     """
     Get iRODS path for segmentation data. This is for handling file being uploaded from web
@@ -19,12 +36,8 @@ def get_path(instance, filename=''):
     :param filename: file name to use. In our case, we don't use the default filename
     """
     user = getattr(instance, 'user', None)
-    if user:
-        return '{exp_id}/data/user_segmentation/{username}/frame{frm_no}.json'.format(
-            exp_id=instance.exp_id, username=user.username, frm_no=instance.frame_no)
-    else:
-        return '{exp_id}/data/segmentation/frame{frm_no}.json'.format(
-            exp_id=instance.exp_id, frm_no=instance.frame_no)
+    fname = 'frame{frm_no}.json'.format(frm_no=instance.frame_no)
+    return get_path_by_paras(instance.exp_id, fname, user.username if user else '')
 
 
 # Create your models here.
@@ -54,7 +67,12 @@ class Segmentation(models.Model):
     data = JSONField()
     file = models.FileField(upload_to=get_path, max_length=4096, null=True, blank=True,
                             storage=IrodsStorage())
-
+    # this locked_time field is added for locking experiments by power users to avoid multiple
+    # power users from updating ground truth data for the same experiment. It represents
+    # the time when the experiment is locked by a power user. A value of null
+    # means the experiment is not locked
+    locked_time = models.DateTimeField(null=True, blank=True)
+    locked_user = models.ForeignKey(User, null=True, blank=True, related_name='locked_user')
     class Meta:
         unique_together = ("exp_id", "frame_no")
 
