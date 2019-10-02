@@ -12,13 +12,16 @@ const IconButton = props => {
   if (props.dropDown) dataToggle += " dropdown";  
   dataToggle = dataToggle.trim();
 
+  let title = props.tooltip ? props.tooltip : null;
+  if (title && props.shortcut) title += " : " + props.shortcut;
+
   return (
     <button
       type="button"      
       className={classes}
       disabled={props.disabled}
       data-toggle={dataToggle.length > 0 ? dataToggle : null}
-      title={props.tooltip ? props.tooltip : null}
+      title={title}
       onClick={props.callback ? props.callback : null}>
         <span className={"oi " + props.iconName}></span>
     </button>
@@ -31,6 +34,7 @@ IconButton.propTypes = {
   disabled: PropTypes.bool,
   active: PropTypes.bool,
   tooltip: PropTypes.string,
+  shortcut: PropTypes.string,
   dropDown: PropTypes.bool,
   callback: PropTypes.func
 };

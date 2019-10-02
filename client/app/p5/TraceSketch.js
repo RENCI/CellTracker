@@ -17,12 +17,10 @@ export default function(sketch) {
       colorImages = [],
       contrastImages = [],
       frame = 0,
-      lut = createLut(d3.interpolateInferno),
-      onUpdateLoading = null;
+      lut = createLut(d3.interpolateInferno);
 
   // Interaction
-  let onKeyPress = null,
-      onMouseWheel = null;
+  let onMouseWheel = null;
 
   // Segmentation
   let segmentationData = null,
@@ -103,7 +101,6 @@ export default function(sketch) {
     zoomPoint = props.zoomPoint;
     editMode = props.editMode;
     stabilize = props.stabilize;
-    onKeyPress = props.onKeyPress;
     onMouseWheel = props.onMouseWheel;
     onHighlightRegion = props.onHighlightRegion;
     onSelectRegion = props.onSelectRegion;
@@ -383,15 +380,6 @@ export default function(sketch) {
     sketch.textSize(fontSize);
     sketch.textAlign(sketch.RIGHT);
     sketch.text(actionString, sketch.width - fontSize / 2, sketch.height - fontSize / 2);
-  }
-
-  // XXX: Limit to events on the canvas?
-  sketch.keyPressed = function(e) {
-    e.preventDefault();
-
-    if (keyPress) {
-      onKeyPress(sketch.keyCode);
-    }
   }
 
   function mousePressed(e) {

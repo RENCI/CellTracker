@@ -15,6 +15,8 @@ function getStateFromStore() {
   };
 }
 
+let ctrlDown = false;
+
 const AppContainer = () => {
   const [state, setState] = useState(getStateFromStore());
   const [width, setWidth] = useState(0);
@@ -50,22 +52,29 @@ const AppContainer = () => {
     }
   }, []);
 
-  const onKeyUp = event => {
-    keyPress(event.key);
+  const onKeyDown = event => {
+    if (event.key === "Control") ctrlDown = true;
+  }
+
+  const onKeyUp = event => {    
+    if (event.key === "Control") ctrlDown = false;
+    else keyPress(event.key, ctrlDown);
   }
 
   useEffect(() => {
+    document.addEventListener("keydown", onKeyDown, true);
     document.addEventListener("keyup", onKeyUp, true);
 
     return () => {
+      document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("keyup", onKeyUp);
     }
   }, []);
 
   return (
     <div ref={ref}>
-      <div className="container-fluid" style={{width: width}} onKeyUp={onKeyUp}>   
-        <MainSection {...state} width={width} />
+      <div className="container-fluid" style={{width: width}}>   
+          <MainSection {...state} width={width} />
       </div>
       <ResizeListener onResize={onResize} />
     </div>

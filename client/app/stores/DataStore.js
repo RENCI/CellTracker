@@ -1015,6 +1015,11 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
           DataStore.emitChange();
           break;
 
+        case "p":
+            setEditMode("regionPaste");
+            DataStore.emitChange();
+            break;
+
         case "s":
           setEditMode("regionSplit");
           DataStore.emitChange();
@@ -1030,13 +1035,13 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
           DataStore.emitChange();
           break;
 
-        case "f":
         case " ":
           selectRegion(-1, null);
           DataStore.emitChange();
           break;
           
         case "+":
+        case "=":
           zoom("edit", "in");
           DataStore.emitChange();
           break;
@@ -1044,6 +1049,30 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
         case "-":
           zoom("edit", "out");
           DataStore.emitChange();
+          break;
+
+        case "f":
+          setEditMode("regionLink");
+          DataStore.emitChange();
+          break;
+
+        case "g":
+          setEditMode("regionBreakLink");
+          DataStore.emitChange();
+          break;
+
+        case "z":
+          if (action.ctrl) {
+            undoHistory();
+            DataStore.emitChange();
+          }
+          break;
+
+        case "y":
+          if (action.ctrl) {
+            redoHistory();
+            DataStore.emitChange();
+          }
           break;
 
         case "Enter":

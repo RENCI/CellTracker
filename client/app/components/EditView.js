@@ -8,25 +8,6 @@ import Filmstrip from "./Filmstrip";
 import FilmstripControls from "./FilmstripControls";
 import * as ViewActionCreators from "../actions/ViewActionCreators";
 
-function handleKeyPress(keyCode) {
-  switch (keyCode) {
-    case 32:
-      // Space bar
-      ViewActionCreators.togglePlay();
-      break;
-
-    case 37:
-      // Left arrow
-      ViewActionCreators.frameDelta(-1);
-      break;
-
-    case 39:
-      // Right arrow
-      ViewActionCreators.frameDelta(1);
-      break;
-  }
-}
-
 function handleMouseWheel(delta) {
   ViewActionCreators.frameDelta(delta);
 }
@@ -55,7 +36,7 @@ function handleLinkRegion(frame, region) {
   ViewActionCreators.linkRegion(frame, region);
 }
 
-const PlaybackView = props => {
+const EditView = props => {
   const [sketchWidth, setSketchWidth] = useState(100);
   const sketchRef = useRef(null);
 
@@ -98,7 +79,6 @@ const PlaybackView = props => {
             zoomPoint={props.settings.zoomPoint}
             frame={props.playback.frame}
             editMode={props.settings.editMode}
-            onKeyPress={handleKeyPress}
             onMouseWheel={handleMouseWheel}
             onHighlightRegion={handleHighlightRegion}
             onSelectRegion={handleSelectRegion}
@@ -116,10 +96,10 @@ const PlaybackView = props => {
   );
 }
 
-PlaybackView.propTypes = {
+EditView.propTypes = {
   experiment: PropTypes.object,
   settings: PropTypes.object,
   playback: PropTypes.object
 };
 
-export default PlaybackView;
+export default EditView;

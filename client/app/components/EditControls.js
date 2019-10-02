@@ -74,41 +74,41 @@ const EditControls = props => {
     <div className="form-inline justify-content-center" ref={ref}>
       <div className="btn-group-sm">
         <IconButton 
-          iconName="oi-home" callback={onResetClick} tooltip="Reset" />
+          iconName="oi-home" callback={onResetClick} tooltip="Reset" shortcut="space" />
         <IconButton 
-          iconName="oi-zoom-in" callback={onZoomInClick} tooltip="Zoom in" />
+          iconName="oi-zoom-in" callback={onZoomInClick} tooltip="Zoom in" shortcut="+/=" />
         <IconButton 
-          iconName="oi-zoom-out" callback={onZoomOutClick} tooltip="Zoom out" />
+          iconName="oi-zoom-out" callback={onZoomOutClick} tooltip="Zoom out" shortcut="-" />
         <IconButton
-          iconName="oi-map-marker" callback={onRegionSelectClick} active={props.editMode === "regionSelect"} tooltip="Center view" />
+          iconName="oi-map-marker" callback={onRegionSelectClick} active={props.editMode === "regionSelect"} tooltip="Center view" shortcut="c"/>
       </div>
       <div className={"btn-group-sm" + spacing}>        
         <IconButton 
-          iconName="oi-wrench" callback={onRegionEditClick} active={props.editMode === "regionEdit"} tooltip="Add/remove region" />
+          iconName="oi-wrench" callback={onRegionEditClick} active={props.editMode === "regionEdit"} tooltip="Add/remove region" shortcut="a" />
         <IconButton 
-          iconName="oi-fullscreen-enter" callback={onSplitClick} active={props.editMode === "regionSplit"} tooltip="Split region" />
+          iconName="oi-fullscreen-enter" callback={onSplitClick} active={props.editMode === "regionSplit"} tooltip="Split region" shortcut="s" />
         <IconButton 
-          iconName="oi-fullscreen-exit" callback={onMergeClick} active={props.editMode === "regionMerge"} tooltip="Merge regions" />
+          iconName="oi-fullscreen-exit" callback={onMergeClick} active={props.editMode === "regionMerge"} tooltip="Merge regions" shortcut="d" />
         <IconButton 
-          iconName="oi-tag" callback={onRegionCopy} active={props.editMode === "regionCopy"} tooltip="Copy region" />
+          iconName="oi-tag" callback={onRegionCopy} active={props.editMode === "regionCopy"} tooltip="Copy region" shortcut="q" />
         <IconButton 
-          iconName="oi-tags" callback={onRegionPaste} active={props.editMode === "regionPaste"} tooltip="Paste region" /> 
+          iconName="oi-tags" callback={onRegionPaste} active={props.editMode === "regionPaste"} tooltip="Paste region" shortcut="p" /> 
       </div>
       <div className={"btn-group-sm" + spacing}>
         <IconButton 
-          iconName="oi-pencil" callback={onVertexEditClick} active={props.editMode === "vertex"} tooltip="Vertex edit" />
+          iconName="oi-pencil" callback={onVertexEditClick} active={props.editMode === "vertex"} tooltip="Vertex edit" shortcut="e" />
         <IconButton 
-          iconName="oi-move" callback={onRegionMoveClick} active={props.editMode === "regionMove"} tooltip="Move region" />
+          iconName="oi-move" callback={onRegionMoveClick} active={props.editMode === "regionMove"} tooltip="Move region" shortcut="t" />
         <IconButton 
-          iconName="oi-loop-circular" callback={onRegionRotateClick} active={props.editMode === "regionRotate"} tooltip="Rotate region" />   
+          iconName="oi-loop-circular" callback={onRegionRotateClick} active={props.editMode === "regionRotate"} tooltip="Rotate region" shortcut="r" />   
         <IconButton 
-          iconName="oi-crop" callback={onTrimClick} active={props.editMode === "regionTrim"} tooltip="Trim region" />
+          iconName="oi-crop" callback={onTrimClick} active={props.editMode === "regionTrim"} tooltip="Trim region" shortcut="w" />
       </div>
       <div className={"btn-group-sm" + spacing}>
         <IconButton 
-          iconName="oi-link-intact" callback={onRegionLinkClick} active={props.editMode === "regionLink"} tooltip="Link regions" />
+          iconName="oi-link-intact" callback={onRegionLinkClick} active={props.editMode === "regionLink"} tooltip="Link regions" shortcut="f" />
         <IconButton 
-          iconName="oi-link-broken" callback={onRegionBreakLinkClick} active={props.editMode === "regionBreakLink"} tooltip="Break region links" />
+          iconName="oi-link-broken" callback={onRegionBreakLinkClick} active={props.editMode === "regionBreakLink"} tooltip="Break region links" shortcut="g" />
       </div>
     </div>
   );
