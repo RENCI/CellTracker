@@ -82,6 +82,16 @@ export default function() {
       });
     }
 
+    if (visibleTrajectories.size === 0) {
+      width = margin.left + margin.right;
+      graph = {
+        nodes: [],
+        links: []
+      };
+
+      return;
+    }
+
     // Create nodes from regions
     let nodes = data.segmentationData.map((frame, i) => {
       const frameNodes = {};
