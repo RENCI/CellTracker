@@ -516,8 +516,19 @@ function editRegion(frame, region) {
     updateRBush(experiment.segmentationData[frame].tree, experiment.segmentationData[frame].regions);
   }
 
+  // Update trajectory ids if necessary
+  switch (settings.editMode) {
+    case "regionEdit":
+    case "regionSplit":
+    case "regionMerge":
+    case "regionPaste":  
+        generateTrajectoryIds();
+        break;
+  }
+
   pushHistory();
 
+  // Change edit mode
   switch (settings.editMode) {
     case "regionCopy":
       setEditMode("regionPaste");
