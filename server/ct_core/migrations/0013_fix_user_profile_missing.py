@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from django.db import migrations
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
+from ct_core.models import UserProfile
 
 
 def fix_missing_user_profile(apps, schema_editor):
@@ -12,8 +13,8 @@ def fix_missing_user_profile(apps, schema_editor):
         try:
             up = u.user_profile
         except ObjectDoesNotExist:
-            UserProfile = apps.get_model('ct_core', 'UserProfile')
-            UserProfile.objects.create(user=u)
+            up = UserProfile(user=u)
+            up.save()
 
 
 class Migration(migrations.Migration):
