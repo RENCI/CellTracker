@@ -54,6 +54,7 @@ function MediaControls(props) {
 
   const numFrames = props.experiment.frames;
   const frame = props.playback.frame;
+  const displayFrame = props.experiment.start + frame;
 
   // Use maximum digits with 'em' as a conservative estimate of label length
   const maxDigits = ("" + numFrames).length * 2 + 1;
@@ -82,7 +83,7 @@ function MediaControls(props) {
         onChange={onRangeChange} />
       <div className="input-group-append">
         <span className="input-group-text" style={{width: maxDigits + "em"}}>
-          {(frame + 1) + "/" + numFrames}
+          {displayFrame}
         </span>
       </div>
     </div>
