@@ -32,7 +32,7 @@ def is_exp_locked(exp_id):
     """
     Check if experiment is locked, and if yes, check whether lock needs to be released
     :param exp_id: experiment id
-    :return: True if it is locked, False otherwise
+    :return: True and locked user if it is locked, False otherwise
     """
     lock_obj = Segmentation.objects.filter(exp_id=exp_id, locked_time__isnull=False).first()
     if lock_obj:
@@ -43,12 +43,12 @@ def is_exp_locked(exp_id):
             lock_obj.locked_time = None
             lock_obj.locked_user = None
             lock_obj.save()
-            return False
+            return False, None
         else:
             # experiment is locked
-            return True
+            return True, lock_obj.locked_user
     else:
-        return False
+        return False, None
 
 
 def lock_experiment(exp_id, u):
@@ -116,9 +116,11 @@ def get_experiment_list_util(req_user=None):
         else:
             for exp_id in exp_sorted_list:
                 if is_power_user(req_user):
-                    if is_exp_locked(exp_id):
-                        # experiment is locked - don't add it to the list
-                        continue
+                    locked, l_user = is_exp_locked(exp_id)
+                    if locked:
+                        if l_user.username != req_user.username:
+                            # experiment is locked by another user - don't add it to the list
+                            continue
                 exp_dict = {}
                 exp_dict['id'] = exp_id
                 exp_path = hpath + '/' + exp_id
