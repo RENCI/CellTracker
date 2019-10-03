@@ -403,7 +403,7 @@ function highlightRegion(frame, region) {
   });
 
   if (region) region.highlight = true;
-  if (frame >= 0) setFrame(frame);
+  if (frame !== null && frame >= 0) setFrame(frame);
 
 //  pushHistory();
 }
