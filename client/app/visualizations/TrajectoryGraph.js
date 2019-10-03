@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { regionColors } from "../utils/ColorUtils";
 
 export default function() {
       // Size
@@ -273,7 +274,7 @@ export default function() {
 
     trajectories = Array.from(trajectories).sort();
 
-    const colorMap = d3.scaleOrdinal(d3.schemeDark2.slice(0, -1))
+    const colorMap = d3.scaleOrdinal(regionColors)
         .domain(trajectories);
 
     // Draw the visualization

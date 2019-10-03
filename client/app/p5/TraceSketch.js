@@ -5,6 +5,7 @@ import {
   addVertex, removeVertex, moveVertex, mergeRegions, splitRegionPointDirection, trimRegion, 
   removeRegion, addRegion, moveRegion, rotateRegion, 
   copiedRegion, copyRegion, pasteRegion } from "../utils/RegionEditing";
+import { regionColors } from "../utils/ColorUtils";
 
 export default function(sketch) {
   // Current experiment
@@ -24,13 +25,12 @@ export default function(sketch) {
 
   // Segmentation
   let segmentationData = null,
-      colors = d3.schemeDark2.slice(0, -1),
-      strokeColorMap = d3.scaleOrdinal(colors.map(c => {
+      strokeColorMap = d3.scaleOrdinal(regionColors.map(c => {
         const color = d3.color(c);
         color.opacity = 0.75;
         return color.toString();
       })),
-      fillColorMap = d3.scaleOrdinal(colors.map(c => {
+      fillColorMap = d3.scaleOrdinal(regionColors.map(c => {
         const color = d3.color(c);
         color.opacity = 0.75;
         return color.toString();
