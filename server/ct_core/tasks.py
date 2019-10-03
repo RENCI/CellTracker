@@ -130,8 +130,9 @@ def add_tracking(exp_id, username='', frm_idx=-1):
             sync_seg_data_to_irods(exp_id=exp_id, username='system', json_data=seg_obj.data,
                                    irods_path=rel_path)
 
-    if frm_idx == -1:
-        # this block will only be run for migration of old data only
+    if frm_idx == -1 or frm_idx == 1:
+        # this block will be run for migration of old data or sync segmentation data to irods for
+        # the first frame that does not have tracking data. For the former, need to
         # remove link_id data if any for the first frame due to the linkage direction change from
         # forward to backward linkages
         if username:
@@ -145,13 +146,17 @@ def add_tracking(exp_id, username='', frm_idx=-1):
             seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=1)
         changed = False
         data = seg_obj.data
-        for region in data:
-            if 'link_id' in region:
-                region.pop('link_id')
-                changed = True
+        if frm_idx == -1:
+            for region in data:
+                if 'link_id' in region:
+                    region.pop('link_id')
+                    changed = True
+            if changed:
+                seg_obj.save()
+        else:
+            changed = True
 
         if changed:
-            seg_obj.save()
             # update iRODS data to be in sync with updated data in DB
             rel_path = get_path(seg_obj)
             if username:

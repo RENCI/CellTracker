@@ -174,7 +174,7 @@ def get_experiment_list(request):
     :param request:
     :return:
     """
-    exp_list, err_msg = get_experiment_list_util()
+    exp_list, err_msg = get_experiment_list_util(request.user)
     if exp_list:
         return HttpResponse(json.dumps(exp_list), content_type='application/json')
     if err_msg:

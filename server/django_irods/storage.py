@@ -84,6 +84,28 @@ class IrodsStorage(Storage):
                     self.session.run("iput", None, '-f', from_name, to_name)
         return
 
+    def copy_file(self, src_name, dest_name, ires=None, create_dest_coll_as_needed=False):
+        """
+        copy an irods data-object (file) or collection (directory) to another data-object or collection
+        Parameters:
+        :param
+        src_name: the iRODS data-object or collection name to be copied from.
+        dest_name: the iRODS data-object or collection name to be copied to
+        create_dest_coll_as_needed: optional indicating whether to create destination
+        collection as needed. Default is False
+        """
+
+        if src_name and dest_name:
+            if create_dest_coll_as_needed and '/' in dest_name:
+                splitstrs = dest_name.rsplit('/', 1)
+                if not self.exists(splitstrs[0]):
+                    self.session.run("imkdir", None, '-p', splitstrs[0])
+            if ires:
+                self.session.run("icp", None, '-rf', '-R', ires, src_name, dest_name)
+            else:
+                self.session.run("icp", None, '-rf', src_name, dest_name)
+        return
+
     def move_file(self, src_name, dest_name, create_dest_coll_as_needed=False):
         """
         Parameters:
