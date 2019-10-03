@@ -140,7 +140,7 @@ def sync_seg_data_to_irods(exp_id='', username='', json_data={}, irods_path=''):
                 backup_fname = 'bak_{}'.format(fname)
                 src_path = get_path_by_paras(exp_id, fname)
                 tgt_path = get_path_by_paras(exp_id, backup_fname)
-                istorage.move_file(src_path, tgt_path)
+                istorage.copy_file(src_path, tgt_path)
                 # override system ground truth data with user edit segmentation data
                 istorage.save_file(local_data_file, src_path)
         except ObjectDoesNotExist:

@@ -430,7 +430,7 @@ def sync_seg_data_to_db(eid):
     if coll:
         for obj in coll.data_objects:
             basename, ext = os.path.splitext(obj.name)
-            if ext != '.json':
+            if ext != '.json' or not basename.startswith('frame'):
                 continue
             logical_file = session.data_objects.get(obj.path)
             with logical_file.open('r') as json_f:
