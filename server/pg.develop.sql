@@ -19,7 +19,6 @@ SET search_path = public, pg_catalog;
 ALTER TABLE ONLY public.django_redirect DROP CONSTRAINT django_redirect_site_id_c3e37341_fk_django_site_id;
 ALTER TABLE ONLY public.django_admin_log DROP CONSTRAINT django_admin_log_user_id_c564eba6_fk_auth_user_id;
 ALTER TABLE ONLY public.django_admin_log DROP CONSTRAINT django_admin_log_content_type_id_c4bce8eb_fk_django_co;
-ALTER TABLE ONLY public.ct_core_userprofile DROP CONSTRAINT ct_core_userprofile_user_id_f22a8c06_fk_auth_user_id;
 ALTER TABLE ONLY public.auth_user_user_permissions DROP CONSTRAINT auth_user_user_permissions_user_id_a95ead1b_fk_auth_user_id;
 ALTER TABLE ONLY public.auth_user_user_permissions DROP CONSTRAINT auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm;
 ALTER TABLE ONLY public.auth_user_groups DROP CONSTRAINT auth_user_groups_user_id_6a12ed8b_fk_auth_user_id;
@@ -53,8 +52,6 @@ ALTER TABLE ONLY public.django_migrations DROP CONSTRAINT django_migrations_pkey
 ALTER TABLE ONLY public.django_content_type DROP CONSTRAINT django_content_type_pkey;
 ALTER TABLE ONLY public.django_content_type DROP CONSTRAINT django_content_type_app_label_model_76bd3d3b_uniq;
 ALTER TABLE ONLY public.django_admin_log DROP CONSTRAINT django_admin_log_pkey;
-ALTER TABLE ONLY public.ct_core_userprofile DROP CONSTRAINT ct_core_userprofile_user_id_key;
-ALTER TABLE ONLY public.ct_core_userprofile DROP CONSTRAINT ct_core_userprofile_pkey;
 ALTER TABLE ONLY public.auth_user DROP CONSTRAINT auth_user_username_key;
 ALTER TABLE ONLY public.auth_user_user_permissions DROP CONSTRAINT auth_user_user_permissions_user_id_permission_id_14a6b632_uniq;
 ALTER TABLE ONLY public.auth_user_user_permissions DROP CONSTRAINT auth_user_user_permissions_pkey;
@@ -72,7 +69,6 @@ ALTER TABLE public.django_redirect ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE public.django_migrations ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE public.django_content_type ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE public.django_admin_log ALTER COLUMN id DROP DEFAULT;
-ALTER TABLE public.ct_core_userprofile ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE public.auth_user_user_permissions ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE public.auth_user_groups ALTER COLUMN id DROP DEFAULT;
 ALTER TABLE public.auth_user ALTER COLUMN id DROP DEFAULT;
@@ -90,8 +86,6 @@ DROP SEQUENCE public.django_content_type_id_seq;
 DROP TABLE public.django_content_type;
 DROP SEQUENCE public.django_admin_log_id_seq;
 DROP TABLE public.django_admin_log;
-DROP SEQUENCE public.ct_core_userprofile_id_seq;
-DROP TABLE public.ct_core_userprofile;
 DROP SEQUENCE public.auth_user_user_permissions_id_seq;
 DROP TABLE public.auth_user_user_permissions;
 DROP SEQUENCE public.auth_user_id_seq;
@@ -362,42 +356,6 @@ ALTER SEQUENCE auth_user_user_permissions_id_seq OWNED BY auth_user_user_permiss
 
 
 --
--- Name: ct_core_userprofile; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE ct_core_userprofile (
-    id integer NOT NULL,
-    grade smallint NOT NULL,
-    school character varying(100) NOT NULL,
-    user_id integer NOT NULL,
-    CONSTRAINT ct_core_userprofile_grade_check CHECK ((grade >= 0))
-);
-
-
-ALTER TABLE ct_core_userprofile OWNER TO postgres;
-
---
--- Name: ct_core_userprofile_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE ct_core_userprofile_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE ct_core_userprofile_id_seq OWNER TO postgres;
-
---
--- Name: ct_core_userprofile_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE ct_core_userprofile_id_seq OWNED BY ct_core_userprofile.id;
-
-
---
 -- Name: django_admin_log; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -631,13 +589,6 @@ ALTER TABLE ONLY auth_user_user_permissions ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
--- Name: ct_core_userprofile id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY ct_core_userprofile ALTER COLUMN id SET DEFAULT nextval('ct_core_userprofile_id_seq'::regclass);
-
-
---
 -- Name: django_admin_log id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -790,20 +741,6 @@ COPY auth_user_user_permissions (id, user_id, permission_id) FROM stdin;
 SELECT pg_catalog.setval('auth_user_user_permissions_id_seq', 1, false);
 
 
---
--- Data for Name: ct_core_userprofile; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-COPY ct_core_userprofile (id, grade, school, user_id) FROM stdin;
-\.
-
-
---
--- Name: ct_core_userprofile_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('ct_core_userprofile_id_seq', 1, false);
-
 
 --
 -- Data for Name: django_admin_log; Type: TABLE DATA; Schema: public; Owner: postgres
@@ -835,7 +772,6 @@ COPY django_content_type (id, app_label, model) FROM stdin;
 6	redirects	redirect
 7	sessions	session
 8	sites	site
-9	ct_core	userprofile
 \.
 
 
@@ -863,12 +799,10 @@ COPY django_migrations (id, app, name, applied) FROM stdin;
 10	auth	0006_require_contenttypes_0002	2018-11-06 16:31:50.054858+00
 11	auth	0007_alter_validators_add_error_messages	2018-11-06 16:31:50.106036+00
 12	auth	0008_alter_user_username_max_length	2018-11-06 16:31:50.154079+00
-13	ct_core	0001_initial	2018-11-06 16:31:50.208734+00
 14	sites	0001_initial	2018-11-06 16:31:50.227992+00
 15	redirects	0001_initial	2018-11-06 16:31:50.272931+00
 16	sessions	0001_initial	2018-11-06 16:31:50.299688+00
 17	sites	0002_alter_domain_unique	2018-11-06 16:31:50.338147+00
-18	ct_core	0002_auto_20181106_1638	2018-11-06 16:56:47.672845+00
 \.
 
 
@@ -1012,23 +946,6 @@ ALTER TABLE ONLY auth_user_user_permissions
 
 ALTER TABLE ONLY auth_user
     ADD CONSTRAINT auth_user_username_key UNIQUE (username);
-
-
---
--- Name: ct_core_userprofile ct_core_userprofile_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY ct_core_userprofile
-    ADD CONSTRAINT ct_core_userprofile_pkey PRIMARY KEY (id);
-
-
---
--- Name: ct_core_userprofile ct_core_userprofile_user_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY ct_core_userprofile
-    ADD CONSTRAINT ct_core_userprofile_user_id_key UNIQUE (user_id);
-
 
 --
 -- Name: django_admin_log django_admin_log_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
@@ -1275,14 +1192,6 @@ ALTER TABLE ONLY auth_user_user_permissions
 
 ALTER TABLE ONLY auth_user_user_permissions
     ADD CONSTRAINT auth_user_user_permissions_user_id_a95ead1b_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES auth_user(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- Name: ct_core_userprofile ct_core_userprofile_user_id_f22a8c06_fk_auth_user_id; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY ct_core_userprofile
-    ADD CONSTRAINT ct_core_userprofile_user_id_f22a8c06_fk_auth_user_id FOREIGN KEY (user_id) REFERENCES auth_user(id) DEFERRABLE INITIALLY DEFERRED;
 
 
 --
