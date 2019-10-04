@@ -43,7 +43,7 @@ display_usage() {
     echo "usage: $0 deploy_prod        # build and deploy from scratch while loading an existing database for production environment"
     echo "usage: $0 start              # attempts to start all containers"
     echo "usage: $0 stop               # stops all running containers"
-    echo "usage: $0 backup             # backup database, media files, and settings"
+    echo "usage: $0 backup             # backup database and settings"
     echo "usage: $0 loaddb             # load database into the server"
 }
 
@@ -155,64 +155,40 @@ run_cc() {
 }
 
 backup_cc() {
-    echo "*** BACKUP DATABASE, MEDIA AND SETTINGS FILES ***"
+    echo "*** BACKUP DATABASE AND SETTINGS FILES ***"
     docker exec celltracker /usr/bin/pg_dump -c -d postgres -U postgres -h db \
         > "${CC_PATH}/pg.cc-`date +"%m-%d-%y"`.sql"
-    if [ ! -d "${CC_PATH}/media_files" ]; then
-        mkdir ${CC_PATH}/media_files;
-    fi
-    docker exec celltracker rsync -avh --dry-run /home/docker/celltracker/static/media \
-        /home/docker/celltracker/media_files
-    docker exec celltracker rsync -avh /home/docker/celltracker/static/media \
-        /home/docker/celltracker/media_files
-    cd ${CC_PATH}
-    tar -czvf "media.cc-`date +"%m-%d-%y"`.tar.gz" media_files
-    docker exec celltracker rm -rf /home/docker/celltracker/media_files
-    cd -
-    # Move files to backup directory in users home
-    if [ ! -d "/home/${USER}/cc-backup" ]; then
-        mkdir /home/${USER}/cc-backup;
-    fi
+
+    cd ${BACKUP_PATH}
+
     # backup local_settings.py
     cp ${CC_PATH}/celltracker/local_settings.py \
-        /home/${USER}/cc-backup/local_settings.py
-    # backup settings.py
-    cp ${CC_PATH}/celltracker/settings.py \
-        /home/${USER}/cc-backup/settings.py
+        ./local_settings.py
     # backup ct-config.yaml
     cp ${CC_PATH}/config/ct-config.yaml \
-        /home/${USER}/cc-backup/ct-config.yaml
+        ./ct-config.yaml
     # backup docker-compose.yml
     cp ${HOME_DIR}/docker-compose.yml \
-        /home/${USER}/cc-backup/docker-compose.yml
+        ./docker-compose.yml
     # backup database
     cp ${CC_PATH}/pg.cc-`date +"%m-%d-%y"`.sql \
-        /home/${USER}/cc-backup/pg.cc-`date +"%m-%d-%y"`.sql
-    # backup media files
-    cp ${CC_PATH}/media.cc-`date +"%m-%d-%y"`.tar.gz \
-        /home/${USER}/cc-backup/media.cc-`date +"%m-%d-%y"`.tar.gz
+        ./pg.cc-`date +"%m-%d-%y"`.sql
 }
 
 restore_cc() {
-    echo "*** RESTORE DATABASE, MEDIA AND SETTINGS FILES ***"
+    echo "*** RESTORE DATABASE AND SETTINGS FILES ***"
     # restore local_settings.py
-    cp /home/${USER}/cc-backup/local_settings.py \
+    cp ${BACKUP_PATH}/local_settings.py \
         ${CC_PATH}/celltracker/local_settings.py
-    # restore settings.py
-    cp /home/${USER}/cc-backup/settings.py \
-        ${CC_PATH}/celltracker/settings.py
     # restore ct-config.yaml
-    cp /home/${USER}/cc-backup/ct-config.yaml \
+    cp ${BACKUP_PATH}/ct-config.yaml \
         ${CC_PATH}/config/ct-config.yaml
     # restore docker-compose.yml
-    cp /home/${USER}/cc-backup/docker-compose.yml \
+    cp ${BACKUP_PATH}/docker-compose.yml \
         ${CC_PATH}/docker-compose.yml
     # restore database
-    cp /home/${USER}/cc-backup/${CC_DATABASE} \
+    cp ${BACKUP_PATH}/${CC_DATABASE} \
         ${CC_PATH}/${CC_DATABASE}
-    # restore media files
-    cp /home/${USER}/cc-backup/${CC_MEDIA_FILES} \
-        ${CC_PATH}/${CC_MEDIA_FILES}
 }
 
 loaddb_cc() {
@@ -229,17 +205,6 @@ loaddb_cc() {
     docker exec celltracker python manage.py migrate sites --noinput
     echo "  - docker exec celltracker python manage.py migrate"
     docker exec celltracker python manage.py migrate --fake-initial --noinput
-}
-
-loadmedia_cc() {
-    echo "*** LOAD MEDIA FILES ***"
-    cd ${CC_PATH}
-    tar -xzvf ${CC_MEDIA_FILES}
-    if [ ! -d "${CC_PATH}/static" ]; then
-        mkdir ${CC_PATH}/static;
-    fi
-    cp -r media_files/media static/
-    cd -
 }
 
 migrate_cc() {
@@ -329,8 +294,6 @@ case "$1" in
     deploy_prod_nodb) deploy_prod_cc_nodb $1
         ;;
     loaddb) loaddb_cc $1
-        ;;
-    loadmedia) loadmedia_cc $1
         ;;
     rebuild) rebuild_cc $1 $2
         ;;
