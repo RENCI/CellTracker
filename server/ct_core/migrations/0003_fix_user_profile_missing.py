@@ -20,7 +20,7 @@ def fix_missing_user_profile(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ct_core', '0012_auto_20191002_2122'),
+        ('ct_core', '0002_populate_data_from_irods'),
     ]
 
     operations = [
