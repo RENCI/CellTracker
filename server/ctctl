@@ -173,6 +173,9 @@ backup_cc() {
     # backup database
     cp ${CC_PATH}/pg.cc-`date +"%m-%d-%y"`.sql \
         ./pg.cc-`date +"%m-%d-%y"`.sql
+
+    # remove the backup db from home directory
+    rm ${CC_PATH}/pg.cc-`date +"%m-%d-%y"`.sql
 }
 
 restore_cc() {
