@@ -9,6 +9,8 @@ import datetime
 import pytz
 import numpy as np
 
+from collections import OrderedDict
+
 from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist
 
@@ -971,8 +973,8 @@ def create_seg_data_from_csv(exp_id, input_csv_file, irods_path):
 
 
 def get_users():
-    pu_list = {}
-    ru_list = {}
+    pu_list = OrderedDict()
+    ru_list = OrderedDict()
     for up in UserProfile.objects.order_by('user__username'):
         if up.role == UserProfile.POWERUSER:
             pu_list[up.user.username] = up.user.get_full_name()
