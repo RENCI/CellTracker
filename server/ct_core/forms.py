@@ -58,6 +58,20 @@ class SignUpForm(forms.ModelForm):
         password_validation.validate_password(self.cleaned_data.get('password2'), self.instance)
         return password2
 
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        up = UserProfile.objects.filter(email=email).first()
+        if up:
+            raise forms.ValidationError(
+                'The input email {email} is already used by {user}. Use a different email to sign up '
+                'or go to login page to login as {user}. If you forget your password, you can '
+                'reset your password for {user} from the login page'.format(email=email,
+                                                                            user=up.user.username),
+                code='invalid',
+            )
+
+        return email
+
     def save(self, commit=True):
         user = super(SignUpForm, self).save(commit=False)
         user.set_password(self.cleaned_data["password1"])
