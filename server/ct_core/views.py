@@ -183,6 +183,31 @@ def get_experiment_list(request):
 
 
 @login_required
+def get_user_info(request):
+    """
+    return request user info if username GET parameter is not in the request; otherwise, return user info
+    for the username in GET parameter
+    :param request:
+    :return: user info in JSON format
+    """
+    user_name = request.GET.get('username', request.user.username)
+    up = UserProfile.objects.filter(user__username=user_name).first()
+    if up:
+        return JsonResponse(status=status.HTTP_200_OK,
+                            data={'username': user_name,
+                                  'first_name': up.user.first_name,
+                                  'last_name': up.user.last_name,
+                                  'email': up.email,
+                                  'grade': up.grade,
+                                  'school': up.school,
+                                  'is_power_user': 'true' if is_power_user(up.user) else 'false'
+                                  })
+    else:
+        return JsonResponse(status=status.HTTP_400_BAD_REQUEST,
+                            data={'error': "Requested user info for user {} does not exist".format(user_name)})
+
+
+@login_required
 def get_experiment_info(request, exp_id):
     """
     Invoked by an AJAX call and returns json object that holds info of that experiment identified by id
@@ -199,19 +224,20 @@ def get_experiment_info(request, exp_id):
     :return:
     """
     exp_info = {}
-    exp_info['locked'] = 'false'
+    exp_info['locked_by'] = ''
     exp_frame_no = get_exp_frame_no(exp_id)
 
     if exp_frame_no > 0:
         _, coll, _ = get_seg_collection(exp_id)
         if coll:
             exp_info['has_segmentation'] = 'true'
-            if is_power_user(request.user):
-                if is_exp_locked(exp_id):
-                    # experiment is locked
-                    exp_info['locked'] = 'true'
-                else:
-                    # lock the experiment
+            locked, lock_user = is_exp_locked(exp_id)
+            if locked:
+                # experiment is locked
+                exp_info['locked_by'] = lock_user.username
+            else:
+                # lock the experiment
+                if is_power_user(request.user):
                     lock_experiment(exp_id, request.user)
         else:
             exp_info['has_segmentation'] = 'false'

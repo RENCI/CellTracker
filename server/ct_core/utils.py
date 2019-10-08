@@ -102,6 +102,7 @@ def get_experiment_list_util(req_user=None):
             for col in coll.subcollections:
                 exp_dict = {}
                 exp_dict['id'] = col.name
+                exp_dict['locked_by'] = ''
                 try:
                     # str() is needed by python irods client metadata method
                     key = str('experiment_name')
@@ -117,13 +118,13 @@ def get_experiment_list_util(req_user=None):
                 index -= 1
         else:
             for exp_id in exp_sorted_list:
-                if is_power_user(req_user):
-                    locked, l_user = is_exp_locked(exp_id)
-                    if locked:
-                        if l_user.username != req_user.username:
-                            # experiment is locked by another user - don't add it to the list
-                            continue
                 exp_dict = {}
+                locked, l_user = is_exp_locked(exp_id)
+                if locked:
+                    # experiment is locked
+                    exp_dict['locked_by'] = l_user.username
+                else:
+                    exp_dict['locked_by'] = ''
                 exp_dict['id'] = exp_id
                 exp_path = hpath + '/' + exp_id
                 col = session.collections.get(exp_path)

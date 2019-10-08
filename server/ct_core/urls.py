@@ -41,6 +41,7 @@ urlpatterns = [
     url(r'^create_new_experiment/$', views.create_new_experiment, name='create_new_experiment'),
     url(r'^delete_experiment/(?P<exp_id>.*)/$', views.delete_experiment, name='delete_experiment'),
     url(r'^add_experiment_to_server/$', views.add_experiment_to_server, name='add_experiment_to_server'),
+    url(r'^get_user_info/$', views.get_user_info, name='get_user_info'),
     url(r'^manage_user_role/$', views.manage_user_role, name='manage_user_role'),
     url(r'^update_user_role/$', views.update_user_role, name='update_user_role'),
     url(r'^sort_task_priority/$', views.sort_task_priority, name='sort_task_priority'),
