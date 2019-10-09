@@ -231,21 +231,21 @@ def get_experiment_info(request, exp_id):
     :return:
     """
     exp_info = {}
-    exp_info['locked_by'] = ''
     exp_frame_no = get_exp_frame_no(exp_id)
 
     if exp_frame_no > 0:
         _, coll, _ = get_seg_collection(exp_id)
         if coll:
-            exp_info['has_segmentation'] = 'true'
             locked, lock_user = is_exp_locked(exp_id)
-            if locked:
-                # experiment is locked
+            if locked and lock_user.username != request.user.username:
+                # experiment is locked by another user
                 exp_info['locked_by'] = lock_user.username
+                return JsonResponse(exp_info, status=status.HTTP_403_FORBIDDEN)
             else:
                 # lock the experiment
                 if is_power_user(request.user):
                     lock_experiment(exp_id, request.user)
+            exp_info['has_segmentation'] = 'true'
         else:
             exp_info['has_segmentation'] = 'false'
         exp_info['frames'] = exp_frame_no
@@ -257,9 +257,9 @@ def get_experiment_info(request, exp_id):
 
         exp_info['edit_frames'] = get_edited_frames(request.user.username, exp_id)
 
-        return HttpResponse(json.dumps(exp_info), content_type='application/json')
+        return JsonResponse(exp_info, status=status.HTTP_200_OK)
     else:
-        HttpResponse(json.dumps({'error': 'Cannot connect to iRODS data server'}),
+        JsonResponse({'error': 'Cannot connect to iRODS data server'},
                      status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
@@ -310,6 +310,11 @@ def display_image(request, exp_id, type, frame_no):
     :param frame_no: image frame sequence number starting from 1
     :return:
     """
+    locked, lock_user = is_exp_locked(exp_id)
+    if locked and lock_user.username != request.user.username:
+        # experiment is locked by another user
+        return JsonResponse({'locked_by': lock_user.username}, status=status.HTTP_403_FORBIDDEN)
+
     img_file, err_msg = get_exp_image(exp_id, frame_no, type)
 
     if err_msg:
@@ -337,6 +342,10 @@ def get_frame_seg_data(request, exp_id, frame_no):
     # check if user edit segmentation is available and if yes, use that instead
     uname = request.POST.get('username', '')
     u = request.user if not uname else User.objects.get(username=uname)
+    locked, lock_user = is_exp_locked(exp_id)
+    if locked and lock_user.username != u.username:
+        # experiment is locked by another user
+        return JsonResponse({'locked_by': lock_user.username}, status=status.HTTP_403_FORBIDDEN)
     try:
         seg_obj = UserSegmentation.objects.get(user=u, exp_id=exp_id,
                                                frame_no=int(frame_no))
@@ -638,6 +647,10 @@ def save_frame_seg_data(request, exp_id, frame_no):
         return JsonResponse({'message': 'regions key not included in user edit segmentation data '
                                         'to be saved'},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    locked, lock_user = is_exp_locked(exp_id)
+    if locked and lock_user.username != request.user.username:
+        # experiment is locked by another user
+        return JsonResponse({'locked_by': lock_user.username}, status=status.HTTP_403_FORBIDDEN)
     try:
         save_user_seg_data_to_db(request.user, exp_id, frame_no, seg_data['regions'], num_edited)
         task = add_tracking.apply_async((exp_id, request.user.username, int(frame_no)),

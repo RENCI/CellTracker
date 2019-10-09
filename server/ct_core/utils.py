@@ -123,20 +123,21 @@ def get_experiment_list_util(req_user=None):
         else:
             for exp_id in exp_sorted_list:
                 exp_dict = {}
-                locked, l_user = is_exp_locked(exp_id)
-                if locked:
-                    # experiment is locked
-                    exp_dict['locked_by'] = l_user.username
-                else:
-                    exp_dict['locked_by'] = ''
                 exp_dict['id'] = exp_id
                 exp_path = hpath + '/' + exp_id
                 col = session.collections.get(exp_path)
                 key = str('experiment_name')
                 col_md = col.metadata.get_one(key)
                 exp_dict['name'] = col_md.value
-                if locked:
-                    locked_exp_list.append(exp_dict)
+                if req_user:
+                    locked, l_user = is_exp_locked(exp_id)
+                    if locked and l_user.username != req_user.username:
+                        # experiment is locked by another user
+                        exp_dict['locked_by'] = l_user.username
+                        locked_exp_list.append(exp_dict)
+                    else:
+                        exp_dict['locked_by'] = ''
+                        exp_list.append(exp_dict)
                 else:
                     exp_list.append(exp_dict)
 
