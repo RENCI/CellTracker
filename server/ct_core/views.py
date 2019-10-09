@@ -16,7 +16,7 @@ from django.http import HttpResponse, HttpResponseServerError, StreamingHttpResp
     HttpResponseBadRequest, JsonResponse, HttpResponseForbidden, HttpResponseRedirect, FileResponse
 from django.views.decorators import gzip
 from django.contrib.auth import login, authenticate
-from django.contrib.auth.views import PasswordResetView
+from django.contrib.auth.views import PasswordResetView, LogoutView
 from django.shortcuts import render, redirect
 from django.forms.models import inlineformset_factory
 from django.contrib.auth.decorators import login_required
@@ -34,7 +34,7 @@ from ct_core.utils import get_experiment_list_util, read_video, \
     save_user_seg_data_to_db, get_start_frame, get_exp_image, get_edited_frames, get_all_edit_users, \
     create_user_segmentation_data_for_download, get_frame_info, create_seg_data_from_csv, \
     sync_seg_data_to_db, delete_one_experiment, get_users, update_experiment_priority, pack_zeros, \
-    is_exp_locked, lock_experiment
+    is_exp_locked, lock_experiment, release_locks_by_user
 from ct_core.task_utils import get_exp_frame_no, is_power_user
 from ct_core.forms import SignUpForm, UserProfileForm, UserPasswordResetForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
@@ -77,6 +77,13 @@ def index(request):
 
 class request_password_reset_view(PasswordResetView):
     form_class = UserPasswordResetForm
+
+
+def logout(request):
+    release_locks_by_user(request.user)
+    return LogoutView.as_view(
+        next_page='/'
+    )(request)
 
 
 def signup(request):

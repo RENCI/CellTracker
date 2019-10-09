@@ -53,13 +53,16 @@ def is_exp_locked(exp_id):
         return False, None
 
 
+def release_locks_by_user(u):
+    for item in Segmentation.objects.filter(locked_user=u):
+        item.locked_time = None
+        item.locked_user = None
+        item.save()
+
 def lock_experiment(exp_id, u):
     try:
         # release lockes this user placed on other experiments before locking this experiment
-        for item in Segmentation.objects.filter(locked_user=u):
-            item.locked_time = None
-            item.locked_user = None
-            item.save()
+        release_locks_by_user(u)
         # lock this experiment by this user
         entry = Segmentation.objects.get(exp_id=exp_id, frame_no=1)
         entry.locked_time = datetime.datetime.now(pytz.utc)
@@ -92,6 +95,7 @@ def get_experiment_list_util(req_user=None):
     istorage = IrodsStorage()
     exp_sorted_list = istorage.get_sorted_exp_list()
     exp_list = []
+    locked_exp_list = []
     with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
                       password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
         hpath = '/{}/home/{}'.format(settings.IRODS_ZONE, settings.IRODS_USER)
@@ -131,7 +135,13 @@ def get_experiment_list_util(req_user=None):
                 key = str('experiment_name')
                 col_md = col.metadata.get_one(key)
                 exp_dict['name'] = col_md.value
-                exp_list.append(exp_dict)
+                if locked:
+                    locked_exp_list.append(exp_dict)
+                else:
+                    exp_list.append(exp_dict)
+
+            if locked_exp_list:
+                exp_list.extend(locked_exp_list)
 
         return exp_list, ''
     return exp_list, 'Cannot connect to iRODS data server'
