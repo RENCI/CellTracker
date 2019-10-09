@@ -7,6 +7,9 @@ import { getExperimentInfo } from "../utils/WebAPIUtils";
 
 const CHANGE_EVENT = "change";
 
+// Current user
+let userInfo = null;
+
 // List of available experiments
 let experimentList = [];
 
@@ -47,6 +50,10 @@ let settings = {
 let linking = {
   frame: -1,
   region: null
+}
+
+function setUserInfo(info) {
+  userInfo = info;
 }
 
 function setExperimentList(newList) {
@@ -828,6 +835,9 @@ const DataStore = assign({}, EventEmitter.prototype, {
   removeChangeListener: function (callback) {
     this.removeListener(CHANGE_EVENT, callback);
   },
+  getUserInfo: function () {
+    return userInfo;
+  },
   getExperimentList: function () {
     return experimentList;
   },
@@ -853,6 +863,11 @@ const DataStore = assign({}, EventEmitter.prototype, {
 
 DataStore.dispatchToken = AppDispatcher.register(action => {
   switch (action.actionType) {
+    case Constants.RECEIVE_USER_INFO:
+      setUserInfo(action.userInfo);
+      DataStore.emitChange();
+      break;
+
     case Constants.RECEIVE_EXPERIMENT_LIST:
       setExperimentList(action.experimentList);
       DataStore.emitChange();

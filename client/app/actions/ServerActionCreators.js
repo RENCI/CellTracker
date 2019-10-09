@@ -1,6 +1,13 @@
 import AppDispatcher from "../dispatcher/AppDispatcher";
 import Constants from "../constants/Constants";
 
+export function receiveUserInfo(userInfo) {
+  AppDispatcher.dispatch({
+    actionType: Constants.RECEIVE_USER_INFO,
+    userInfo: userInfo
+  });
+};
+
 export function receiveExperimentList(experimentList) {
   AppDispatcher.dispatch({
     actionType: Constants.RECEIVE_EXPERIMENT_LIST,

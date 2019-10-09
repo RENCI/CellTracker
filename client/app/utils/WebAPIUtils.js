@@ -35,6 +35,23 @@ function setupAjax() {
   });
 }
 
+export function getUserInfo() {
+  setupAjax();
+
+  $.ajax({
+    type: "POST",
+    url: "/get_user_info/",
+    success: data => {
+      // Create an action
+      ServerActionCreators.receiveUserInfo(data);
+    },
+    error: (xhr, textStatus, errorThrown) => {
+      console.log(textStatus + ": " + errorThrown);
+    }
+  });
+}
+
+
 export function getExperimentList() {
   setupAjax();
 

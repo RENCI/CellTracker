@@ -40,6 +40,7 @@ const MainSection = props => {
 }
 
 MainSection.propTypes = {
+  userInfo: PropTypes.object,
   experimentList: PropTypes.arrayOf(PropTypes.object).isRequired,
   experiment: PropTypes.object,
   history: PropTypes.object,

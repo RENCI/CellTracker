@@ -1,6 +1,7 @@
 import keyMirror from "keymirror";
 
 export default keyMirror({
+  RECEIVE_USER_INFO: null,
   RECEIVE_EXPERIMENT_LIST: null,
   SELECT_EXPERIMENT: null,
   RECEIVE_EXPERIMENT: null,

@@ -44,15 +44,25 @@ const DataControls = props => {
     </option>
   ];
 
-  options = options.concat(props.experimentList.map(function (experiment, i) {
+  const lockSymbol = "\uD83D\uDD12";
+  const lockKeySymbol = "\uD83D\uDD10";
+  const emSpace = "\u2003";
+
+  options = options.concat(props.experimentList.map((experiment, i) => {
+    const locked = experiment.locked_by && experiment.locked_by !== "";
+    const disabled = !props.userInfo || (locked && experiment.locked_by !== props.userInfo.username);
+
     return (
-      <option key={i} value={experiment.id}>
-        {experiment.name}
+      <option 
+        key={i} 
+        value={experiment.id}
+        disabled={disabled}>
+          {experiment.name + (locked ? " " + emSpace + " " + (disabled ? lockSymbol : lockKeySymbol) + " " + experiment.locked_by : "")} 
       </option>
     );
   }));
 
-  const experimentSelectEnabled = options.length > 1 && !props.loading;
+  const experimentSelectEnabled = options.length > 1 && !props.loading && props.userInfo;
   const frameControlsEnabled = props.experiment && !props.loading;
   const undoEnabled = props.history && props.history.index > 0;
   const redoEnabled = props.history && props.history.index < props.history.edits.length - 1;

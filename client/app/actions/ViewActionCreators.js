@@ -3,6 +3,10 @@ import Constants from "../constants/Constants";
 import * as WebAPIUtils from "../utils/WebAPIUtils";
 import DataStore from "../stores/DataStore";
 
+export function getUserInfo() {
+  WebAPIUtils.getUserInfo();
+};
+
 export function getExperimentList() {
   WebAPIUtils.getExperimentList();
 };

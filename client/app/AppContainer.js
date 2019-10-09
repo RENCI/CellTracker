@@ -2,10 +2,11 @@ import React, { useState, useLayoutEffect, useEffect, useRef } from 'react';
 import MainSection from "./components/MainSection";
 import ResizeListener from "./components/ResizeListener";
 import DataStore from "./stores/DataStore";
-import { getExperimentList, keyPress } from "./actions/ViewActionCreators";
+import { getUserInfo, getExperimentList, keyPress } from "./actions/ViewActionCreators";
 
 function getStateFromStore() {
   return {
+    userInfo: DataStore.getUserInfo(),
     experimentList: DataStore.getExperimentList(),
     experiment: DataStore.getExperiment(),
     history: DataStore.getHistory(),
@@ -41,7 +42,8 @@ const AppContainer = () => {
   useEffect(() => {
     DataStore.addChangeListener(onDataChange);
 
-    // Bootstrap the application by getting the experiment list here
+    // Bootstrap the application by getting the user and experiment list here
+    getUserInfo();
     getExperimentList();
 
     // Initialize dropdown menu
