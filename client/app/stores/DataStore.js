@@ -122,6 +122,8 @@ function experimentLocked(info) {
 }
 
 function receiveFrame(i, image) {
+  if (!experiment.images) return;
+
   experiment.images[i] = image;
   loading.framesLoaded++;
 
@@ -129,6 +131,8 @@ function receiveFrame(i, image) {
 }
 
 function receiveSegmentationFrame(frame, regions) {
+  if (!experiment.segmentationData) return;
+
   if (Array.isArray(regions)) {
     // Process vertices
     regions.forEach(region => {

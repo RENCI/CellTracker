@@ -119,6 +119,13 @@ export function getFrames(experiment) {
     }
   }
 
+  const imageFailureCallback = error => {
+    // Not getting the 
+    ServerActionCreators.experimentLocked({
+      locked_by: "unknown"
+    });
+  }
+
   const segmentationCallback = i => {
     return data => {
       ServerActionCreators.receiveSegmentationFrame(i, data);
@@ -129,7 +136,11 @@ export function getFrames(experiment) {
     const frame = experiment.start + i;
 
     // Load image frame
-    loadingSketch.loadImage("/display-image/" + experiment.id + "/" + imageType + "/" + frame, imageCallback(i));
+    loadingSketch.loadImage(
+      "/display-image/" + experiment.id + "/" + imageType + "/" + frame, 
+      imageCallback(i),
+      imageFailureCallback
+    );
 
     // Load segmentation frame
     if (experiment.has_segmentation) {
@@ -138,7 +149,13 @@ export function getFrames(experiment) {
         url: "/get_frame_seg_data/" + experiment.id + "/" + frame,
         success: segmentationCallback(i),
         error: (xhr, textStatus, errorThrown) => {
-          console.log(textStatus + ": " + errorThrown);
+          // Check if locked
+          if (xhr.status === 403) {
+            ServerActionCreators.experimentLocked(xhr.responseJSON);
+          }
+          else {
+            console.log(textStatus + ": " + errorThrown);
+          }
         }
       });
     }
