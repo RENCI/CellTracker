@@ -113,17 +113,31 @@ export function getFrames(experiment) {
 
   const imageType = "jpg";
 
-  const imageCallback = i => {
-    return data => {
-      ServerActionCreators.receiveFrame(i, data);
-    }
-  }
+  const imageCallback = (i, url) => {
+    // Code adapted from p5.loadImage
+    return () => {
+      const pImg = loadingSketch.createImage(1, 1);
+      const img = new Image();
 
-  const imageFailureCallback = error => {
-    // Not getting the 
-    ServerActionCreators.experimentLocked({
-      locked_by: "unknown"
-    });
+      img.onload = () => {
+        pImg.width = pImg.canvas.width = img.width;
+        pImg.height = pImg.canvas.height = img.height;
+
+        // Draw the image into the backing canvas of the p5.Image
+        pImg.drawingContext.drawImage(img, 0, 0);
+        pImg.modified = true;        
+
+        ServerActionCreators.receiveFrame(i, pImg);
+      };
+
+      img.onerror = e => {
+        // XXX: Handle this more elegantly?
+        console.log(e);
+      };
+
+      // Start loading the image
+      img.src = url;
+    }
   }
 
   const segmentationCallback = i => {
@@ -132,15 +146,27 @@ export function getFrames(experiment) {
     }
   }
 
+  const errorCallback = (xhr, textStatus, errorThrown) => {
+    // Check if locked
+    if (xhr.status === 403) {
+      ServerActionCreators.experimentLocked(xhr.responseJSON);
+    }
+    else {
+      console.log(textStatus + ": " + errorThrown);
+    }
+  }
+
   for (let i = 0; i < experiment.frames; i++) {
     const frame = experiment.start + i;
+    const imageURL = "/display-image/" + experiment.id + "/" + imageType + "/" + frame;
 
-    // Load image frame
-    loadingSketch.loadImage(
-      "/display-image/" + experiment.id + "/" + imageType + "/" + frame, 
-      imageCallback(i),
-      imageFailureCallback
-    );
+    // Load image
+    $.ajax({
+      type: "POST",
+      url: imageURL,
+      success: imageCallback(i, imageURL),
+      error: errorCallback
+    });  
 
     // Load segmentation frame
     if (experiment.has_segmentation) {
@@ -148,15 +174,7 @@ export function getFrames(experiment) {
         type: "POST",
         url: "/get_frame_seg_data/" + experiment.id + "/" + frame,
         success: segmentationCallback(i),
-        error: (xhr, textStatus, errorThrown) => {
-          // Check if locked
-          if (xhr.status === 403) {
-            ServerActionCreators.experimentLocked(xhr.responseJSON);
-          }
-          else {
-            console.log(textStatus + ": " + errorThrown);
-          }
-        }
+        error: errorCallback
       });
     }
   }
