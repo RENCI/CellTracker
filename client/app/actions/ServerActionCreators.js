@@ -1,5 +1,6 @@
 import AppDispatcher from "../dispatcher/AppDispatcher";
 import Constants from "../constants/Constants";
+import * as WebAPIUtils from "../utils/WebAPIUtils";
 
 export function receiveUserInfo(userInfo) {
   AppDispatcher.dispatch({
@@ -21,6 +22,13 @@ export function receiveExperiment(experiment) {
     experiment: experiment
   });
 };
+
+export function experimentLocked(info) {
+  AppDispatcher.dispatch({
+    actionType: Constants.EXPERIMENT_LOCKED,
+    info: info
+  });
+}
 
 export function receiveFrame(frame, image) {
   AppDispatcher.dispatch({

@@ -26,9 +26,9 @@ function onStabilizeClick() {
 
 const DataControls = props => {
   function onExperimentSelectChange(e) {
-    const index = props.experimentList.map(e => e.id).indexOf(e.target.value);
+    const index = props.experimentList.experiments.map(e => e.id).indexOf(e.target.value);
 
-    ViewActionCreators.selectExperiment(props.experimentList[index]);
+    ViewActionCreators.selectExperiment(props.experimentList.experiments[index]);
   }
 
   function onSaveClick() {
@@ -48,7 +48,7 @@ const DataControls = props => {
   const lockKeySymbol = "\uD83D\uDD10";
   const emSpace = "\u2003";
 
-  options = options.concat(props.experimentList.map((experiment, i) => {
+  options = options.concat(props.experimentList.experiments.map((experiment, i) => {
     const locked = experiment.locked_by && experiment.locked_by !== "";
     const disabled = !props.userInfo || (locked && experiment.locked_by !== props.userInfo.username);
 
@@ -62,7 +62,7 @@ const DataControls = props => {
     );
   }));
 
-  const experimentSelectEnabled = options.length > 1 && !props.loading && props.userInfo;
+  const experimentSelectEnabled = !props.experimentList.updating && options.length > 1 && !props.loading && props.userInfo;
   const frameControlsEnabled = props.experiment && !props.loading;
   const undoEnabled = props.history && props.history.index > 0;
   const redoEnabled = props.history && props.history.index < props.history.edits.length - 1;
@@ -146,7 +146,7 @@ const DataControls = props => {
 }
 
 DataControls.propTypes = {
-  experimentList: PropTypes.arrayOf(PropTypes.object).isRequired,
+  experimentList: PropTypes.object.isRequired,
   experiment: PropTypes.object,
   settings: PropTypes.object,
   loading: PropTypes.object,

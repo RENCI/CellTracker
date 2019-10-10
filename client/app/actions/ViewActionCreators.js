@@ -18,6 +18,7 @@ export function selectExperiment(experiment) {
   });
 
   WebAPIUtils.getExperimentInfo(experiment);
+  WebAPIUtils.getExperimentList();
 };
 
 export function advanceFrames() {

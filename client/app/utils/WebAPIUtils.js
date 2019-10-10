@@ -74,7 +74,8 @@ export function getExperimentInfo(experiment) {
   $.ajax({
     type: "POST",
     url: "/get_experiment_info/" + experiment.id,
-    success: data => {
+    success: (data, textStatus, xhr) => {
+      // Check if locked
       data.has_segmentation = data.has_segmentation === "true";
 
       // Number of frames
@@ -96,7 +97,13 @@ export function getExperimentInfo(experiment) {
       getFrames(data);
     },
     error: (xhr, textStatus, errorThrown) => {
-      console.log(textStatus + ": " + errorThrown);
+      // Check if locked
+      if (xhr.status === 403) {
+        ServerActionCreators.experimentLocked(xhr.responseJSON);
+      }
+      else {
+        console.log(textStatus + ": " + errorThrown);
+      }
     }
   });
 }

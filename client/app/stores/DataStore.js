@@ -11,7 +11,10 @@ const CHANGE_EVENT = "change";
 let userInfo = null;
 
 // List of available experiments
-let experimentList = [];
+let experimentList = {
+  updating: false,
+  experiments: []
+}
 
 // Active experiment
 let experiment = null;
@@ -57,11 +60,11 @@ function setUserInfo(info) {
 }
 
 function setExperimentList(newList) {
-  experimentList = newList;
-  experiment = null;
+  experimentList.updating = false;
+  experimentList.experiments = newList;
 
   // XXX: Decorate with user-specific info here, until such info is supplied by the server
-  experimentList.forEach(experiment => {
+  experimentList.experiments.forEach(experiment => {
     // XXX: Use a fraction since we don't know the number of frames yet
     experiment.userProgress = Math.random();
   });
@@ -69,6 +72,7 @@ function setExperimentList(newList) {
 
 function selectExperiment(newExperiment) {
   experiment = newExperiment;
+  experimentList.updating = true;
 
   reset();
 }
@@ -82,7 +86,7 @@ function setExperiment(newExperiment) {
   experiment = newExperiment;
 
   if (experiment) {
-    experiment.name = experimentList.filter(e => {
+    experiment.name = experimentList.experiments.filter(e => {
       return e.id === experiment.id;
     })[0].name;
     experiment.images = [];
@@ -106,6 +110,15 @@ function setExperiment(newExperiment) {
   }
 
   resetLoading();  
+}
+
+function experimentLocked(info) {
+  experiment = {
+    locked: true,
+    locked_by: info.locked_by
+  }
+
+  loading = null;
 }
 
 function receiveFrame(i, image) {
@@ -881,6 +894,11 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
     case Constants.RECEIVE_EXPERIMENT:
       setExperiment(action.experiment);
       skipBackward();
+      DataStore.emitChange();
+      break;
+
+    case Constants.EXPERIMENT_LOCKED:
+      experimentLocked(action.info);
       DataStore.emitChange();
       break;
 
