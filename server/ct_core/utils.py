@@ -131,8 +131,8 @@ def get_experiment_list_util(req_user=None):
                 exp_dict['name'] = col_md.value
                 if req_user:
                     locked, l_user = is_exp_locked(exp_id)
-                    if locked and l_user.username != req_user.username:
-                        # experiment is locked by another user
+                    if locked:
+                        # experiment is locked
                         exp_dict['locked_by'] = l_user.username
                         locked_exp_list.append(exp_dict)
                     else:
