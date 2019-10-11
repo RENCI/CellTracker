@@ -38,31 +38,54 @@ const DataControls = props => {
     );
   }
 
-  let options = [
+  const lockSymbol = "\uD83D\uDD12";
+  const lockKeySymbol = "\uD83D\uDD10";
+  const emSpace = "\u2003";
+
+  let defaultOption = [
     <option key="-1" value="" disabled hidden>
       Select experiment
     </option>
   ];
 
-  const lockSymbol = "\uD83D\uDD12";
-  const lockKeySymbol = "\uD83D\uDD10";
-  const emSpace = "\u2003";
+  const currentOptions = props.experimentList.experiments.filter((experiment) => {
+    return experiment.locked_by && experiment.locked_by === props.userInfo.username;
+  }).map((experiment, i) => {
+    return (
+      <option 
+        key={i}
+        value={experiment.id}>
+          {experiment.name} 
+      </option>
+    );
+  });
 
-  options = options.concat(props.experimentList.experiments.map((experiment, i) => {
-    const locked = experiment.locked_by && experiment.locked_by !== "";
-    const disabled = !props.userInfo || (locked && experiment.locked_by !== props.userInfo.username);
-
+  const availableOptions = props.experimentList.experiments.filter((experiment) => {
+    return !experiment.locked_by;
+  }).map((experiment, i) => {
     return (
       <option 
         key={i} 
-        value={experiment.id}
-        disabled={disabled}>
-          {experiment.name + (locked ? " " + emSpace + " " + (disabled ? lockSymbol : lockKeySymbol) + " " + experiment.locked_by : "")} 
+        value={experiment.id}>
+          {experiment.name} 
       </option>
     );
-  }));
+  });
 
-  const experimentSelectEnabled = !props.experimentList.updating && options.length > 1 && !props.loading && props.userInfo;
+  const lockedOptions = props.experimentList.experiments.filter((experiment) => {
+    return experiment.locked_by && experiment.locked_by !== props.userInfo.username;
+  }).map((experiment, i) => {
+    return (
+      <option 
+        key={i} 
+        value={experiment.id}>
+          {experiment.name + " " + emSpace + " " + lockSymbol + " " + experiment.locked_by} 
+      </option>
+    );
+  }); 
+
+  const numOptions = currentOptions.length + availableOptions.length + lockedOptions.length;
+  const experimentSelectEnabled = !props.experimentList.updating && numOptions > 0 && !props.loading && props.userInfo;
   const frameControlsEnabled = props.experiment && !props.loading;
   const undoEnabled = props.history && props.history.index > 0;
   const redoEnabled = props.history && props.history.index < props.history.edits.length - 1;
@@ -78,7 +101,22 @@ const DataControls = props => {
           value={props.experiment ? props.experiment.id : ""}
           disabled={!experimentSelectEnabled}
           onChange={onExperimentSelectChange}>
-            {options}
+            {defaultOption}
+            {currentOptions.length === 0 ? null : 
+              <optgroup label="Currently locked experiment" disabled={!props.userInfo}>
+                {currentOptions}
+              </optgroup>
+            }
+            {availableOptions.length === 0 ? null : 
+              <optgroup label="Available experiments" disabled={!props.userInfo}>
+                {availableOptions}
+              </optgroup>
+            }
+            {lockedOptions.length === 0 ? null : 
+              <optgroup label="Locked experiments" disabled={true}>
+                {lockedOptions}
+              </optgroup>
+            }
         </select>
       </div>
       <div className="flex-grow-0 flex-shrink-0">
