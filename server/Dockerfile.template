@@ -1,8 +1,6 @@
-FROM renci/cell_tracker_docker_base:1.1.1
+FROM renci/cell_tracker_docker_base:1.1.2
 MAINTAINER Hong Yi <hongyi@renci.org>
 
-# install StochPy
-RUN pip install scipy==1.2.1
 # install gevent
 RUN pip install gevent==1.1.2
 

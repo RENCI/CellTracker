@@ -2,7 +2,9 @@ FROM python:2
 MAINTAINER Hong Yi <hongyi@renci.org>
 
 RUN apt-get update && apt-get install -y apt-transport-https
-COPY docker.list /etc/apt/sources.list.d/
+COPY . /tmp
+RUN cp /tmp/docker.list /etc/apt/sources.list.d/ \
+    && cp /tmp/requirements.txt /requirements.txt
 
 RUN apt-get update && apt-get install --fix-missing -y --allow-unauthenticated \
     docker-engine \
@@ -36,34 +38,16 @@ RUN echo "export VISIBLE=now" >> /etc/profile
 RUN useradd -d /home/docker -g docker docker \
     && echo 'docker:docker' | chpasswd
 
-WORKDIR /usr/src/
+WORKDIR /
 
 # Install pip based packages (due to dependencies some packages need to come first)
 RUN pip install --upgrade pip
 RUN pip install Django==1.11.18
 RUN pip install numpy==1.11.1
-RUN pip install \
-    arrow==0.7.0 \
-    beautifulsoup4==4.4.1 \
-    celery==4.1.1 \
-    djangorestframework==3.8.2 \
-    future==0.16.0 \
-    gunicorn==19.8.1 \
-    pandas==0.22.0 \
-    Pillow==5.1.0 \
-    psycopg2==2.6.1 \
-    redis==2.10.6 \
-    requests==2.18.4 \
-    python-irodsclient==0.8.1 \
-    opencv-python==3.4.1.15 \
-    Wand==0.4.4 \
-    django-widget-tweaks==1.4.3 \
-    sh==1.12.14
+RUN pip install -r requirements.txt
 
-# install iRODS v4.2.2
-RUN echo "deb http://ftp.debian.org/debian jessie-backports main" \
-    > /etc/apt/sources.list.d/jessie-backports.list \
-    && wget -qO - https://packages.irods.org/irods-signing-key.asc | apt-key add - \
+# install iRODS v4.2.4
+RUN wget -qO - https://packages.irods.org/irods-signing-key.asc | apt-key add - \
     && echo "deb [arch=amd64] https://packages.irods.org/apt/ xenial main" \
     > /etc/apt/sources.list.d/renci-irods.list 
 RUN apt-get update 

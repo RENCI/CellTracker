@@ -1,9 +1,6 @@
 db:
   image: postgres:9.4
   container_name: ct-db
-redis:
-  image: redis:2.8
-  container_name: ct-redis
 rabbitmq:
   image: rabbitmq:3.5
   container_name: ct-rabbitmq
@@ -14,8 +11,6 @@ celltracker:
     POSTGRES_PASSWORD: postgres
     POSTGRES_USER: postgres
     POSTGRES_DB: postgres
-    REDIS_HOST: redis
-    REDIS_PORT: 6379
   volumes:
     # celltracker repository
     - "CC_PATH:/home/docker/celltracker"
@@ -30,7 +25,6 @@ celltracker:
     - "8000:8000"
   links:
     - db:db
-    - redis:redis
     - rabbitmq:rabbitmq
   command: /bin/bash init
 defaultworker:
@@ -40,8 +34,6 @@ defaultworker:
     POSTGRES_PASSWORD: postgres
     POSTGRES_USER: postgres
     POSTGRES_DB: postgres
-    REDIS_HOST: redis
-    REDIS_PORT: 6379
     C_FORCE_ROOT: 1
   volumes_from:
     - celltracker
@@ -49,7 +41,6 @@ defaultworker:
     - "/var/run/docker.sock:/docker.sock"
   links:
     - db:db
-    - redis:redis
     - rabbitmq:rabbitmq
   command: /bin/bash init-defaultworker
 nginx:
