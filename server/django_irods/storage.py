@@ -5,7 +5,7 @@ from django.utils.deconstruct import deconstructible
 from django.core.files.storage import Storage
 from django.core.exceptions import ValidationError
 
-from icommands import GLOBAL_SESSION, GLOBAL_ENVIRONMENT, SessionException
+from .icommands import GLOBAL_SESSION, GLOBAL_ENVIRONMENT, SessionException
 
 
 @deconstructible

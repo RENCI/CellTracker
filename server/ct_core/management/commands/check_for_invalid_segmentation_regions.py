@@ -41,5 +41,5 @@ class Command(BaseCommand):
                     for item in json_data:
                         v_array = item['vertices']
                         if len(v_array) < 3:
-                            print len(v_array)
+                            print(len(v_array))
         return

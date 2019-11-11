@@ -17,7 +17,7 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
-        exp_to_be_excluded = ('18061934100_small', '18061934100', '16101015300',
+        exp_to_be_excluded = ('18061934100_small', '16101015300',
                               '18061934100_test_avi', '18061934100_test_tif')
         exp_list, err_msg = get_experiment_list_util()
         for exp in exp_list:
