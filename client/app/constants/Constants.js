@@ -9,6 +9,8 @@ export default keyMirror({
   RECEIVE_FRAME: null,
   RECEIVE_SEGMENTATION_FRAME: null,
   UPDATE_TRACKING: null,
+
+  LOAD_FRAMES: null,
   ADVANCE_FRAMES: null,
   REVERSE_FRAMES: null,
 

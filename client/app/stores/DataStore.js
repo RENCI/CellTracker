@@ -46,7 +46,9 @@ let settings = {
   filmstripZoomDefault: null,
   zoomPoint: [0.5, 0.5],
   editMode: "regionSelect",
-  stabilize: true
+  stabilize: true,
+  framesToLoad: 10,
+  frameOverlap: 2
 };
 
 // Linking 
@@ -83,14 +85,29 @@ function reset() {
 }
 
 function setExperiment(newExperiment) {
-  experiment = newExperiment;
+  if (newExperiment && newExperiment !== experiment) {
+    experiment = newExperiment;
 
-  if (experiment) {
     experiment.name = experimentList.experiments.filter(e => {
       return e.id === experiment.id;
     })[0].name;
     experiment.images = [];
 
+    // Number of frames
+    const n = Math.min(experiment.frames, settings.framesToLoad);
+
+    // Center around start_frame
+    let start = Math.max(experiment.start_frame - Math.ceil(n / 2) + 1, 1);
+    const stop = Math.min(start + n - 1, experiment.frames);
+    start = stop - n + 1;
+
+    experiment.totalFrames = experiment.frames;
+    experiment.frames = n;
+    experiment.start = start;
+    experiment.stop = stop;
+  }
+
+  if (experiment) {
     if (experiment.has_segmentation) {
       // Empty array to be filled in
       experiment.segmentationData = [];
@@ -294,9 +311,18 @@ function updateLoading() {
   }
 }
 
+function loadFrames(startFrame) {
+  let n = settings.framesToLoad;
+
+  let stop = Math.min(startFrame + n - 1, experiment.totalFrames);
+  let start = Math.max(stop - n + 1, 1);
+
+  updateFrames(start, stop);
+}
+
 function advanceFrames() {
-  let n = experiment.frames;
-  let overlap = 2;
+  let n = settings.framesToLoad;
+  let overlap = settings.frameOverlap;
 
   let stop = Math.min(experiment.stop + n - overlap, experiment.totalFrames);
   let start = Math.max(stop - n + 1, 1);
@@ -305,8 +331,8 @@ function advanceFrames() {
 }
 
 function reverseFrames() {
-  let n = experiment.frames;
-  let overlap = 2;
+  let n = settings.framesToLoad;
+  let overlap = settings.frameOverlap;
 
   let start = Math.max(experiment.start - n + overlap, 1);
   let stop = Math.min(start + n - 1, experiment.totalFrames);
@@ -918,6 +944,11 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
 
     case Constants.UPDATE_TRACKING:
       updateTracking(action.trackingData);
+      DataStore.emitChange();
+      break;
+
+    case Constants.LOAD_FRAMES:
+      loadFrames(action.startFrame);
       DataStore.emitChange();
       break;
 

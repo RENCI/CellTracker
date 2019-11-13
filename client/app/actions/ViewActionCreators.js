@@ -21,6 +21,15 @@ export function selectExperiment(experiment) {
   WebAPIUtils.getExperimentList();
 };
 
+export function loadFrames(startFrame) {
+  AppDispatcher.dispatch({
+    actionType: Constants.LOAD_FRAMES,
+    startFrame: startFrame
+  });
+
+  WebAPIUtils.getFrames(DataStore.getExperiment());
+};
+
 export function advanceFrames() {
   AppDispatcher.dispatch({
     actionType: Constants.ADVANCE_FRAMES

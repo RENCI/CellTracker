@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import IconButton from "./IconButton";
 import ButtonDivider from "./ButtonDivider";
@@ -16,18 +16,24 @@ function onStabilizeClick() {
   ViewActionCreators.toggleStabilize();
 }
 
-function onLoadClick() {
-  console.log("LOAD");
-}
-
 const DataControls = props => {
-  function onExperimentSelectChange(e) {
+  const [startFrame, setStartFrame] = useState(1);
+
+  const onExperimentSelectChange = (e) => {
     const index = props.experimentList.experiments.map(e => e.id).indexOf(e.target.value);
 
     ViewActionCreators.selectExperiment(props.experimentList.experiments[index]);
+  }  
+
+  const onStartFrameChange = (e) => {
+    setStartFrame(+e.target.value);
   }
 
-  function onSaveClick() {
+  const onLoadClick = () => {
+    ViewActionCreators.loadFrames(startFrame);
+  }
+
+  const onSaveClick = () => {
     ViewActionCreators.saveSegmentationData(
       props.experiment.id,
       props.experiment.segmentationData
@@ -87,8 +93,6 @@ const DataControls = props => {
 
   const buttonClasses = "btn btn-primary";
 
-  console.log(props.experiment);
-
   return (
     <div className="d-flex mb-3">
       <div className="flex-grow-1 flex-shrink-1 mr-2">
@@ -117,27 +121,30 @@ const DataControls = props => {
         </select>
       </div>
       <div className="flex-grow-0 flex-shrink-0 mr-2">
-        <div className="input-group">
-              <div className="input-group-prepend">
-                <span className="input-group-text">Start:</span>
-              </div>
-              <input 
-                className="form-control" 
-                type="number" 
-                min={1} 
-                max={props.experiment ? props.experiment.totalFrames : 999}
-                value={1}
-                disabled={!props.experiment} />
-              <div className="input-group-append">
-                <button 
-                  className={buttonClasses} 
-                  type="button" 
-                  disabled={!props.experiment}
-                  onClick={onLoadClick}>
-                    Load
-                </button>
-              </div>
-            </div>
+        <div className="input-group">      
+          <input 
+            className="form-control" 
+            type="number" 
+            min={1} 
+            max={props.experiment && props.experiment.totalFrames ? props.experiment.totalFrames : 999}
+            value={startFrame}
+            disabled={!props.experiment}
+            onChange={onStartFrameChange} />
+          <div className="input-group-append">
+            <span className="input-group-text">
+              {props.experiment && props.experiment.totalFrames ? "/ " + props.experiment.totalFrames : ""}
+            </span>
+          </div>
+          <div className="input-group-append">
+            <button 
+              className={buttonClasses} 
+              type="button" 
+              disabled={!props.experiment}
+              onClick={onLoadClick}>
+                Load
+            </button>
+          </div>
+        </div>
       </div>
       <div className="flex-grow-0 flex-shrink-0">
         <div className="btn-toolbar">                  

@@ -78,22 +78,10 @@ export function getExperimentInfo(experiment) {
       // Check if locked
       data.has_segmentation = data.has_segmentation === "true";
 
-      // Number of frames
-      const n = Math.min(data.frames, 10);
-
-      // Center around start_frame
-      let start = Math.max(data.start_frame - Math.ceil(n / 2) + 1, 1);
-      const stop = Math.min(start + n - 1, data.frames);
-      start = stop - n + 1;
-
-      data.totalFrames = data.frames;
-      data.frames = n;
-      data.start = start;
-      data.stop = stop;
-
       // Create an action
       ServerActionCreators.receiveExperiment(data);
 
+      // Start loading frames
       getFrames(data);
     },
     error: (xhr, textStatus, errorThrown) => {
