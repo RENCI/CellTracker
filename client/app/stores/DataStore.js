@@ -777,6 +777,10 @@ function setFramesToLoad(framesToLoad) {
   settings.framesToLoad = framesToLoad;
 }
 
+function setFrameOverlap(frameOverlap) {
+  settings.frameOverlap = frameOverlap;
+}
+
 function getZoomLevels(item) {
   if (settings.zoomDefault && settings.filmstripZoomDefault) {
     return {
@@ -1059,6 +1063,11 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       setFramesToLoad(action.framesToLoad);
       DataStore.emitChange();
       break;
+
+    case Constants.SET_FRAME_OVERLAP:
+        setFrameOverlap(action.frameOverlap);
+        DataStore.emitChange();
+        break;
 
     case Constants.ZOOM:
       zoom(action.view, action.direction);

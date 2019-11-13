@@ -177,6 +177,13 @@ export function setFramesToLoad(framesToLoad) {
   });
 }
 
+export function setFrameOverlap(frameOverlap) {
+  AppDispatcher.dispatch({
+    actionType: Constants.SET_FRAME_OVERLAP,
+    frameOverlap: frameOverlap
+  });
+}
+
 export function zoom(view, direction) {
   AppDispatcher.dispatch({
     actionType: Constants.ZOOM,

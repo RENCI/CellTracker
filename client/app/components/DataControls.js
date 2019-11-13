@@ -20,6 +20,11 @@ function onFramesToLoadChange(e) {
   ViewActionCreators.setFramesToLoad(+e.target.value);
 }
 
+function onFrameOverlapChange(e) {
+  ViewActionCreators.setFrameOverlap(+e.target.value);
+}
+
+
 const DataControls = props => {
   const [startFrame, setStartFrame] = useState(1);
 
@@ -202,6 +207,17 @@ const DataControls = props => {
                       max={20}
                       value={props.settings.framesToLoad}
                       onChange={onFramesToLoadChange} />
+                  </div>
+                  <div className="form-group mt-3">
+                    <label htmlFor="frameOverlapInput">Frame overlap</label>
+                    <input 
+                      className="form-control form-control-sm" 
+                      id="frameOverlapInput"
+                      type="number" 
+                      min={0} 
+                      max={Math.floor(props.settings.framesToLoad / 2)}
+                      value={props.settings.frameOverlap}
+                      onChange={onFrameOverlapChange} />
                   </div>
                 </div>
               </div>
