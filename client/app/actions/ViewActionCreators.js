@@ -170,6 +170,13 @@ export function toggleStabilize() {
   });
 };
 
+export function setFramesToLoad(framesToLoad) {
+  AppDispatcher.dispatch({
+    actionType: Constants.SET_FRAMES_TO_LOAD,
+    framesToLoad: framesToLoad
+  });
+}
+
 export function zoom(view, direction) {
   AppDispatcher.dispatch({
     actionType: Constants.ZOOM,

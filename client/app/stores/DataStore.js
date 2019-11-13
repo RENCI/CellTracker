@@ -3,7 +3,6 @@ import { EventEmitter } from "events";
 import assign from "object-assign";
 import rbush from "rbush";
 import Constants from "../constants/Constants";
-import { getExperimentInfo } from "../utils/WebAPIUtils";
 
 const CHANGE_EVENT = "change";
 
@@ -774,6 +773,10 @@ function toggleStabilize() {
   settings.stabilize = !settings.stabilize;
 }
 
+function setFramesToLoad(framesToLoad) {
+  settings.framesToLoad = framesToLoad;
+}
+
 function getZoomLevels(item) {
   if (settings.zoomDefault && settings.filmstripZoomDefault) {
     return {
@@ -1049,6 +1052,11 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
 
     case Constants.TOGGLE_STABILIZE:
       toggleStabilize();
+      DataStore.emitChange();
+      break;
+
+    case Constants.SET_FRAMES_TO_LOAD:
+      setFramesToLoad(action.framesToLoad);
       DataStore.emitChange();
       break;
 

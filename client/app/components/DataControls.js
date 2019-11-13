@@ -16,6 +16,10 @@ function onStabilizeClick() {
   ViewActionCreators.toggleStabilize();
 }
 
+function onFramesToLoadChange(e) {
+  ViewActionCreators.setFramesToLoad(+e.target.value);
+}
+
 const DataControls = props => {
   const [startFrame, setStartFrame] = useState(1);
 
@@ -176,7 +180,7 @@ const DataControls = props => {
                 classes={buttonClasses}
                 dropDown={true} />
               <div className="dropdown-menu">
-                <form className="px-3" style={{fontSize: "small"}}>
+                <div className="px-3 small">
                   <div className="form-check">
                     <input 
                       type="checkbox" 
@@ -188,7 +192,18 @@ const DataControls = props => {
                       Stabilize playback
                     </label>
                   </div>
-                </form>
+                  <div className="form-group mt-3">
+                    <label htmlFor="framesToLoadInput">Frames to load</label>
+                    <input 
+                      className="form-control form-control-sm" 
+                      id="framesToLoadInput"
+                      type="number" 
+                      min={5} 
+                      max={20}
+                      value={props.settings.framesToLoad}
+                      onChange={onFramesToLoadChange} />
+                  </div>
+                </div>
               </div>
             </div>
           </div>

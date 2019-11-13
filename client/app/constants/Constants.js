@@ -33,6 +33,7 @@ export default keyMirror({
   REDO_HISTORY: null,
 
   TOGGLE_STABILIZE: null,
+  SET_FRAMES_TO_LOAD: null,
 
   ZOOM: null,
   SET_EDIT_MODE: null,
