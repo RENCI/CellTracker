@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import IconButton from "./IconButton";
 import ButtonDivider from "./ButtonDivider";
@@ -26,7 +26,15 @@ function onFrameOverlapChange(e) {
 
 
 const DataControls = props => {
-  const [startFrame, setStartFrame] = useState(1);
+  const [loading, setLoading] = useState(props.loading);
+  const [startFrame, setStartFrame] = useState("");
+
+  useEffect(() => {
+    if (props.experiment && props.experiment.start && props.loading !== loading) {
+      if (props.loading) setStartFrame(props.experiment.start);
+      setLoading(props.loading);
+    }
+  }, [props, loading]);
 
   const onExperimentSelectChange = (e) => {
     const index = props.experimentList.experiments.map(e => e.id).indexOf(e.target.value);
@@ -137,7 +145,7 @@ const DataControls = props => {
             min={1} 
             max={props.experiment && props.experiment.totalFrames ? props.experiment.totalFrames : 999}
             value={startFrame}
-            disabled={!props.experiment}
+            disabled={!frameControlsEnabled}
             onChange={onStartFrameChange} />
           <div className="input-group-append">
             <span className="input-group-text">
@@ -148,7 +156,7 @@ const DataControls = props => {
             <button 
               className={buttonClasses} 
               type="button" 
-              disabled={!props.experiment}
+              disabled={!frameControlsEnabled}
               onClick={onLoadClick}>
                 Load
             </button>
