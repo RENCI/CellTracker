@@ -123,9 +123,9 @@ const EditControls = props => {
       </div>      
       <div className={"btn-group-sm" + spacing}>
         <IconButton 
-          iconName="oi-action-undo" callback={onUndoClick} disabled={!undoEnabled} tooltip="Undo" shortcut="z" />
+          iconName="oi-action-undo" callback={onUndoClick} disabled={!undoEnabled} tooltip="Undo" shortcut="Ctrl-z" />
         <IconButton
-          iconName="oi-action-redo" callback={onRedoClick} disabled={!redoEnabled} tooltip="Redo" shortcut="y" />
+          iconName="oi-action-redo" callback={onRedoClick} disabled={!redoEnabled} tooltip="Redo" shortcut="Ctrl-y" />
       </div>
     </div>
   );
