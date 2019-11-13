@@ -16,6 +16,10 @@ function onStabilizeClick() {
   ViewActionCreators.toggleStabilize();
 }
 
+function onLoadClick() {
+  console.log("LOAD");
+}
+
 const DataControls = props => {
   function onExperimentSelectChange(e) {
     const index = props.experimentList.experiments.map(e => e.id).indexOf(e.target.value);
@@ -83,6 +87,8 @@ const DataControls = props => {
 
   const buttonClasses = "btn btn-primary";
 
+  console.log(props.experiment);
+
   return (
     <div className="d-flex mb-3">
       <div className="flex-grow-1 flex-shrink-1 mr-2">
@@ -110,9 +116,32 @@ const DataControls = props => {
             }
         </select>
       </div>
+      <div className="flex-grow-0 flex-shrink-0 mr-2">
+        <div className="input-group">
+              <div className="input-group-prepend">
+                <span className="input-group-text">Start:</span>
+              </div>
+              <input 
+                className="form-control" 
+                type="number" 
+                min={1} 
+                max={props.experiment ? props.experiment.totalFrames : 999}
+                value={1}
+                disabled={!props.experiment} />
+              <div className="input-group-append">
+                <button 
+                  className={buttonClasses} 
+                  type="button" 
+                  disabled={!props.experiment}
+                  onClick={onLoadClick}>
+                    Load
+                </button>
+              </div>
+            </div>
+      </div>
       <div className="flex-grow-0 flex-shrink-0">
-        <div className="btn-toolbar">
-          <div className="btn-group mr-2">
+        <div className="btn-toolbar">                  
+          <div className="btn-group mr-2">            
             <IconButton
               iconName="oi-arrow-thick-left"
               disabled={!frameControlsEnabled}
