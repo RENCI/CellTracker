@@ -12,14 +12,6 @@ function onForwardClick() {
   ViewActionCreators.advanceFrames();
 }
 
-function onUndoClick() {
-  ViewActionCreators.undoHistory();
-}
-
-function onRedoClick() {
-  ViewActionCreators.redoHistory();
-}
-
 function onStabilizeClick() {
   ViewActionCreators.toggleStabilize();
 }
@@ -87,8 +79,7 @@ const DataControls = props => {
   const numOptions = currentOptions.length + availableOptions.length + lockedOptions.length;
   const experimentSelectEnabled = !props.experimentList.updating && numOptions > 0 && !props.loading && props.userInfo;
   const frameControlsEnabled = props.experiment && !props.loading;
-  const undoEnabled = props.history && props.history.index > 0;
-  const redoEnabled = props.history && props.history.index < props.history.edits.length - 1;
+  const saveEnabled = props.history && props.history.index > 0;
 
   const buttonClasses = "btn btn-primary";
 
@@ -137,21 +128,9 @@ const DataControls = props => {
           <div className="btn-group mr-2">
             <IconButton
                 iconName="oi-data-transfer-upload"
-                disabled={!undoEnabled}
+                disabled={!saveEnabled}
                 classes={buttonClasses}
                 callback={onSaveClick} />
-          </div>
-          <div className="btn-group mr-2">
-            <IconButton
-              iconName="oi-action-undo"
-              disabled={!undoEnabled}
-              classes={buttonClasses}
-              callback={onUndoClick} />
-            <IconButton
-              iconName="oi-action-redo"
-              disabled={!redoEnabled}
-              classes={buttonClasses}
-              callback={onRedoClick} />
           </div>
           <ButtonDivider />
           <div className="btn-group">

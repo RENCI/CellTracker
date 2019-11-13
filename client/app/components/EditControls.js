@@ -64,11 +64,22 @@ function onResetClick() {
   ViewActionCreators.selectRegion(-1, null);
 }
 
+function onUndoClick() {
+  ViewActionCreators.undoHistory();
+}
+
+function onRedoClick() {
+  ViewActionCreators.redoHistory();
+}
+
 const EditControls = props => {
   const ref = useRef(null);
   useTooltip(ref); 
 
   const spacing = " ml-3";
+
+  const undoEnabled = props.history && props.history.index > 0;
+  const redoEnabled = props.history && props.history.index < props.history.edits.length - 1;
 
   return (
     <div className="form-inline justify-content-center" ref={ref}>
@@ -109,13 +120,20 @@ const EditControls = props => {
           iconName="oi-link-intact" callback={onRegionLinkClick} active={props.editMode === "regionLink"} tooltip="Link regions" shortcut="f" />
         <IconButton 
           iconName="oi-link-broken" callback={onRegionBreakLinkClick} active={props.editMode === "regionBreakLink"} tooltip="Break region links" shortcut="g" />
+      </div>      
+      <div className={"btn-group-sm" + spacing}>
+        <IconButton 
+          iconName="oi-action-undo" callback={onUndoClick} disabled={!undoEnabled} tooltip="Undo" shortcut="z" />
+        <IconButton
+          iconName="oi-action-redo" callback={onRedoClick} disabled={!redoEnabled} tooltip="Redo" shortcut="y" />
       </div>
     </div>
   );
 }
 
 EditControls.propTypes = {
-  editMode: PropTypes.string.isRequired
+  editMode: PropTypes.string.isRequired,
+  history: PropTypes.object
 };
 
 export default EditControls;

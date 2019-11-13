@@ -60,7 +60,9 @@ const EditView = props => {
 
       <div className="row">
         <div className="offset-md-2 col-md-8">
-          <EditControls editMode={props.settings.editMode} />        
+          <EditControls 
+            editMode={props.settings.editMode}
+            history={props.history} />        
         </div>
         <div className="col-md-2">
           <FilmstripControls />        
@@ -99,7 +101,8 @@ const EditView = props => {
 EditView.propTypes = {
   experiment: PropTypes.object,
   settings: PropTypes.object,
-  playback: PropTypes.object
+  playback: PropTypes.object,
+  history: PropTypes.object
 };
 
 export default EditView;
