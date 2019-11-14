@@ -212,7 +212,7 @@ const DataControls = props => {
                       id="framesToLoadInput"
                       type="number" 
                       min={5} 
-                      max={20}
+                      max={props.experiment && props.experiment.totalFrames ? props.experiment.totalFrames : 5}
                       value={props.settings.framesToLoad}
                       onChange={onFramesToLoadChange} />
                   </div>

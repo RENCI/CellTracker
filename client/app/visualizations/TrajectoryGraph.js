@@ -6,8 +6,9 @@ export default function() {
   let margin = { top: 10, left: 10, bottom: 10, right: 10 },
       width = 200,
       height = 200,
+      fullHeight = 200,
       innerWidth = function() { return width - margin.left - margin.right; },
-      innerHeight = function() { return height - margin.top - margin.bottom; },
+      innerHeight = function() { return fullHeight - margin.top - margin.bottom; },
 
       // Data
       data,
@@ -175,8 +176,13 @@ export default function() {
     });
 
     // Compute node size
+    fullHeight = height;
     nodeSize = innerHeight() / 80;
     nodeStrokeWidth = nodeSize / 6;
+
+    // Minimum spacing in y
+    const minYSpacing = nodeSize * 2;
+    fullHeight = Math.max(nodes.length * minYSpacing, height);
 
     const padding = 0.5;
 
