@@ -22,14 +22,14 @@ while read line; do export $line; done < <(cat $LOCAL_ENV_FILE)
 # create docker-compose.yml from docker-compose-production.yml or docker-compose-dev.yml
 cd $CC_PATH
 if [[ $USE_NGINX = 'true' ]]; then
-    cp docker-compose-production.yml docker-compose.yml
+    cp -f docker-compose-production.yml docker-compose.yml
 else
-    cp docker-compose-dev.yml docker-compose.yml
+    cp -f docker-compose-dev.yml docker-compose.yml
 fi
 sed -i 's!CC_PATH!'${CC_PATH}'!g' ${CC_PATH}/docker-compose.yml
 
 # copy DockerFile.template to DockerFile
-cp Dockerfile.template Dockerfile
+cp -f Dockerfile.template Dockerfile
 sed -i 's!HOST_USER_UID!'${HOST_USER_UID}'!g' ${CC_PATH}/Dockerfile
 sed -i 's!HOST_USER_GID!'${HOST_USER_GID}'!g' ${CC_PATH}/Dockerfile
 
