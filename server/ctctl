@@ -4,7 +4,7 @@
 # CellTracker Control Script
 # Author: Hong Yi 
 ### Local Config ###
-CONFIG_DIRECTORY='config'
+CONFIG_DIRECTORY='./config'
 CONFIG_FILE='ct-config.yaml'
 LOCAL_ENV_FILE='local-env.sh'
 HOME_DIR=${PWD}
@@ -162,16 +162,16 @@ backup_cc() {
     cd ${BACKUP_PATH}
 
     # backup local_settings.py
-    cp ${CC_PATH}/celltracker/local_settings.py \
+    cp -f ${CC_PATH}/celltracker/local_settings.py \
         ./local_settings.py
     # backup ct-config.yaml
-    cp ${CC_PATH}/config/ct-config.yaml \
+    cp -f ${CC_PATH}/config/ct-config.yaml \
         ./ct-config.yaml
     # backup docker-compose.yml
-    cp ${HOME_DIR}/docker-compose.yml \
+    cp -f ${HOME_DIR}/docker-compose.yml \
         ./docker-compose.yml
     # backup database
-    cp ${CC_PATH}/pg.cc-`date +"%m-%d-%y"`.sql \
+    cp -f ${CC_PATH}/pg.cc-`date +"%m-%d-%y"`.sql \
         ./pg.cc-`date +"%m-%d-%y"`.sql
 
     # remove the backup db from home directory
