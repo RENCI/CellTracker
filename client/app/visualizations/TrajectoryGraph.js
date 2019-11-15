@@ -43,7 +43,9 @@ export default function() {
           .attr("class", "trajectoryGraph");
 
       const g = svgEnter.append("g")
-          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+        .append("g")
+          .attr("class", "mainGroup");
 
       // Groups for layout
       g.append("g").attr("class", "frames");
@@ -267,6 +269,20 @@ export default function() {
     svg .attr("width", width)
         .attr("height", height);
 
+    // Translate to keep current frame in view
+    const frameScale = d3.scaleLinear()
+        .domain([0, data.segmentationData.length - 1])
+        .range([0, innerHeight() - nodeSize]);
+
+    let y = height / 2 - frameScale(currentFrame);
+
+    // Clamp
+    y = Math.max(height - fullHeight, Math.min(y, 0));
+
+    svg.select(".mainGroup")
+        .attr("transform", "translate(0," + y + ")");    
+
+    // Get nodes and links
     const {nodes, links} = graph;
 
     // Set color map as it is set in sketch. Should probably do this elsewhere and pass in
