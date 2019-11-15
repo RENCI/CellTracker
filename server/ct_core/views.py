@@ -26,6 +26,7 @@ from rest_framework import status
 from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist
 
+from ct_core.scoring_utils import get_edit_score
 from ct_core.utils import get_experiment_list_util, read_video, \
     extract_images_from_video_to_irods, read_image_frame, get_seg_collection, \
     save_user_seg_data_to_db, get_start_frame, get_exp_image, get_edited_frames, get_all_edit_users, \
@@ -710,3 +711,20 @@ def download(request, exp_id, username):
     response['Content-Disposition'] = 'attachment; filename="{name}"'.format(name=zip_fname)
     response['Content-Lengtsh'] = flen
     return response
+
+
+@login_required
+def get_score(request, exp_id, frame_no):
+    seg_data = request.POST.dict()
+    if 'regions' not in seg_data:
+        return JsonResponse({'message': 'regions key not included in user edit segmentation data'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    try:
+        reg_data = json.loads(seg_data['regions'])
+        score, err_msg = get_edit_score(exp_id, frame_no, reg_data[0]['vertices'])
+        if err_msg:
+            return JsonResponse({'message': err_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return JsonResponse({'score': score}, status=status.HTTP_200_OK)
+    except Exception as ex:
+        return JsonResponse({'message': ex.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

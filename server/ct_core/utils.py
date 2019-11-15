@@ -27,9 +27,6 @@ from ct_core.models import Segmentation, UserSegmentation, UserProfile, get_path
 from ct_core.task_utils  import get_exp_frame_no, validate_user, is_power_user
 
 
-MAX_PRIORITY_STRING_LEN = 10
-
-
 def is_exp_locked(exp_id):
     """
     Check if experiment is locked, and if yes, check whether lock needs to be released
@@ -59,6 +56,7 @@ def release_locks_by_user(u):
         item.locked_user = None
         item.save()
 
+
 def lock_experiment(exp_id, u):
     try:
         # release lockes this user placed on other experiments before locking this experiment
@@ -72,16 +70,8 @@ def lock_experiment(exp_id, u):
         pass
 
 
-def pack_zeros(input_str):
-    ilen = len(input_str)
-    if ilen >= MAX_PRIORITY_STRING_LEN:
-        return input_str
-
-    zero_cnt = MAX_PRIORITY_STRING_LEN - ilen
-    pack_str = ''
-    for i in range(0, zero_cnt):
-        pack_str += '0'
-    return pack_str + input_str
+def pack_zeros(input_str, string_len=settings.MAX_PRIORITY_STRING_LEN):
+    return input_str.zfill(string_len)
 
 
 def get_experiment_list_util(req_user=None):
@@ -333,17 +323,14 @@ def get_exp_image(exp_id, frame_no, type='jpg'):
             img1_name = file_list[0]
             start_idx = len('frame')
             seq_len = len(img1_name[start_idx:-4])
-            if len(frame_no) == seq_len:
-                img_name = 'frame' + frame_no + '.' + type
-            elif len(frame_no) > seq_len:
+            if len(frame_no) > seq_len:
                 return None, 'Requested frame_no does not exist'
+            elif len(frame_no) == seq_len:
+                img_name = 'frame' + frame_no + '.' + type
             else:
                 # len(frame_no) < seq_len
-                zero_cnt = seq_len - len(frame_no)
-                packstr = ''
-                for i in range(0, zero_cnt):
-                    packstr += '0'
-                img_name = 'frame' + packstr + frame_no + '.' + type
+                packstr = pack_zeros(frame_no, seq_len)
+                img_name = 'frame' + packstr + '.' + type
 
     ifile = os.path.join(image_path, img_name)
     if os.path.isfile(ifile):
