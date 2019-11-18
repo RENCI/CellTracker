@@ -318,12 +318,14 @@ export default function() {
       // Link enter + update
       link.enter().append("path")
           .attr("class", "link")
-          .style("fill", "none")          
+          .style("fill", "none")    
+/*                
           .on("mouseover", mousemove)
           .on("mousemove", mousemove)
           .on("mouseout", function(d) {
             dispatcher.call("highlightRegion", this, null, null);
           })
+*/          
         .merge(link)
           .attr("d", linkShape)
           .style("stroke", stroke)
@@ -359,13 +361,13 @@ export default function() {
 
       // Node enter + update
       node.enter().append("rect")
-          .attr("class", "node")
+          .attr("class", "node")          
           .on("mouseover", function(d) {
-            dispatcher.call("highlightRegion", this, d.frameIndex, d.region);
+            dispatcher.call("highlightRegion", this, null, d.region);
           })
           .on("mouseout", function(d) {
             dispatcher.call("highlightRegion", this, null, null);
-          })
+          })          
           .on("click", function(d) {
             dispatcher.call("selectRegion", this, d.frameIndex, d.region);
           })
@@ -442,10 +444,12 @@ export default function() {
 
       // Frame enter
       let frameEnter = frame.enter().append("g")
-          .attr("class", "frame")
+          .attr("class", "frame");
+/*          
           .on("mouseover", function(d, i) {
-            //dispatcher.call("setFrame", this, i);
+            dispatcher.call("setFrame", this, i);
           });
+*/          
 
       frameEnter.append("rect")
           .attr("class", "background")
