@@ -179,6 +179,7 @@ MAX_PRIORITY_STRING_LEN = 10
 
 # settings for scoring
 SCORE_MODEL_PATH = os.path.join(BASE_DIR, 'models', 'scoreNet_t3_180_unfreeze.pkl')
+SCORE_IMAGE_DIMENSION = (180, 180)
 
 # set experiment lock timeout to be 12 hours
 LOCK_TIMEOUT_SECONDS = 43200

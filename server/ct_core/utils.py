@@ -598,8 +598,7 @@ def compute_time_series_and_put_in_irods(exp_id, username=''):
     otherwise, use user edit segmentation tracking data
     :return:
     """
-    if isinstance(username, unicode):
-        username = str(username)
+    username = str(username)
 
     fno = get_exp_frame_no(exp_id)
     if fno < 0:

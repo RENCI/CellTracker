@@ -2,6 +2,7 @@
 # also import order is important - import torch first, then skimage, then fastai
 
 import torch
+import os
 
 from skimage.io import imread
 from skimage.draw import polygon
@@ -11,7 +12,11 @@ from fastai.utils.mem import *
 
 from django.conf import settings
 
-from ct_core.utils import get_exp_image
+
+class MultiChannelImageList(ImageList):
+    # placeholder class for loading the trained model
+    def open(self, fn):
+        return []
 
 
 def _create_mask_image(row, col, row_list, col_list):
@@ -24,6 +29,15 @@ def _create_mask_image(row, col, row_list, col_list):
     :return: mask image with pixel value of 255 inside polygon boundary, and 0 outside the boundary
     """
     img = np.zeros((row, col), dtype=np.uint8)
+    # make sure all image values are positive
+    for i, item in enumerate(row_list):
+        if item < 0:
+            row_list[i] = 0
+
+    for i, item in enumerate(col_list):
+        if item < 0:
+            col_list[i] = 0
+
     r = np.array(row_list)
     c = np.array(col_list)
     rr, cc = polygon(r, c)
@@ -44,23 +58,43 @@ def _create_mask_overlay_image(in_img_path, vert_arr):
     r = in_img.shape[0]
     c = in_img.shape[1]
 
-    # scale vertices back to image range
+    # find center and scale vertices back to image range
+    sum_x = 0.0
+    sum_y = 0.0
+    count = 0
     for v in vert_arr:
         y = float(v[0]) * c
         x = float(v[1]) * r
         v[0] = y
         v[1] = x
+        sum_x += x
+        sum_y += y
+        count += 1
 
-    row_arr = [v[1] for v in vert_arr]
-    col_arr = [v[0] for v in vert_arr]
-    mask_img = _create_mask_image(r, c, row_arr, col_arr)
-    img_list = [in_img, mask_img]
-    overlay_img = torch.zeros((len(img_list), r, c))
+    center_x = int(sum_x /count + 0.5)
+    center_y = int(sum_y / count + 0.5)
+    dim_x = settings.SCORE_IMAGE_DIMENSION[0]
+    dim_y = settings.SCORE_IMAGE_DIMENSION[1]
+    half_size_x = dim_x / 2
+    half_size_y = dim_y / 2
+
+    row_arr = [v[1]-center_x + half_size_x for v in vert_arr]
+    col_arr = [v[0]-center_y + half_size_y for v in vert_arr]
+
+    mask_img = _create_mask_image(dim_x, dim_y, row_arr, col_arr)
+
+    x_start = (int)(center_x - half_size_x) if center_x >= half_size_x else 0
+    y_start = (int)(center_y - half_size_y) if center_y >= half_size_y else 0
+
+    img_list = [in_img[x_start:x_start+dim_x, y_start:y_start+dim_y, 0], mask_img]
+    img_count = len(img_list)
+    overlay_img = torch.zeros((img_count, dim_x, dim_y))
 
     for i, img in enumerate(img_list):
-        data = torch.from_numpy(img.astype(float)).div_(255.)
+        ori_data = torch.from_numpy(img.astype(float))
+        data = ori_data.div_(255.)
         overlay_img[i, :, :] = data
-    return overlay_img
+    return Image(overlay_img)
 
 
 def get_edit_score(exp_id, frm_no, vert_list):
@@ -71,6 +105,10 @@ def get_edit_score(exp_id, frm_no, vert_list):
     :param vert_list: vertices list in the format of [[y, x],...] with y and x normalized within [0,1]
     :return: score, err_msg
     """
+    # this import has to be put on the local method level due to the extra import for MultiChannelImageList
+    # being needed at the __main__ level in manage.py
+    from ct_core.utils import get_exp_image
+
     ifile, err_msg = get_exp_image(exp_id, frm_no)
     if err_msg:
         return None, err_msg

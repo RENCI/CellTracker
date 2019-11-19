@@ -2,6 +2,11 @@
 import os
 import sys
 
+# this import is necessary for loading the scoring model - this MultiChannelImageList class
+# has to be imported at the top __main__ level; otherwise, an AttributeError will result
+# when loading the model
+from ct_core.scoring_utils import MultiChannelImageList
+
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "celltracker.settings")
     try:
