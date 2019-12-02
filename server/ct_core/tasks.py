@@ -27,10 +27,8 @@ def add_tracking(exp_id, username='', frm_idx=-1):
     :return:
     """
     ret_result = []
-    if isinstance(username, unicode):
-        username = str(username)
-    if isinstance(frm_idx, unicode):
-        frm_idx = int(frm_idx)
+    username = str(username)
+    frm_idx = int(frm_idx)
 
     fno = get_exp_frame_no(exp_id)
     if fno < 0:
