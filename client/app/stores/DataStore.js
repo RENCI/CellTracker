@@ -1112,9 +1112,9 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
           break;
 
         case "p":
-            setEditMode("regionPaste");
-            DataStore.emitChange();
-            break;
+          setEditMode("regionPaste");
+          DataStore.emitChange();
+          break;
 
         case "s":
           setEditMode("regionSplit");

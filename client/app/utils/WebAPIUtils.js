@@ -251,3 +251,25 @@ export function saveSegmentationData(id, data) {
     });
   });
 }
+
+export function getRegionScore(id, frame, region) {
+  setupAjax();
+
+  const regionString = JSON.stringify(region);
+
+  $.ajax({
+    type: "POST",
+    url: "/get_score/" + id + "/" + frame,
+    data: {
+      region: regionString
+    },
+    success: data => {
+      if (data.score) {
+        console.log("Score: " + data.score);
+      }
+    },
+    error: (xhr, textStatus, errorThrown) => {
+      console.log(textStatus + ": " + errorThrown);
+    }
+  });
+}

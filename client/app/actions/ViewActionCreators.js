@@ -152,6 +152,10 @@ export function saveSegmentationData(id, segmentationData) {
   });
 };
 
+export function getRegionScore(id, frame, region) {
+  WebAPIUtils.getRegionScore(id, frame, region);
+};
+
 export function undoHistory() {
   AppDispatcher.dispatch({
     actionType: Constants.UNDO_HISTORY

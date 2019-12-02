@@ -716,12 +716,12 @@ def download(request, exp_id, username):
 @login_required
 def get_score(request, exp_id, frame_no):
     seg_data = request.POST.dict()
-    if 'regions' not in seg_data:
-        return JsonResponse({'message': 'regions key not included in user edit segmentation data'},
+    if 'region' not in seg_data:
+        return JsonResponse({'message': 'region key not included in user edit segmentation data'},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     try:
-        reg_data = json.loads(seg_data['regions'])
-        score, err_msg = get_edit_score(exp_id, frame_no, reg_data[0]['vertices'])
+        reg_data = json.loads(seg_data['region'])
+        score, err_msg = get_edit_score(exp_id, frame_no, reg_data['vertices'])
         if err_msg:
             return JsonResponse({'message': err_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
