@@ -265,7 +265,7 @@ export function getRegionScore(id, frame, region) {
     },
     success: data => {
       if (data.score) {
-        console.log("Score: " + data.score);
+        alert("Score: " + data.score);
       }
     },
     error: (xhr, textStatus, errorThrown) => {
