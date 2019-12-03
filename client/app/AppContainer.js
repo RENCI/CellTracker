@@ -76,7 +76,7 @@ const AppContainer = () => {
           const currentRegion = experiment.segmentationData[frame].regions.filter(region => region.highlight);
 
           if (currentRegion.length === 1) {
-            getRegionScore(experiment.id, frame, currentRegion[0]);
+            getRegionScore(experiment.id, frame+1, currentRegion[0]);
           }
         }
 
