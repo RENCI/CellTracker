@@ -257,6 +257,8 @@ export function getRegionScore(id, frame, region) {
 
   const regionString = JSON.stringify(region);
 
+  console.log("Sending region");
+
   $.ajax({
     type: "POST",
     url: "/get_score/" + id + "/" + frame,
@@ -264,8 +266,12 @@ export function getRegionScore(id, frame, region) {
       region: regionString
     },
     success: data => {
-      if (data.score) {
-        alert("Score: " + data.score);
+      console.log(data);
+
+      const score = +data.score;
+      if (!isNaN(score)) {
+        //alert("Score: " + data.score);
+        console.log(score);
       }
     },
     error: (xhr, textStatus, errorThrown) => {
