@@ -97,6 +97,116 @@ export default function() {
     }
 
     // Create nodes from regions
+    let nodes = [{
+      // Root
+      id: "root"
+    }].concat(data.segmentationData.map((frame, i) => {
+      // Dummy node per frame
+      return {
+        id: id(i, "dummy"),
+        parentId: i === 0 ? "root" : id(i - 1, "dummy")
+      };
+    })).concat(d3.merge(data.segmentationData.map((frame, i) => {  
+      // Nodes for visible trajectories    
+      return frame.regions.filter(region => {
+        return visibleTrajectories ? visibleTrajectories.has(region.trajectory_id) : true;
+      }).map(region => {
+        return {
+          id: id(i, region.id),
+          parentId: i === 0 ? "root" : 
+              region.link_id ? id(i - 1, region.link_id) :
+              id(i - 1, "dummy"),
+          region: region
+        };
+      });
+    })));
+
+    const root = d3.stratify()(nodes);
+
+    // Process tree data
+    root.each(node => {
+      if (node.data.region) {
+        // For easier access
+        node.region = node.data.region;
+
+        // Value based on number of children
+        node.value = node.children ? node.children.length : 1;
+      }
+    });
+
+    // Compute node size
+    fullHeight = height;
+    nodeSize = innerHeight() / 80;
+    nodeStrokeWidth = nodeSize / 6;
+
+    // Minimum spacing in y
+    const numFrames = data.segmentationData.length;
+    const minYSpacing = nodeSize * 2;
+    fullHeight = Math.max(numFrames * minYSpacing, height);
+
+    // X scaling
+    const padScale = 0.5;
+    const tree = d3.tree()
+        .nodeSize([nodeSize + nodeSize * padScale, fullHeight / numFrames])
+        .separation(node => node.value) 
+        (root);    
+
+    nodes = tree.descendants().filter(node => {
+      return node.data.region;
+    });
+
+
+// Update width based on node size
+// XXX: NEED TO UPDATE THIS
+width = -d3.min(nodes, node => node.x0) + nodeSize + margin.left + margin.right;
+
+// Update x position
+const xShift = innerWidth() - nodeSize / 2;
+nodes.forEach(node => {
+  node.x0 += xShift;
+  node.x1 += xShift;
+});
+
+
+
+
+    nodes.forEach(node => {
+      node.region = node.data.region;
+
+      const w = (node.children ? node.children.length : 1) * nodeSize;
+
+      node.x0 = node.x - w / 2;
+      node.x1 = node.x + w / 2;
+
+      node.y0 = node.y - nodeSize / 2;
+      node.y1 = node.y + nodeSize / 2;
+    });
+
+    const links = tree.links().filter(link => {
+      return link.source.region && link.target.region;
+    });
+
+    links.forEach(link => {
+      link.point0 = { x: link.source.x, y: link.source.y };
+      link.point1 = { x: link.target.x, y: link.target.y };
+      link.width = nodeSize;
+    });
+
+
+    console.log(nodes);
+
+    
+    graph = {
+      nodes: nodes,
+      links: links
+    };
+
+
+
+
+/*    
+
+    // Create nodes from regions
     let nodes = data.segmentationData.map((frame, i) => {
       const frameNodes = {};
 
@@ -261,13 +371,13 @@ export default function() {
 
         x += nodeSize;
       });
-    });
+    });    
 
     graph = {
       nodes: nodes,
       links: links
     };
-
+*/
     function id(frameIndex, regionId) {
       return "frame" + frameIndex + "_" + regionId;
     }
