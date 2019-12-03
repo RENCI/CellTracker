@@ -72,11 +72,12 @@ const AppContainer = () => {
 
       case "0": {
         if (experiment && experiment.segmentationData && playback) {
-          const frame = playback.frame;
-          const currentRegion = experiment.segmentationData[frame].regions.filter(region => region.highlight);
+          const currentRegion = experiment.segmentationData[playback.frame].regions.filter(region => region.highlight);
 
           if (currentRegion.length === 1) {
-            getRegionScore(experiment.id, frame+1, currentRegion[0]);
+            const frame = experiment.start + playback.frame;
+            
+            getRegionScore(experiment.id, frame, currentRegion[0]);
           }
         }
 
