@@ -186,7 +186,13 @@ export default function() {
     const minYSpacing = nodeSize * 2;
     fullHeight = Math.max(nodes.length * minYSpacing, height);
 
-    const padding = 0.5;
+    // Total width
+    const padScale = 0.5;
+    const totalWidth = d3.max(nodes, frameNodes => {
+      const size = d3.sum(frameNodes, node => node.value) * nodeSize;
+      const pad = (frameNodes.length - 1) * nodeSize * padScale;
+      return size + pad;
+    });
 
     // Position nodes
     const yScale = d3.scaleLinear()
@@ -194,24 +200,27 @@ export default function() {
         .range([0, innerHeight() - nodeSize]);
 
     nodes.forEach((frameNodes, i) => {
+      const totalSize = d3.sum(frameNodes, node => node.value) * nodeSize;
+      const padding = (totalWidth - totalSize) / (frameNodes.length - 1);
+
       let x = 0;
       const y = yScale(i);
 
-      frameNodes.forEach(node => {
+      frameNodes.forEach((node, j) => {
         node.x1 = x;
         node.x0 = x - node.value * nodeSize;
         node.y0 = y;
         node.y1 = y + nodeSize;
 
-        x = node.x0 - nodeSize * padding;
+        x = node.x0 - padding;
       });
-    });
+    });    
 
     // Flatten node array
     nodes = d3.merge(nodes);
 
     // Update width based on node size
-    width = -d3.min(nodes, d => d.x0) + nodeSize + margin.left + margin.right;
+    width = -d3.min(nodes, node => node.x0) + nodeSize + margin.left + margin.right;
 
     // Update x position
     const xShift = innerWidth() - nodeSize / 2;
