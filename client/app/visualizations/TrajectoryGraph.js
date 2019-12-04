@@ -59,8 +59,6 @@ export default function() {
   }
 
   function processData() {
-    // Mimic d3 Sankey, but enforce y-positions on nodes based on frame
-
     // Find trajectories with visible regions
     let visibleTrajectories = null;
     
@@ -96,261 +94,132 @@ export default function() {
       return;
     }
 
-    // Create nodes from regions
-    let nodes = [{
+    // Nodes with visible trajectories
+    const visibleRegions = data.segmentationData.map(frame => {
+      return frame.regions.filter(region => {
+        return visibleTrajectories ? visibleTrajectories.has(region.trajectory_id) : true;
+      });
+    });
+
+    // Create nodes from regions for tree layout
+    const treeNodes = [{
       // Root
       id: "root"
-    }].concat(data.segmentationData.map((frame, i) => {
+    }].concat(visibleRegions.map((frame, i) => {
       // Dummy node per frame
       return {
         id: id(i, "dummy"),
         parentId: i === 0 ? "root" : id(i - 1, "dummy")
       };
-    })).concat(d3.merge(data.segmentationData.map((frame, i) => {  
+    })).concat(d3.merge(visibleRegions.map((frame, i, frames) => {  
       // Nodes for visible trajectories    
-      return frame.regions.filter(region => {
-        return visibleTrajectories ? visibleTrajectories.has(region.trajectory_id) : true;
-      }).map(region => {
+      return frame.map(region => {      
+        const linked = i === 0 || !region.link_id ? false :
+            frames[i - 1].map(region => region.id).indexOf(region.link_id) === -1 ? false :
+            true;
+
         return {
           id: id(i, region.id),
-          parentId: i === 0 ? "root" : 
-              region.link_id ? id(i - 1, region.link_id) :
-              id(i - 1, "dummy"),
-          region: region
+          parentId: i === 0 ? "root" :
+              linked ? id(i - 1, region.link_id) :
+              id(i - 1, "dummy"),              
+          region: region,
+          frameIndex: i
         };
       });
     })));
 
-    const root = d3.stratify()(nodes);
+    // Create the tree
+    const root = d3.stratify()(treeNodes);
 
+    root.each(node => {
+      node.num = node.descendants().length;
+    });
+
+    root.sort((a, b) => {
+      const va = a.height - a.num;
+      const vb = b.height - b.num;
+
+      return d3.ascending(a.height, b.height) || d3.descending(Math.abs(va), Math.abs(vb));
+    });
+   
     // Process tree data
     root.each(node => {
-      if (node.data.region) {
-        // For easier access
-        node.region = node.data.region;
-
-        // Value based on number of children
-        node.value = node.children ? node.children.length : 1;
-      }
+      // Value based on number of children
+      node.value = !node.data.region ? 0 : node.children ? node.children.length : 1;
     });
 
     // Compute node size
     fullHeight = height;
     nodeSize = innerHeight() / 80;
     nodeStrokeWidth = nodeSize / 6;
+
+    // Tree layout
+    const padScale = 0.75;
+    const tree = d3.tree()
+        .nodeSize([nodeSize, 1])
+        .separation((a, b) => (a.value + b.value) * padScale) 
+        (root);    
+
+    // Get nodes with regions
+    const nodes = tree.descendants().filter(node => {
+      return node.data.region;
+    });
 
     // Minimum spacing in y
     const numFrames = data.segmentationData.length;
     const minYSpacing = nodeSize * 2;
     fullHeight = Math.max(numFrames * minYSpacing, height);
 
-    // X scaling
-    const padScale = 0.5;
-    const tree = d3.tree()
-        .nodeSize([nodeSize + nodeSize * padScale, fullHeight / numFrames])
-        .separation(node => node.value) 
-        (root);    
-
-    nodes = tree.descendants().filter(node => {
-      return node.data.region;
-    });
-
-
-// Update width based on node size
-// XXX: NEED TO UPDATE THIS
-width = -d3.min(nodes, node => node.x0) + nodeSize + margin.left + margin.right;
-
-// Update x position
-const xShift = innerWidth() - nodeSize / 2;
-nodes.forEach(node => {
-  node.x0 += xShift;
-  node.x1 += xShift;
-});
-
-
-
-
-    nodes.forEach(node => {
-      node.region = node.data.region;
-
-      const w = (node.children ? node.children.length : 1) * nodeSize;
-
-      node.x0 = node.x - w / 2;
-      node.x1 = node.x + w / 2;
-
-      node.y0 = node.y - nodeSize / 2;
-      node.y1 = node.y + nodeSize / 2;
-    });
-
-    const links = tree.links().filter(link => {
-      return link.source.region && link.target.region;
-    });
-
-    links.forEach(link => {
-      link.point0 = { x: link.source.x, y: link.source.y };
-      link.point1 = { x: link.target.x, y: link.target.y };
-      link.width = nodeSize;
-    });
-
-
-    console.log(nodes);
-
-    
-    graph = {
-      nodes: nodes,
-      links: links
-    };
-
-
-
-
-/*    
-
-    // Create nodes from regions
-    let nodes = data.segmentationData.map((frame, i) => {
-      const frameNodes = {};
-
-      frame.regions.filter(region => {
-        return visibleTrajectories ? visibleTrajectories.has(region.trajectory_id) : true;
-      }).forEach(region => {
-        const nodeId = id(i, region.id);
-
-        frameNodes[region.id] = {
-          region: region,
-          id: nodeId,
-          frameIndex: i,
-          sourceLinks: [],
-          targetLinks: []
-        };
-      });
-
-      return frameNodes;
-    });
-
-    // Link nodes
-    const links = [];
-
-    nodes.forEach((frameNodes, i) => {
-      if (i === 0) return;
-
-      d3.values(frameNodes).forEach(target => {
-        if (target.region.link_id) {
-          const source = nodes[i - 1][target.region.link_id];
-
-          if (!source) {            
-//            console.log("Invalid link_id: " + target.region.link_id);
-            return;
-          }
-
-          const link = {
-            source: source,
-            target: target,
-            value: 1
-          };
-
-          source.sourceLinks.push(link);
-          target.targetLinks.push(link);
-
-          links.push(link);
-        }
-      })
-    });
-
-    // Set start ids for sorting
-    nodes.forEach((frameNodes, i, a) => {
-      d3.values(frameNodes).forEach(node => {
-        if (i === 0) {
-          node.start_id = node.region.trajectory_id;
-        }
-        else {
-          let start = a[i - 1][node.region.link_id];
-          node.start_id = start ? start.start_id : node.region.trajectory_id;
-        }
-      });
-    });
-
-    // Convert each node frame to arrays and sort
-    nodes = nodes.map((d, i) => {
-      return d3.values(d).sort((a, b) => {
-        return a.start_id === b.start_id ? 
-          d3.ascending(a.region.trajectory_id, b.region.trajectory_id) :
-          d3.ascending(a.start_id, b.start_id);
-      });
-    });
-
-    // Initialize some node data
-    nodes.forEach((frameNodes, i, a) => {
-      frameNodes.forEach(node => {
-        node.value = Math.max(d3.sum(node.sourceLinks, link => link.value), 1);
-        node.depth = i;
-        node.width = a.length - 1 - i;
-      });
-    });
-
-    // Compute node size
-    fullHeight = height;
-    nodeSize = innerHeight() / 80;
-    nodeStrokeWidth = nodeSize / 6;
-
-    // Minimum spacing in y
-    const minYSpacing = nodeSize * 2;
-    fullHeight = Math.max(nodes.length * minYSpacing, height);
-
-    // Total width
-    const padScale = 0.5;
-    const totalWidth = d3.max(nodes, frameNodes => {
-      const size = d3.sum(frameNodes, node => node.value) * nodeSize;
-      const pad = (frameNodes.length - 1) * nodeSize * padScale;
-      return size + pad;
-    });
-
     // Position nodes
     const yScale = d3.scaleLinear()
-        .domain([0, nodes.length - 1])
+        .domain([0, numFrames - 1])
         .range([0, innerHeight() - nodeSize]);
 
-    nodes.forEach((frameNodes, i) => {
-      const totalSize = d3.sum(frameNodes, node => node.value) * nodeSize;
-      const padding = (totalWidth - totalSize) / (frameNodes.length - 1);
+    nodes.forEach(node => {
+      const w = node.value * nodeSize / 2;
+      node.x0 = node.x - w;
+      node.x1 = node.x + w;
 
-      let x = 0;
-      const y = yScale(i);
+      node.y0 = yScale(node.data.frameIndex);
+      node.y = node.y0 + nodeSize / 2;
+      node.y1 = node.y0 + nodeSize;
+    });
 
-      frameNodes.forEach((node, j) => {
-        node.x1 = x;
-        node.x0 = x - node.value * nodeSize;
-        node.y0 = y;
-        node.y1 = y + nodeSize;
-
-        x = node.x0 - padding;
-      });
-    });    
-
-    // Flatten node array
-    nodes = d3.merge(nodes);
-
-    // Update width based on node size
-    width = -d3.min(nodes, node => node.x0) + nodeSize + margin.left + margin.right;
+    // Update width
+    const xMin = d3.min(nodes, node => node.x0);
+    const xMax = d3.max(nodes, node => node.x1);
+    width = xMax - xMin + nodeSize + margin.left + margin.right;
 
     // Update x position
-    const xShift = innerWidth() - nodeSize / 2;
+    const xShift = -xMin + nodeSize / 2;
+
     nodes.forEach(node => {
+      node.x += xShift;
       node.x0 += xShift;
       node.x1 += xShift;
     });
+    
+    // Get links
+    const links = tree.links().filter(link => {
+      return link.source.data.region && link.target.data.region;
+    });
 
     // Position links
-    nodes.forEach(node => {
-      const y = (node.y0 + node.y1) / 2,
+    nodes.forEach(node => { 
+      const y = node.y,
             startX = node.x0 + nodeSize / 2;
 
       let x = startX;
 
-      node.sourceLinks.sort((a, b) => {
+      const sourceLinks = links.filter(link => link.source === node);
+      const targetLinks = links.filter(link => link.target === node);
+
+      sourceLinks.sort((a, b) => {
         return d3.ascending(a.target.x0, b.target.x0);
       });
 
-      node.sourceLinks.forEach(link => {
+      sourceLinks.forEach(link => {
         link.point0 = {
           x: x,
           y: y
@@ -363,7 +232,7 @@ nodes.forEach(node => {
 
       x = node.x0 + (node.x1 - node.x0) / 2;
 
-      node.targetLinks.forEach(link => {
+      targetLinks.forEach(link => {
         link.point1 = {
           x: x,
           y: y
@@ -371,13 +240,13 @@ nodes.forEach(node => {
 
         x += nodeSize;
       });
-    });    
+    });
 
     graph = {
       nodes: nodes,
       links: links
     };
-*/
+    
     function id(frameIndex, regionId) {
       return "frame" + frameIndex + "_" + regionId;
     }
@@ -454,7 +323,7 @@ nodes.forEach(node => {
       link.exit().remove();
 
       function stroke(d) {
-        return colorMap(d.target.region.trajectory_id);
+        return colorMap(d.target.data.region.trajectory_id);
       }
 
       function linkWidth(d) {
@@ -466,8 +335,8 @@ nodes.forEach(node => {
               s = y - d.point0.y,
               t = d.point1.y - y;
 
-        if (s < t) dispatcher.call("highlightRegion", this, d.source.frameIndex, d.source.region);
-        else dispatcher.call("highlightRegion", this, d.target.frameIndex, d.target.region);
+        if (s < t) dispatcher.call("highlightRegion", this, d.source.data.frameIndex, d.source.data.region);
+        else dispatcher.call("highlightRegion", this, d.target.data.frameIndex, d.target.data.region);
       }
     }
 
@@ -482,13 +351,13 @@ nodes.forEach(node => {
       node.enter().append("rect")
           .attr("class", "node")          
           .on("mouseover", function(d) {
-            dispatcher.call("highlightRegion", this, null, d.region);
+            dispatcher.call("highlightRegion", this, null, d.data.region);
           })
           .on("mouseout", function(d) {
             dispatcher.call("highlightRegion", this, null, null);
           })          
           .on("click", function(d) {
-            dispatcher.call("selectRegion", this, d.frameIndex, d.region);
+            dispatcher.call("selectRegion", this, d.data.frameIndex, d.data.region);
           })
         .merge(node)
           .attr("rx", r)
@@ -505,38 +374,38 @@ nodes.forEach(node => {
       node.exit().remove();      
 
       function r(d) {
-        return d.region.highlight ? nodeSize / 2 + offset : nodeSize / 2;
+        return d.data.region.highlight ? nodeSize / 2 + offset : nodeSize / 2;
       }
 
       function x(d) {
-        return d.region.highlight ? d.x0 - offset : d.x0;
+        return d.data.region.highlight ? d.x0 - offset : d.x0;
       }
 
       function y(d) {
-        return d.region.highlight ? d.y0 - offset : d.y0;
+        return d.data.region.highlight ? d.y0 - offset : d.y0;
       }
 
       function width(d) {
-        return d.region.highlight ? (d.x1 - d.x0) + offset * 2 : d.x1 - d.x0;
+        return d.data.region.highlight ? (d.x1 - d.x0) + offset * 2 : d.x1 - d.x0;
       }
 
       function height(d) {
-        return d.region.highlight ? (d.y1 - d.y0) + offset * 2 : d.y1 - d.y0;
+        return d.data.region.highlight ? (d.y1 - d.y0) + offset * 2 : d.y1 - d.y0;
       }
 
       function fill(d) {
         //return "#fff";
-        return d.region.highlight || d.region.isLinkRegion ? colorMap(d.region.trajectory_id) : "#fff";
+        return d.data.region.highlight || d.data.region.isLinkRegion ? colorMap(d.data.region.trajectory_id) : "#fff";
       }
 
       function stroke(d) {;
-        return d.region.highlight || d.region.isLinkRegion ? "#333" : colorMap(d.region.trajectory_id);
-        //return d.region.highlight ? "#fff" : colorMap(d.region.trajectory_id);
-        //return colorMap(d.region.trajectory_id);
+        return d.data.region.highlight || d.data.region.isLinkRegion ? "#333" : colorMap(d.data.region.trajectory_id);
+        //return d.data.region.highlight ? "#fff" : colorMap(d.data.region.trajectory_id);
+        //return colorMap(d.data.region.trajectory_id);
       }
 
       function strokeWidth(d) {
-        return d.region.highlight || d.region.isLinkRegion ? nodeStrokeWidth * 2 : nodeStrokeWidth;
+        return d.data.region.highlight || d.data.region.isLinkRegion ? nodeStrokeWidth * 2 : nodeStrokeWidth;
         //return nodeStrokeWidth;
       }
     }
