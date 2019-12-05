@@ -71,7 +71,7 @@ const EditView = props => {
 
       <div className="row">
         <div className="col-md-2">        
-          <TrajectoryGraphWrapper height={sketchWidth} {...props} />
+          {props.settings.showTrajectories ? <TrajectoryGraphWrapper height={sketchWidth} {...props} /> : null}
         </div>
         <div className="col-md-8 text-center">
           <TraceSketchWrapper

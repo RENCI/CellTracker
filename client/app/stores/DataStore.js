@@ -47,7 +47,8 @@ let settings = {
   editMode: "regionSelect",
   stabilize: true,
   framesToLoad: 10,
-  frameOverlap: 2
+  frameOverlap: 2,
+  showTrajectories: true
 };
 
 // Linking 
@@ -1183,6 +1184,11 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
 
         case "ArrowRight":
           frameDelta(1);
+          DataStore.emitChange();
+          break;
+
+        case "k":
+          settings.showTrajectories = !settings.showTrajectories;
           DataStore.emitChange();
           break;
       }
