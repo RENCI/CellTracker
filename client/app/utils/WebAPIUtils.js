@@ -266,12 +266,9 @@ export function getRegionScore(id, frame, region) {
       region: regionString
     },
     success: data => {
-      console.log(data);
-
       const score = +data.score;
       if (!isNaN(score)) {
-        //alert("Score: " + data.score);
-        console.log(score);
+        alert("Score: " + data.score);
       }
     },
     error: (xhr, textStatus, errorThrown) => {
