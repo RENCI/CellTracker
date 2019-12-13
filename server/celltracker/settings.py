@@ -49,8 +49,8 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'widget_tweaks',
     'django_irods',
-    'ct_core',
     'scoring_module',
+    'ct_core',
     'django.contrib.admin',
     'django.contrib.auth',
 ]

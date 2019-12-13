@@ -1,5 +1,7 @@
 # import torch is necessary in order to fix the import error
 # also import order is important - import torch first, then skimage, then fastai
+# Note that this module must have a name of scoring_module to correspond to the pickled scoring model,
+# otherwise an AttributeError will be raised when loading the pickled scording model using load_learner
 
 import torch
 from skimage.io import imread
@@ -99,22 +101,13 @@ def _create_mask_overlay_image(in_img_path, vert_arr):
     return Image(overlay_img)
 
 
-def get_edit_score(exp_id, frm_no, vert_list):
+def get_edit_score(ifile, vert_list):
     """
     Get predicted score using the trained model
-    :param exp_id: experiment id
-    :param frm_no: image frame number
+    :param ifile: experiment base image to be scored on
     :param vert_list: vertices list in the format of [[y, x],...] with y and x normalized within [0,1]
     :return: score, err_msg
     """
-    # this import has to be put on the local method level due to the extra import for MultiChannelImageList
-    # being needed at the __main__ level in manage.py
-    from ct_core.utils import get_exp_image
-
-    ifile, err_msg = get_exp_image(exp_id, frm_no)
-    if err_msg:
-        return None, err_msg
-
     model_path = settings.SCORE_MODEL_PATH
     path, fname = os.path.split(model_path)
     learn = load_learner(path, fname)

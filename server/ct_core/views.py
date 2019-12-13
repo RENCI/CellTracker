@@ -722,7 +722,10 @@ def get_score(request, exp_id, frame_no):
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     try:
         reg_data = json.loads(seg_data['region'])
-        score, err_msg = get_edit_score(exp_id, frame_no, reg_data['vertices'])
+        img_file, err_msg = get_exp_image(exp_id, frame_no)
+        if err_msg:
+            return JsonResponse({'message': err_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        score, err_msg = get_edit_score(img_file, reg_data['vertices'])
         if err_msg:
             return JsonResponse({'message': err_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
