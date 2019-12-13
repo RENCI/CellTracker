@@ -26,7 +26,8 @@ from rest_framework import status
 from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist
 
-from ct_core.scoring_utils import get_edit_score
+from scoring_module import get_edit_score
+
 from ct_core.utils import get_experiment_list_util, read_video, \
     extract_images_from_video_to_irods, read_image_frame, get_seg_collection, \
     save_user_seg_data_to_db, get_start_frame, get_exp_image, get_edited_frames, get_all_edit_users, \
@@ -48,8 +49,8 @@ logger = logging.getLogger(__name__)
 def index(request):
     #import sys
     #sys.path.append("/home/docker/pycharm-debug")
-    #import pydevd
-    #pydevd.settrace('172.17.0.1', port=21000, suspend=False)
+    #import pydevd_pycharm
+    #pydevd_pycharm.settrace('172.17.0.1', port=21000, suspend=False)
 
     if request.user.is_authenticated():
         if request.user.is_superuser:
@@ -726,5 +727,9 @@ def get_score(request, exp_id, frame_no):
             return JsonResponse({'message': err_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return JsonResponse({'score': score}, status=status.HTTP_200_OK)
+    except AttributeError as ex:
+        return JsonResponse({'message': 'Scoring raised AttributeError'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     except Exception as ex:
-        return JsonResponse({'message': ex.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(ex)
+        return JsonResponse({'message': 'Scoring raised exception. See server log for details'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)

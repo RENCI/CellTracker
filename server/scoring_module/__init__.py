@@ -2,8 +2,6 @@
 # also import order is important - import torch first, then skimage, then fastai
 
 import torch
-import os
-
 from skimage.io import imread
 from skimage.draw import polygon
 
