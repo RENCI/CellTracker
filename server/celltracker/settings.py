@@ -37,6 +37,10 @@ ALLOWED_HOSTS = []
 
 SITE_ID = 1
 
+# make django file uploader to always write uploaded file to a temporary directory
+# rather than holding uploaded file in memory for small files for our use case
+FILE_UPLOAD_MAX_MEMORY_SIZE = 0
+
 # Application definition
 
 INSTALLED_APPS = [
