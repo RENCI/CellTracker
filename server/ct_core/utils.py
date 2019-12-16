@@ -51,21 +51,23 @@ def is_exp_locked(exp_id):
 
 
 def release_locks_by_user(u):
-    for item in Segmentation.objects.filter(locked_user=u):
-        item.locked_time = None
-        item.locked_user = None
-        item.save()
+    if u and not u.is_anonymous():
+        for item in Segmentation.objects.filter(locked_user=u):
+            item.locked_time = None
+            item.locked_user = None
+            item.save()
 
 
 def lock_experiment(exp_id, u):
     try:
-        # release lockes this user placed on other experiments before locking this experiment
-        release_locks_by_user(u)
-        # lock this experiment by this user
-        entry = Segmentation.objects.get(exp_id=exp_id, frame_no=1)
-        entry.locked_time = datetime.datetime.now(pytz.utc)
-        entry.locked_user = u
-        entry.save()
+        if u and not u.is_anonymous():
+            # release lockes this user placed on other experiments before locking this experiment
+            release_locks_by_user(u)
+            # lock this experiment by this user
+            entry = Segmentation.objects.get(exp_id=exp_id, frame_no=1)
+            entry.locked_time = datetime.datetime.now(pytz.utc)
+            entry.locked_user = u
+            entry.save()
     except ObjectDoesNotExist:
         pass
 

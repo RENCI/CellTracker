@@ -74,12 +74,14 @@ def index(request):
         return HttpResponse(template.render(context, request))
 
 
-class request_password_reset_view(PasswordResetView):
+class RequestPasswordResetView(PasswordResetView):
     form_class = UserPasswordResetForm
 
 
+@login_required
 def logout(request):
-    release_locks_by_user(request.user)
+    if request.user.is_authenticated():
+        release_locks_by_user(request.user)
     return LogoutView.as_view(
         next_page='/'
     )(request)
@@ -405,6 +407,7 @@ def save_tracking_data(request, exp_id):
     return HttpResponseServerError('iRODS session error')
 
 
+@login_required
 def create_new_experiment(request):
     if request.user.is_authenticated() and request.user.is_superuser:
         template = loader.get_template('ct_core/create_new_exp.html')
@@ -415,6 +418,7 @@ def create_new_experiment(request):
                                      'experiment')
 
 
+@login_required
 def manage_user_role(request):
     if request.user.is_authenticated() and request.user.is_superuser:
         template = loader.get_template('ct_core/manage_user_role.html')
@@ -428,6 +432,7 @@ def manage_user_role(request):
         return HttpResponseForbidden('You must log in as data manager to manage user roles')
 
 
+@login_required
 def update_user_role(request):
     # request should be AJAX
     reg_users  = request.POST.get('reg_users', '')
@@ -453,6 +458,7 @@ def update_user_role(request):
                         data={'message': "User roles are updated successfully"})
 
 
+@login_required
 def sort_task_priority(request):
     if request.user.is_authenticated() and request.user.is_superuser:
         template = loader.get_template('ct_core/sort_task_priority.html')
@@ -473,6 +479,7 @@ def sort_task_priority(request):
         return HttpResponseForbidden('You must log in as data manager to sort task priorities')
 
 
+@login_required
 def update_task_priority(request):
     # request should be AJAX
     task_list = request.POST.get('task_list', '')
@@ -493,6 +500,7 @@ def update_task_priority(request):
                         data={'message': "Experiment task priority order is updated successfully"})
 
 
+@login_required
 def add_experiment_to_server(request):
     if request.user.is_authenticated() and request.user.is_superuser:
         exp_name = request.POST.get('exp_name', '')
@@ -623,6 +631,7 @@ def add_experiment_to_server(request):
         return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
+@login_required
 def delete_experiment(request, exp_id):
     if request.user.is_authenticated() and request.user.is_superuser:
         ret_msg = delete_one_experiment(exp_id)
@@ -659,6 +668,7 @@ def save_frame_seg_data(request, exp_id, frame_no):
         return JsonResponse({'message': ex.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+@login_required
 def check_task_status(request):
     '''
     A view function to tell the client if the asynchronous add_tracking() task is done.
@@ -693,6 +703,7 @@ def check_task_status(request):
                             status=status.HTTP_200_OK)
 
 
+@login_required
 def download(request, exp_id, username):
     zip_data = create_user_segmentation_data_for_download(exp_id, username)
     if not zip_data:
