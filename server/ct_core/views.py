@@ -665,18 +665,20 @@ def save_frame_seg_data(request, exp_id, frame_no):
                                         countdown=1)
         return JsonResponse({'task_id': task.task_id}, status=status.HTTP_200_OK)
     except Exception as ex:
-        return JsonResponse({'message': ex.message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        err_msg = "Cannot save segmentation data: {}".format(ex)
+        logger.error(err_msg)
+        return JsonResponse({'message': err_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @login_required
 def check_task_status(request):
-    '''
+    """
     A view function to tell the client if the asynchronous add_tracking() task is done.
     Args:
         request: an ajax request to check for add tracking status
     Returns:
         JSON response to return result from asynchronous task add_tracking()
-    '''
+    """
     task_id = request.POST.get('task_id', None)
     ret_result = {}
     if not task_id:
@@ -691,7 +693,7 @@ def check_task_status(request):
             get_result = result.get()
         except Exception as ex:
             ret_result['result'] = None
-            ret_result['error'] = ex.message
+            logger.error("Cannot get result for celery task id {}: {}".format(task_id, ex))
             return JsonResponse(ret_result,
                                 status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -744,6 +746,6 @@ def get_score(request, exp_id, frame_no):
     except AttributeError as ex:
         return JsonResponse({'message': 'Scoring raised AttributeError'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     except Exception as ex:
-        logger.error(ex)
+        logger.error("Cannot get score for a region in experiment {} frame {}: {}".format(exp_id, frame_no, ex))
         return JsonResponse({'message': 'Scoring raised exception. See server log for details'},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
