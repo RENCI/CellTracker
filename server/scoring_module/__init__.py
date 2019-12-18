@@ -54,7 +54,7 @@ def _create_mask_overlay_image(in_img_path, vert_arr):
     """
 
     # Load images and split
-    in_img = imread(in_img_path)
+    in_img = imread(in_img_path, as_gray=True)
     r = in_img.shape[0]
     c = in_img.shape[1]
 
@@ -85,11 +85,9 @@ def _create_mask_overlay_image(in_img_path, vert_arr):
 
     x_start = (int)(center_x - half_size_x) if center_x >= half_size_x else 0
     y_start = (int)(center_y - half_size_y) if center_y >= half_size_y else 0
-    try:
-        img_list = [in_img[x_start:x_start+dim_x, y_start:y_start+dim_y, 0], mask_img]
-    except IndexError:
-        # grayscale image
-        img_list = [in_img[x_start:x_start + dim_x, y_start:y_start + dim_y], mask_img]
+
+    # grayscale image
+    img_list = [in_img[x_start:x_start + dim_x, y_start:y_start + dim_y], mask_img]
 
     img_count = len(img_list)
     overlay_img = torch.zeros((img_count, dim_x, dim_y))
