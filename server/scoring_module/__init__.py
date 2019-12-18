@@ -41,7 +41,7 @@ def _create_mask_image(row, col, row_list, col_list):
     r = np.array(row_list)
     c = np.array(col_list)
     rr, cc = polygon(r, c)
-    img[rr, cc] = 255
+    img[rr, cc] = 1
     return img
 
 
@@ -86,15 +86,19 @@ def _create_mask_overlay_image(in_img_path, vert_arr):
     x_start = (int)(center_x - half_size_x) if center_x >= half_size_x else 0
     y_start = (int)(center_y - half_size_y) if center_y >= half_size_y else 0
 
-    # grayscale image
-    img_list = [in_img[x_start:x_start + dim_x, y_start:y_start + dim_y], mask_img]
+    in_base_img = in_img[x_start:x_start + dim_x, y_start:y_start + dim_y]
+    # make sure base image is normalized with grayscale value between 0 and 1
+    max = np.amax(in_base_img)
+    if max > 1:
+        in_base_img = in_base_img/max
+
+    img_list = [in_base_img, mask_img]
 
     img_count = len(img_list)
     overlay_img = torch.zeros((img_count, dim_x, dim_y))
 
     for i, img in enumerate(img_list):
-        ori_data = torch.from_numpy(img.astype(float))
-        data = ori_data.div_(255.)
+        data = torch.from_numpy(img.astype(float))
         overlay_img[i, :, :] = data
     return Image(overlay_img)
 
