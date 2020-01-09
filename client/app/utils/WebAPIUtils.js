@@ -241,9 +241,11 @@ export function saveSegmentationData(id, data) {
         num_edited: numEdited
       },
       success: data => {
+        /*
         if (data.task_id) {
           pollUpdatedTracking(data.task_id);
         }
+        */
       },
       error: (xhr, textStatus, errorThrown) => {
         console.log(textStatus + ": " + errorThrown);
