@@ -20,7 +20,7 @@ def add_tracking(exp_id, username='', frm_idx=-1):
     """
     Add tracking to segmentation data for an experiment
     :param exp_id: experiment id
-    :param user: Empty by default. If Empty, add tracking to system segmentation data;
+    :param username: Empty by default. If Empty, add tracking to system segmentation data;
     otherwise, add tracking to user edit segmentation data
     :param frm_idx: -1 by default. If -1, add tracking to all frames; otherwise,
     add tracking to only the pass-in frm_idx which is one-based frame index
@@ -162,3 +162,27 @@ def add_tracking(exp_id, username='', frm_idx=-1):
                 sync_seg_data_to_irods(exp_id=exp_id, username='system', json_data=seg_obj.data,
                                        irods_path=rel_path)
     return ret_result
+
+
+@shared_task
+def sync_user_edit_frame_from_db_to_irods(exp_id, username, frm_idx):
+    """
+    Sync user edit frame for an experiment from DB to IRODS
+    :param exp_id: experiment id
+    :param username: user to sync edit segmentation data for
+    :param frm_idx: one-based frame index in the experiment to sync edit segmentation data for
+    :return:
+    """
+    username = str(username)
+    try:
+        seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user__username=username,
+                                               frame_no=frm_idx)
+        # update iRODS data to be in sync with updated data in DB
+        rel_path = get_path(seg_obj)
+        sync_seg_data_to_irods(exp_id=exp_id, username=username, json_data=seg_obj.data,
+                               irods_path=rel_path)
+    except ObjectDoesNotExist:
+        logger.error('No user edit data exists in DB to sync to iRODS for experiment {} frame {} user {}'.format(
+            exp_id, frm_idx, username))
+
+    return
