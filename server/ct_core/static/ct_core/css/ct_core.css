@@ -302,3 +302,67 @@ float the buttons inside it. This prevents collapsing. */
 #task_lstbox {
     height: 400px;
 }
+
+/* Modal window */
+
+a[data-toggle="modal"] {
+    cursor: pointer;
+}
+
+.modal {
+	overflow-y: auto;
+}
+
+.modal-content {
+	border-radius: 0;
+}
+
+.modal-body {
+	max-height: 600px;
+    overflow: auto;
+}
+
+.modal-footer {
+	margin-top: 0;
+}
+
+.modal-header {
+    background: #fff;
+    background: -moz-linear-gradient(top, rgba(255, 255, 255, 1) 0%, rgba(246, 246, 246, 1) 47%, rgba(237, 237, 237, 1) 100%);
+    background: -webkit-linear-gradient(top, rgba(255, 255, 255, 1) 0%, rgba(246, 246, 246, 1) 47%, rgba(237, 237, 237, 1) 100%);
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 1) 0%, rgba(246, 246, 246, 1) 47%, rgba(237, 237, 237, 1) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffffff', endColorstr='#ededed', GradientType=0)
+}
+
+.modal-header > img,
+.dialog-new > img {
+	height: 50px;
+	width: 50px;
+	margin: 0 15px 15px 0;
+	float: left;
+	overflow: hidden;
+}
+
+.alert {
+  padding: 20px;
+  color: white;
+  background-color: lightblue;
+  margin-bottom: 15px;
+}
+
+/* The close button */
+.closebtn {
+  margin-left: 15px;
+  color: white;
+  font-weight: bold;
+  float: right;
+  font-size: 22px;
+  line-height: 20px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* When moving the mouse over the close button */
+.closebtn:hover {
+  color: black;
+}

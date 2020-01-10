@@ -13,6 +13,7 @@ from collections import OrderedDict
 
 from irods.session import iRODSSession
 from irods.exception import CollectionDoesNotExist
+from irods.meta import iRODSMeta
 
 from django.conf import settings
 from django.utils import timezone
@@ -138,6 +139,24 @@ def get_experiment_list_util(req_user=None):
 
         return exp_list, ''
     return exp_list, 'Cannot connect to iRODS data server'
+
+
+def get_exp_labels(exp_id):
+    with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
+                      password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
+        epath = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' + str(exp_id)
+        try:
+            coll = session.collections.get(epath)
+            label_md_list = coll.metadata.get_all('label')
+            label_list = []
+            for lbl_md in label_md_list:
+                label_list.append(lbl_md.value)
+            if label_list:
+                return ';'.join(label_list)
+            else:
+                return ''
+        except CollectionDoesNotExist:
+            return ''
 
 
 def read_video(filename):
@@ -844,6 +863,26 @@ def create_user_segmentation_data_for_download(exp_id, username):
     shutil.rmtree(local_data_path)
 
     return ret_filename
+
+
+def add_labels_to_exp(exp_coll, label_str):
+    """
+    Adding labels to iRODS AVU metadata for corresponding experiment collection
+    :param exp_id: experiment id
+    :param label_str: labels separated by semincolon
+    :return:
+    """
+    if not label_str or not exp_coll:
+        return
+    label_list = label_str.split(';')
+    for i, label in enumerate(label_list):
+        label = label.strip()
+        if i == 0:
+            # need to erase all previously set existing AVU with 'label' attribute if any
+            new_meta = iRODSMeta('label', label)
+            exp_coll.metadata['label'] = new_meta
+        else:
+            exp_coll.metadata.add('label', label)
 
 
 def create_seg_data_from_csv(exp_id, input_csv_file, irods_path):

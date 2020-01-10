@@ -8,7 +8,10 @@
         <select id="exp_select_list" title="select an experiment from the list">
         </select>
         <button class="btn btn-sm btn-danger" id="delete_exp" disabled title="delete an existing experiment"><i class="oi oi-minus"></i></button>
-        &nbsp;&nbsp;
+        <button id="associate_label_id" data-toggle="modal"  class="btn btn-sm btn-info hid-element" data-target="#submit-for-label-association-dialog">
+            <i class="oi oi-tags" data-toggle="tooltip" data-placement="bottom" title="Associate labels with selected experiment"></i>
+        </button>
+
         <a id="create_new_exp" href="/create_new_experiment/" title="create a new experiment">
             <span class="oi oi-plus"></span>
         </a>
@@ -21,7 +24,10 @@
             <span class="oi oi-sort-descending"></span>
         </a>
     </div>
-    <div id="notification_msg"></div>
+    <div class="alert hid-element" id="notification_msg">
+        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+        <span id="notification_msg_str"></span>
+    </div>
     <div class="col-xs-12">
         <div id="seg_info"></div>
         <div id="user_edit" class="col-xs-12 hid-element">
@@ -41,6 +47,28 @@
     <div class="col-xs-12">
         <div id="frame-visualizer"></div>
     </div>
+    <div class="modal fade" id="submit-for-label-association-dialog" tabindex="-1" role="dialog" tabindex="-1"
+         role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="submit-for-label-association">Associate annotation labels with selected experiment</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="exp_label" class="col-form-label-lg">Input annotation labels: </label>
+                        <input id="exp_label" class="form-control" name="exp_label" placeholder="The input labels must be separated by semicolon, e.g., label1;label2;label3" value="" type="text"/>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button id="associate-label-btn" class="btn btn-success" data-dismiss="modal">Associate Labels</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class = "col-xs-12 hid-element" id="player-control">
     <button id='player-bwd' class="btn-player" title="Step backward to first loaded frame"><i class="fa fa-backward"></i></button>
     <button id='player-step-bwd' class="btn-player" title="Step backward to previous loaded frame"><i class="fa fa-step-backward"></i></button>

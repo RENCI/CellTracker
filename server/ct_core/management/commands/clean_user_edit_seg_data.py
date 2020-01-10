@@ -66,7 +66,7 @@ class Command(BaseCommand):
                     try:
                         istorage.delete(str(obj.file))
                     except SessionException as ex:
-                        print ex.stderr
+                        print(ex.stderr)
                         continue
                 if len(objs):
-                    print objs.delete()
+                    print(objs.delete())

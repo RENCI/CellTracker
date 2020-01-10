@@ -25,9 +25,9 @@ class Command(BaseCommand):
         parser.add_argument('input_file', help='input csv file name with full path to be splitted')
 
     def handle(self, *args, **options):
-
-
-        ret_msg = create_seg_data_from_csv(exp_id=options['exp_id'],
+        exp_id = options['exp_id']
+        irods_path = '/{}/home/{}/{}/data/segmentation'.format(settings.IRODS_ZONE, settings.IRODS_USER, exp_id)
+        ret_msg = create_seg_data_from_csv(exp_id=exp_id,
                                            input_csv_file=options['input_file'],
                                            irods_path=irods_path)
         print(ret_msg)

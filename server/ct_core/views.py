@@ -33,7 +33,7 @@ from ct_core.utils import get_experiment_list_util, read_video, \
     save_user_seg_data_to_db, get_start_frame, get_exp_image, get_edited_frames, get_all_edit_users, \
     create_user_segmentation_data_for_download, get_frame_info, create_seg_data_from_csv, \
     sync_seg_data_to_db, delete_one_experiment, get_users, update_experiment_priority, pack_zeros, \
-    is_exp_locked, lock_experiment, release_locks_by_user
+    is_exp_locked, lock_experiment, release_locks_by_user, add_labels_to_exp, get_exp_labels
 from ct_core.task_utils import get_exp_frame_no, is_power_user
 from ct_core.forms import SignUpForm, UserProfileForm, UserPasswordResetForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
@@ -224,7 +224,9 @@ def get_experiment_info(request, exp_id):
         frames: number,
         id: exp_id,
         has_segmentation: 'true' or 'false'
-        start_frame: number
+        start_frame: number,
+        edit_frames: str, frame numbers separated by comma
+        labels: str - labels separated by semicolon
     }
 
     :param request:
@@ -247,6 +249,7 @@ def get_experiment_info(request, exp_id):
                 if is_power_user(request.user):
                     lock_experiment(exp_id, request.user)
             exp_info['has_segmentation'] = 'true'
+            exp_info['labels'] = get_exp_labels(exp_id)
         else:
             exp_info['has_segmentation'] = 'false'
         exp_info['frames'] = exp_frame_no
@@ -505,6 +508,7 @@ def add_experiment_to_server(request):
     if request.user.is_authenticated() and request.user.is_superuser:
         exp_name = request.POST.get('exp_name', '')
         exp_id = request.POST.get('exp_id', '')
+        exp_labels = request.POST.get('exp_label', '')
         if not exp_name:
             messages.error(request, 'Please input a meaningful experiment name.')
             return HttpResponseRedirect(request.META['HTTP_REFERER'])
@@ -596,6 +600,13 @@ def add_experiment_to_server(request):
             coll.metadata.add('experiment_name', exp_name)
             coll.metadata.add('priority', pack_zeros(str(len(exp_list))))
 
+            if exp_labels:
+                try:
+                    add_labels_to_exp(coll, exp_labels)
+                except Exception as ex:
+                    messages.error(request, str(ex))
+                    return HttpResponseRedirect(request.META['HTTP_REFERER'])
+
         if seg_filename:
             if seg_csv:
                 # extract frame segmentation data from uploaded csv file and put them in iRODS
@@ -644,6 +655,34 @@ def delete_experiment(request, exp_id):
     else:
         return JsonResponse({'message': 'You must log in as data manager to create a '
                                         'new experiment'},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+
+@login_required
+def update_label_association(request, exp_id):
+    if request.user.is_authenticated() and request.user.is_superuser:
+        exp_labels = request.POST.get('exp_label', '')
+        if not exp_labels:
+            return JsonResponse({"message": 'Bad request: input labels are empty'}, status=status.HTTP_400_BAD_REQUEST)
+        cpath = '/{}/home/{}/{}'.format(settings.IRODS_ZONE, settings.IRODS_USER, exp_id)
+        with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT,
+                          user=settings.IRODS_USER,
+                          password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
+            try:
+                coll = session.collections.get(cpath)
+            except CollectionDoesNotExist:
+                return JsonResponse({"message": 'Bad request: input experiment id does not exist'},
+                                    status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                add_labels_to_exp(coll, exp_labels)
+            except Exception as ex:
+                return JsonResponse({"message": str(ex)},
+                                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return JsonResponse({'message': 'Labels are associated with experiment {} successfully'.format(exp_id)},
+                            status=status.HTTP_200_OK)
+    else:
+        return JsonResponse({'message': 'You must log in as data manager to associate labels to experiments'},
                             status=status.HTTP_401_UNAUTHORIZED)
 
 
