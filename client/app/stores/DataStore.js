@@ -48,7 +48,8 @@ let settings = {
   stabilize: true,
   framesToLoad: 10,
   frameOverlap: 2,
-  showTrajectories: true
+  showTrajectories: true,
+  showFilmstrip: true
 };
 
 // Linking 
@@ -678,9 +679,23 @@ function pushHistory() {
   // Remove anything more recent
   history.edits.splice(history.index + 1);
 
+  // Save segmentation frames
+  const frameIndex = playback.frame;
+  const savedFrames = [{
+    index: frameIndex,
+    frame: cloneData(experiment.segmentationData[frameIndex])
+  }];
+
+  if (frameIndex > 0) {
+    savedFrames.push({
+      index: frameIndex - 1,
+      frame: cloneData(experiment.segmentationData[frameIndex - 1])
+    });
+  }
+
   // Add to the end
   history.index = history.edits.push({
-    segmentationData: cloneData(experiment.segmentationData),
+    segmentationData: savedFrames,
     settings: cloneData(settings)
   }) - 1;
 
@@ -709,14 +724,16 @@ function redoHistory() {
 function getHistory() {
   let edit = history.edits[history.index];
 
-  experiment.segmentationData = cloneData(edit.segmentationData);
-  settings = cloneData(edit.settings);
+  edit.segmentationData.forEach(savedFrame => {
+    const frame = cloneData(savedFrame.frame);
+    experiment.segmentationData[savedFrame.index] = frame;
 
-  experiment.segmentationData.forEach(frame => {
     // Regenerate rtree
     frame.tree = new rbush();
     updateRBush(frame.tree, frame.regions);
   });
+
+  settings = cloneData(edit.settings);
 
   // XXX: ANY OF THIS NECESSARY NOW?
 //  updateSelectedRegionFromHistory();
@@ -1189,6 +1206,11 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
 
         case "k":
           settings.showTrajectories = !settings.showTrajectories;
+          DataStore.emitChange();
+          break;
+
+        case "o":
+          settings.showFilmstrip = !settings.showFilmstrip;
           DataStore.emitChange();
           break;
       }
