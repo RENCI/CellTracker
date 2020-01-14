@@ -32,6 +32,7 @@ export default function() {
   function trajectoryGraph(selection) {
     selection.each(function(d) {
       data = d;
+      graph = data.trajectoryGraph;
 
       processData();
 
@@ -59,112 +60,17 @@ export default function() {
   }
 
   function processData() {
-    // Find trajectories with visible regions
-    let visibleTrajectories = null;
-    
-    if (zoomPoint) {
-      visibleTrajectories = new Set();
+    const {nodes, links} = graph;
 
-      const z = 1 / zoom / 2,
-            bb = [zoomPoint[0] - z, zoomPoint[1] - z, 
-                  zoomPoint[0] + z, zoomPoint[1] + z];
-
-      data.segmentationData.forEach(frame => {
-        frame.regions.forEach(region => {
-          for (let i = 0; i < region.vertices.length; i++) {
-            const v = region.vertices[i];
-
-            if (v[0] >= bb[0] && v[0] <= bb[2] &&
-                v[1] >= bb[1] && v[1] <= bb[3]) {
-              visibleTrajectories.add(region.trajectory_id);
-              return;
-            }
-          }
-        });
-      });
-    }
-
-    if (visibleTrajectories.size === 0) {
-      width = margin.left + margin.right;
-      graph = {
-        nodes: [],
-        links: []
-      };
-
+    if (nodes.length === 0) {
+      width = margin.left + margin.right; 
       return;
     }
-
-    // Nodes with visible trajectories
-    const visibleRegions = data.segmentationData.map(frame => {
-      return frame.regions.filter(region => {
-        return visibleTrajectories ? visibleTrajectories.has(region.trajectory_id) : true;
-      });
-    });
-
-    // Create nodes from regions for tree layout
-    const treeNodes = [{
-      // Root
-      id: "root"
-    }].concat(visibleRegions.map((frame, i) => {
-      // Dummy node per frame
-      return {
-        id: id(i, "dummy"),
-        parentId: i === 0 ? "root" : id(i - 1, "dummy")
-      };
-    })).concat(d3.merge(visibleRegions.map((frame, i, frames) => {  
-      // Nodes for visible trajectories    
-      return frame.map(region => {      
-        const linked = i === 0 || !region.link_id ? false :
-            frames[i - 1].map(region => region.id).indexOf(region.link_id) === -1 ? false :
-            true;
-
-        return {
-          id: id(i, region.id),
-          parentId: i === 0 ? "root" :
-              linked ? id(i - 1, region.link_id) :
-              id(i - 1, "dummy"),              
-          region: region,
-          frameIndex: i
-        };
-      });
-    })));
-
-    // Create the tree
-    const root = d3.stratify()(treeNodes);
-
-    root.each(node => {
-      node.num = node.descendants().length;
-    });
-
-    root.sort((a, b) => {
-      const va = a.height - a.num;
-      const vb = b.height - b.num;
-
-      return d3.ascending(a.height, b.height) || d3.descending(Math.abs(va), Math.abs(vb));
-    });
-   
-    // Process tree data
-    root.each(node => {
-      // Value based on number of children
-      node.value = !node.data.region ? 0 : node.children ? node.children.length : 1;
-    });
 
     // Compute node size
     fullHeight = height;
     nodeSize = innerHeight() / 80;
     nodeStrokeWidth = nodeSize / 6;
-
-    // Tree layout
-    const padScale = 0.75;
-    const tree = d3.tree()
-        .nodeSize([nodeSize, 1])
-        .separation((a, b) => (a.value + b.value) * padScale) 
-        (root);    
-
-    // Get nodes with regions
-    const nodes = tree.descendants().filter(node => {
-      return node.data.region;
-    });
 
     // Minimum spacing in y
     const numFrames = data.segmentationData.length;
@@ -177,9 +83,11 @@ export default function() {
         .range([0, innerHeight() - nodeSize]);
 
     nodes.forEach(node => {
+      const x = node.x * nodeSize;
+
       const w = node.value * nodeSize / 2;
-      node.x0 = node.x - w;
-      node.x1 = node.x + w;
+      node.x0 = x - w;
+      node.x1 = x + w;
 
       node.y0 = yScale(node.data.frameIndex);
       node.y = node.y0 + nodeSize / 2;
@@ -195,16 +103,10 @@ export default function() {
     const xShift = -xMin + nodeSize / 2;
 
     nodes.forEach(node => {
-      node.x += xShift;
       node.x0 += xShift;
       node.x1 += xShift;
     });
     
-    // Get links
-    const links = tree.links().filter(link => {
-      return link.source.data.region && link.target.data.region;
-    });
-
     // Position links
     nodes.forEach(node => { 
       const y = node.y,
@@ -241,15 +143,6 @@ export default function() {
         x += nodeSize;
       });
     });
-
-    graph = {
-      nodes: nodes,
-      links: links
-    };
-    
-    function id(frameIndex, regionId) {
-      return "frame" + frameIndex + "_" + regionId;
-    }
   }
 
   function draw() {
@@ -259,7 +152,7 @@ export default function() {
 
     // Translate to keep current frame in view
     const frameScale = d3.scaleLinear()
-        .domain([0, data.segmentationData.length - 1])
+        .domain([0, frames.length - 1])
         .range([0, innerHeight() - nodeSize]);
 
     let y = height / 2 - frameScale(currentFrame);
@@ -513,6 +406,10 @@ export default function() {
     zoom = _;
     return trajectoryGraph;
   };
+
+trajectoryGraph.update = function() {
+  draw();
+}
 
   // For registering event callbacks
   trajectoryGraph.on = function() {

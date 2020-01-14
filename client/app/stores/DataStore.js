@@ -3,6 +3,7 @@ import { EventEmitter } from "events";
 import assign from "object-assign";
 import rbush from "rbush";
 import Constants from "../constants/Constants";
+import * as d3 from "d3";
 
 const CHANGE_EVENT = "change";
 
@@ -221,6 +222,9 @@ function updateRBush(tree, regions) {
 }
 
 function generateTrajectoryIds() {
+  console.log("GENERATE");
+
+
   // Sanity check for object ids
   experiment.segmentationData.forEach(frame => {
     const ids = frame.regions.map(region => region.id);    
@@ -267,6 +271,130 @@ function generateTrajectoryIds() {
       }
     });
   });
+
+  // Create tree
+  createTrajectoryGraph();
+}
+
+function createTrajectoryGraph() {
+  const frames = experiment.segmentationData;
+  const zoomPoint = settings.zoomPoint;
+  const zoom = settings.zoom;
+
+  // Find trajectories with visible regions
+  let visibleTrajectories = null;
+  
+  if (zoomPoint) {
+    visibleTrajectories = new Set();
+
+    const z = 1 / zoom / 2,
+          bb = [zoomPoint[0] - z, zoomPoint[1] - z, 
+                zoomPoint[0] + z, zoomPoint[1] + z];                  
+
+    frames.forEach(frame => {
+      frame.regions.forEach(region => {
+        for (let i = 0; i < region.vertices.length; i++) {
+          const v = region.vertices[i];
+
+          if (v[0] >= bb[0] && v[0] <= bb[2] &&
+              v[1] >= bb[1] && v[1] <= bb[3]) {
+            visibleTrajectories.add(region.trajectory_id);
+            return;
+          }
+        }
+      });
+    });
+
+    if (visibleTrajectories.size === 0) {
+      experiment.trajectoryGraph = {
+        nodes: [],
+        links: []
+      };
+  
+      return;
+    }
+  }
+
+  // Nodes with visible trajectories
+  const visibleRegions = frames.map(frame => {
+    return frame.regions.filter(region => {
+      return visibleTrajectories ? visibleTrajectories.has(region.trajectory_id) : true;
+    });
+  });
+
+  // Create nodes from regions for tree layout
+  const treeNodes = [{
+    // Root
+    id: "root"
+  }].concat(visibleRegions.map((frame, i) => {
+    // Dummy node per frame
+    return {
+      id: id(i, "dummy"),
+      parentId: i === 0 ? "root" : id(i - 1, "dummy")
+    };
+  })).concat(d3.merge(visibleRegions.map((frame, i, frames) => {  
+    // Nodes for visible trajectories    
+    return frame.map(region => {      
+      const linked = i === 0 || !region.link_id ? false :
+          frames[i - 1].map(region => region.id).indexOf(region.link_id) === -1 ? false :
+          true;
+
+      return {
+        id: id(i, region.id),
+        parentId: i === 0 ? "root" :
+            linked ? id(i - 1, region.link_id) :
+            id(i - 1, "dummy"),              
+        region: region,
+        frameIndex: i
+      };
+    });
+  })));
+
+  // Create the tree
+  const root = d3.stratify()(treeNodes);
+
+  root.each(node => {
+    node.num = node.descendants().length;
+  });
+
+  root.sort((a, b) => {
+    const va = a.height - a.num;
+    const vb = b.height - b.num;
+
+    return d3.ascending(a.height, b.height) || d3.descending(Math.abs(va), Math.abs(vb));
+  });
+ 
+  // Process tree data
+  root.each(node => {
+    // Value based on number of children
+    node.value = !node.data.region ? 0 : node.children ? node.children.length : 1;
+  });
+
+  // Tree layout
+  const padScale = 0.75;
+  const tree = d3.tree()
+      .nodeSize([1, 1])
+      .separation((a, b) => (a.value + b.value) * padScale) 
+      (root);    
+
+  // Get nodes with regions
+  const nodes = tree.descendants().filter(node => {
+    return node.data.region;
+  });
+
+  // Get links
+  const links = tree.links().filter(link => {
+    return link.source.data.region && link.target.data.region;
+  });
+
+  experiment.trajectoryGraph = {
+    nodes: nodes,
+    links: links
+  };
+  
+  function id(frameIndex, regionId) {
+    return "frame" + frameIndex + "_" + regionId;
+  }
 }
 
 function updateTracking(trackingData) {

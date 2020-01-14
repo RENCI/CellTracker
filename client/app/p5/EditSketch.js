@@ -677,9 +677,6 @@ export default function(sketch) {
       case "regionEdit":
         if (moveMouse) return;
 
-        console.log("here");
-        console.log(currentRegion);
-
         if (currentRegion) {
           removeRegion(currentRegion, allRegions);
           onEditRegion(frame, currentRegion);
