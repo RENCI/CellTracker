@@ -3,13 +3,8 @@ import PropTypes from "prop-types";
 import TraceSketchWrapper from "../p5/TraceSketchWrapper";
 import * as ViewActionCreators from "../actions/ViewActionCreators";
 
-function handleHighlightRegion(frame, region) {
-  // Don't switch to this frame
-  ViewActionCreators.highlightRegion(null, region);
-}
-
-function handleSelectRegion(frame, region) {
-  ViewActionCreators.selectRegion(frame, region);
+function handleMouseWheel(delta) {
+  ViewActionCreators.frameDelta(delta);
 }
 
 function handleSelectZoomPoint(frame, point) {
@@ -36,7 +31,6 @@ const Filmstrip = props => {
   const end = Math.min(start + numFrames - 1, props.experiment.frames - 1);
   start = end - numFrames + 1;
 
-
   const w = Math.min(props.height / numFrames, width);
   
   const frames = [];  
@@ -50,6 +44,13 @@ const Filmstrip = props => {
   };
 
   const pad = "4%";
+
+  let highlightRegion = null;
+
+  if (props.experiment && props.experiment.segmentationData) {
+    highlightRegion = props.experiment.segmentationData[active].regions.filter(region => region.highlight);
+    highlightRegion = highlightRegion.length > 0 ? highlightRegion[0] : null;
+  }
 
   let key = 0;
   for (let i = start; i <= end; i++) {
@@ -71,10 +72,10 @@ const Filmstrip = props => {
           experiment={props.experiment}
           zoom={props.settings.filmstripZoom}
           zoomPoint={props.settings.zoomPoint}
-          frame={i}
+          frame={i}          
           stabilize={props.settings.stabilize}
-          onHighlightRegion={handleHighlightRegion}
-          onSelectRegion={handleSelectRegion}
+          highlightRegion={highlightRegion}
+          onMouseWheel={handleMouseWheel}
           onSelectZoomPoint={handleSelectZoomPoint}
           onTranslate={handleTranslate} />
       </div>

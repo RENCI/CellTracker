@@ -16,7 +16,6 @@ export default function(sketch) {
   // Images
   let images = [],
       colorImages = [],
-      contrastImages = [],
       frame = 0,
       lut = createLut(d3.interpolateInferno);
 
@@ -45,8 +44,7 @@ export default function(sketch) {
       onLinkRegion = null;
 
   // Editing
-  let editView = false,
-      editMode = "filmstrip",
+  let editMode = "",
       handle = null,
       currentRegion = null,
       mergeRegion = null,
@@ -61,9 +59,6 @@ export default function(sketch) {
       splitLine = null,
       actionString = "";
 
-  // Settings
-  let stabilize = true;
-
   // Transform
   let zoom = 1,
       zoomPoint = null,
@@ -74,8 +69,6 @@ export default function(sketch) {
       lineHighlightWeight = 3,
       handleRadius = 3,
       handleHighlightRadius = 5;
-
-  let count = 0;
 
   sketch.setup = function() {
     // Create canvas with default size
@@ -100,7 +93,6 @@ export default function(sketch) {
     zoom = props.zoom;
     zoomPoint = props.zoomPoint;
     editMode = props.editMode;
-    stabilize = props.stabilize;
     onMouseWheel = props.onMouseWheel;
     onHighlightRegion = props.onHighlightRegion;
     onSelectRegion = props.onSelectRegion;
@@ -109,11 +101,7 @@ export default function(sketch) {
     onEditRegion = props.onEditRegion;
     onLinkRegion = props.onLinkRegion;
 
-    editView = editMode !== "filmstrip";
     if (editMode !== "regionSplit" && editMode !== "regionTrim") splitLine = null;
-  
-    // Image smoothing
-    //sketch.canvas.getContext("2d").imageSmoothingEnabled = editMode === "filmstrip" ? true : false;
 
     // Check for new experiment
     if (!experiment || experiment.id !== props.experiment.id) {
@@ -205,17 +193,6 @@ export default function(sketch) {
 
     // Set scale and translation
     let p = null;
-
-    if (regions && experiment.centerRegion && stabilize) {
-      // Try to center on trajectory
-      const id = experiment.centerRegion.trajectory_id;
-      const i = regions.map(region => region.trajectory_id).indexOf(id);
-
-      if (i !== -1) {
-        p = scalePoint(regions[i].center);
-        translation = [sketch.width / 2 / zoom - p[0], sketch.height / 2 / zoom - p[1]];
-      }
-    }
 
     if (!p && zoomPoint) {
       // Center on zoom point
@@ -425,8 +402,6 @@ export default function(sketch) {
     actionString = "";
 
     if (sketch.mouseButton && sketch.mouseButton !== sketch.LEFT) return;
-
-    const regions = visibleRegions;
 
     activeRegions = [];
 
@@ -871,8 +846,6 @@ export default function(sketch) {
     if (editMode !== "vertex") currentRegion = null;
     if (editMode !== "regionMerge") mergeRegion = null;
 
-    const regions = visibleRegions;
-
     sketch.cursor(sketch.ARROW);
 
     switch (editMode) {
@@ -977,9 +950,7 @@ export default function(sketch) {
     }
 
     if (currentRegion !== previousRegion) {
-      const f = editView ? null : frame;
-
-      setTimeout(() => { onHighlightRegion(f, currentRegion); }, 0);
+      setTimeout(() => { onHighlightRegion(null, currentRegion); }, 0);
     }
   }
 

@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
-import TraceSketch from "./TraceSketch";
+import EditSketch from "./EditSketch";
+import FilmstripSketch from "./FilmstripSketch";
 
 class TraceSketchWrapper extends React.Component {
   constructor() {
@@ -11,7 +12,9 @@ class TraceSketchWrapper extends React.Component {
   }
 
   componentDidMount() {
-    this.sketch = new p5(TraceSketch, this.ref.current);
+    this.sketch = this.props.editMode === null ? 
+      new p5(FilmstripSketch, this.ref.current) :
+      new p5(EditSketch, this.ref.current);
 
     this.sketch.updateProps(this.props);
   }
@@ -39,10 +42,12 @@ TraceSketchWrapper.propTypes = {
   frame: PropTypes.number.isRequired,
   editMode: PropTypes.string,
   stabilize: PropTypes.bool,
-  onMouseWheel: PropTypes.func,
-  onHighlightRegion: PropTypes.func.isRequired,
-  onSelectRegion: PropTypes.func.isRequired,
-  onSelectZoomPoint: PropTypes.func,
+  highlightRegion: PropTypes.object,
+  onMouseWheel: PropTypes.func.isRequired,
+  onHighlightRegion: PropTypes.func,
+  onSelectRegion: PropTypes.func,
+  onSelectZoomPoint: PropTypes.func.isRequired,
+  onTranslate: PropTypes.func.isRequired,
   onEditRegion: PropTypes.func,
   onLinkRegion: PropTypes.func
 };
@@ -50,8 +55,13 @@ TraceSketchWrapper.propTypes = {
 TraceSketchWrapper.defaultProps = {
   zoom: 1,
   zoomPoint: null,
-  editMode: "filmstrip",
-  stabilize: false
+  editMode: null,
+  stabilize: false,
+  highlightRegion: null,
+  onHighlightRegion: null,
+  onSelectRegion: null,
+  onEditRegion: null,
+  onLinkRegion: null
 };
 
 export default TraceSketchWrapper;

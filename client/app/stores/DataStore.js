@@ -48,8 +48,7 @@ let settings = {
   stabilize: true,
   framesToLoad: 10,
   frameOverlap: 2,
-  showTrajectories: true,
-  showFilmstrip: true
+  showTrajectories: true
 };
 
 // Linking 
@@ -1206,11 +1205,6 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
 
         case "k":
           settings.showTrajectories = !settings.showTrajectories;
-          DataStore.emitChange();
-          break;
-
-        case "o":
-          settings.showFilmstrip = !settings.showFilmstrip;
           DataStore.emitChange();
           break;
       }
