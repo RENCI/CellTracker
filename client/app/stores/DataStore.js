@@ -377,6 +377,11 @@ function updateTrajectoryGraph() {
       .separation((a, b) => (a.value + b.value) * padScale) 
       (root);    
 
+  // Shift to start at 0 in x
+  const xMin = d3.min(tree.descendants(), node => node.x - node.value / 2);
+  tree.descendants().forEach(node => node.x -= xMin);
+  const xMax = d3.max(tree.descendants(), node => node.x + node.value / 2);
+
   // Get nodes with regions
   const nodes = tree.descendants().filter(node => {
     return node.data.region;
@@ -389,7 +394,8 @@ function updateTrajectoryGraph() {
 
   experiment.trajectoryGraph = {
     nodes: nodes,
-    links: links
+    links: links,
+    xMax: xMax
   };
   
   function id(frameIndex, regionId) {

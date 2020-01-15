@@ -8,8 +8,14 @@ class TrajectoryGraphWrapper extends React.Component {
   constructor() {
     super();
 
+    this.state = { 
+      scrollPosition: 0 
+    };
+
+    this.onHighlightRegion = this.onHighlightRegion.bind(this);
     this.onSelectRegion = this.onSelectRegion.bind(this);
     this.onSetFrame = this.onSetFrame.bind(this);
+    this.onScroll = this.onScroll.bind(this);
 
     // Create visualization function
     this.trajectoryGraph = TrajectoryGraph()
@@ -30,12 +36,18 @@ class TrajectoryGraphWrapper extends React.Component {
     setFrame(frame);
   }
 
+  onScroll(event) {
+    this.setState({ 
+      scrollPosition: event.target.scrollLeft
+    });
+  }
+
   componentDidMount() {
-    this.drawVisualization(this.props);
+    this.drawVisualization(this.props, this.state);
   }
 
   shouldComponentUpdate(props, state) {
-    this.drawVisualization(props);
+    this.drawVisualization(props, state);
 
     return false;
   }
@@ -46,6 +58,7 @@ class TrajectoryGraphWrapper extends React.Component {
     this.trajectoryGraph
         .width(width)
         .height(props.height)
+        .scrollPosition(state.scrollPosition)
         .currentFrame(props.playback.frame)
         .zoomPoint(props.settings.zoomPoint)
         .zoom(props.settings.zoom);
@@ -56,7 +69,13 @@ class TrajectoryGraphWrapper extends React.Component {
   }
 
   render() {
-    return <div style={{overflowX: "auto"}} ref={ref => this.ref = ref}></div>
+    return (
+      <div 
+        style={{overflowX: "auto"}} 
+        ref={ref => this.ref = ref}
+        onScroll={this.onScroll}>      
+      </div>
+    );
   }
 }
 

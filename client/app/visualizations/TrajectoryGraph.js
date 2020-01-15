@@ -8,6 +8,7 @@ export default function() {
       height = 200,
       innerWidth = function() { return width - margin.left - margin.right; },
       innerHeight = function() { return height - margin.top - margin.bottom; },
+      scrollPosition = 0,
 
       // Data
       data,
@@ -35,7 +36,8 @@ export default function() {
       data = d;
       graph = {
         nodes: data.trajectoryGraph.nodes.slice(),
-        links: data.trajectoryGraph.links.slice()
+        links: data.trajectoryGraph.links.slice(),
+        xMax: data.trajectoryGraph.xMax
       };
 
       processData();
@@ -64,7 +66,7 @@ export default function() {
   }
 
   function processData() {
-    let {nodes, links} = graph;
+    let {nodes, links, xMax} = graph;
 
     if (nodes.length === 0) {
       width = margin.left + margin.right; 
@@ -83,7 +85,7 @@ export default function() {
     const inRange = node => node.data.frameIndex >= startFrame && node.data.frameIndex <= endFrame;
 
     nodes = nodes.filter(inRange);
-    links = links.filter(link => inRange(link.source) && inRange(link.target));
+    links = links.filter(link => inRange(link.source) || inRange(link.target));
 
     // Compute node size
     nodeSize = innerHeight() / 80;
@@ -95,7 +97,7 @@ export default function() {
         .range([0, innerHeight() - nodeSize]);
 
     nodes.forEach(node => {
-      const x = node.x * nodeSize;
+      const x = node.x * nodeSize + nodeSize / 2;
 
       const w = node.value * nodeSize / 2;
       node.x0 = x - w;
@@ -106,19 +108,16 @@ export default function() {
       node.y1 = node.y0 + nodeSize;
     });
 
+    // Filter in x
+    const visible = node => node.x1 > scrollPosition && node.x0 < scrollPosition + innerWidth();
+
+    nodes = nodes.filter(visible);
+    links = links.filter(link => visible(link.source) && visible(link.target));
+
     // Update width
-    const xMin = d3.min(nodes, node => node.x0);
-    const xMax = d3.max(nodes, node => node.x1);
-    width = xMax - xMin + nodeSize + margin.left + margin.right;
+    xMax *= nodeSize;
+    width = xMax + nodeSize + margin.left + margin.right;
 
-    // Update x position
-    const xShift = -xMin + nodeSize / 2;
-
-    nodes.forEach(node => {
-      node.x0 += xShift;
-      node.x1 += xShift;
-    });
-    
     // Position links
     nodes.forEach(node => { 
       const y = node.y,
@@ -403,6 +402,12 @@ export default function() {
     height = _;
     return trajectoryGraph;
   };
+
+  trajectoryGraph.scrollPosition = function(_) {
+    if (!arguments.length) return scrollPosition;
+    scrollPosition = _;
+    return trajectoryGraph;
+  }
 
   trajectoryGraph.currentFrame = function(_) {
     if (!arguments.length) return currentFrame;
