@@ -691,6 +691,8 @@ function selectZoomPoint(frame, point) {
 
 function translate(point) {
   settings.zoomPoint = point.slice();
+
+  updateTrajectoryGraph();
 }
 
 function editRegion(frame, region) {
