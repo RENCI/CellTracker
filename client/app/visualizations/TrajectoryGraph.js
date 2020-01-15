@@ -6,9 +6,8 @@ export default function() {
   let margin = { top: 10, left: 10, bottom: 10, right: 10 },
       width = 200,
       height = 200,
-      fullHeight = 200,
       innerWidth = function() { return width - margin.left - margin.right; },
-      innerHeight = function() { return fullHeight - margin.top - margin.bottom; },
+      innerHeight = function() { return height - margin.top - margin.bottom; },
 
       // Data
       data,
@@ -17,7 +16,9 @@ export default function() {
       // Settings
       currentFrame = 0,
       zoomPoint = null,
-      zoom = 0,
+      zoom = 0,      
+      startFrame = 0,
+      endFrame = 0,
 
       // Appearance
       nodeSize = 0,
@@ -32,7 +33,10 @@ export default function() {
   function trajectoryGraph(selection) {
     selection.each(function(d) {
       data = d;
-      graph = data.trajectoryGraph;
+      graph = {
+        nodes: data.trajectoryGraph.nodes.slice(),
+        links: data.trajectoryGraph.links.slice()
+      };
 
       processData();
 
@@ -60,26 +64,34 @@ export default function() {
   }
 
   function processData() {
-    const {nodes, links} = graph;
+    let {nodes, links} = graph;
 
     if (nodes.length === 0) {
       width = margin.left + margin.right; 
       return;
     }
 
+    // Visible frames
+    const maxNumFrames = 10;
+    const numFrames = Math.min(data.segmentationData.length, maxNumFrames);
+    const framePad = Math.floor(numFrames / 2);
+    
+    startFrame = Math.max(currentFrame - framePad, 0);
+    endFrame = Math.min(startFrame + numFrames - 1, data.segmentationData.length - 1);
+    startFrame = endFrame - numFrames + 1;
+
+    const inRange = node => node.data.frameIndex >= startFrame && node.data.frameIndex <= endFrame;
+
+    nodes = nodes.filter(inRange);
+    links = links.filter(link => inRange(link.source) && inRange(link.target));
+
     // Compute node size
-    fullHeight = height;
     nodeSize = innerHeight() / 80;
     nodeStrokeWidth = nodeSize / 6;
 
-    // Minimum spacing in y
-    const numFrames = data.segmentationData.length;
-    const minYSpacing = nodeSize * 2;
-    fullHeight = Math.max(numFrames * minYSpacing, height);
-
     // Position nodes
     const yScale = d3.scaleLinear()
-        .domain([0, numFrames - 1])
+        .domain([startFrame, endFrame])
         .range([0, innerHeight() - nodeSize]);
 
     nodes.forEach(node => {
@@ -143,6 +155,9 @@ export default function() {
         x += nodeSize;
       });
     });
+
+    graph.nodes = nodes;
+    graph.links = links;
   }
 
   function draw() {
@@ -151,17 +166,17 @@ export default function() {
         .attr("height", height);
 
     // Translate to keep current frame in view
-    const frameScale = d3.scaleLinear()
-        .domain([0, frames.length - 1])
-        .range([0, innerHeight() - nodeSize]);
+    //const frameScale = d3.scaleLinear()
+    //    .domain([0, frames.length - 1])
+    //    .range([0, innerHeight() - nodeSize]);
 
-    let y = height / 2 - frameScale(currentFrame);
+    //let y = height / 2 - frameScale(currentFrame);
 
     // Clamp
-    y = Math.max(height - fullHeight, Math.min(y, 0));
+    //y = Math.max(height - fullHeight, Math.min(y, 0));
 
-    svg.select(".mainGroup")
-        .attr("transform", "translate(0," + y + ")");    
+    //svg.select(".mainGroup")
+      //  .attr("transform", "translate(0," + y + ")");    
 
     // Get nodes and links
     const {nodes, links} = graph;
@@ -307,10 +322,10 @@ export default function() {
       const frameSize = nodeSize * 0.5;
       const diff = (frameSize - nodeSize) / 2;
 
-      const frames = data.segmentationData;
+      const frames = data.segmentationData.slice(startFrame, endFrame + 1);
 
       const yScale = d3.scaleLinear()
-          .domain([0, frames.length - 1])
+          .domain([0, endFrame - startFrame])
           .range([-diff, innerHeight() - nodeSize - diff]);
 
       const backHeight = yScale(1) - yScale(0);
@@ -368,7 +383,7 @@ export default function() {
       }
 
       function fill(d, i) {
-        return i === currentFrame ? "#007bff" : "#eee";
+        return i === currentFrame - startFrame ? "#007bff" : "#eee";
       }
 
       function backY(d, i) {
