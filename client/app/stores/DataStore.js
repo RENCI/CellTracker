@@ -222,9 +222,6 @@ function updateRBush(tree, regions) {
 }
 
 function generateTrajectoryIds() {
-  console.log("GENERATE");
-
-
   // Sanity check for object ids
   experiment.segmentationData.forEach(frame => {
     const ids = frame.regions.map(region => region.id);    
