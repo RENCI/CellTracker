@@ -272,11 +272,11 @@ function generateTrajectoryIds() {
     });
   });
 
-  // Create tree
-  createTrajectoryGraph();
+  // Create graph
+  updateTrajectoryGraph();
 }
 
-function createTrajectoryGraph() {
+function updateTrajectoryGraph() {
   const frames = experiment.segmentationData;
   const zoomPoint = settings.zoomPoint;
   const zoom = settings.zoom;
@@ -590,6 +590,8 @@ function setZoom(newZoom, newFilmstripZoom, newZoomPoint) {
   settings.zoom = newZoom;
   settings.filmstripZoom = newFilmstripZoom;
   settings.zoomPoint = newZoomPoint;
+
+  updateTrajectoryGraph();
 }
 
 function animateZoom(newZoom, newFilmstripZoom, newZoomPoint) {
