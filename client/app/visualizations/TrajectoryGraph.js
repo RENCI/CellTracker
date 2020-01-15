@@ -85,7 +85,7 @@ export default function() {
     const inRange = node => node.data.frameIndex >= startFrame && node.data.frameIndex <= endFrame;
 
     nodes = nodes.filter(inRange);
-    links = links.filter(link => inRange(link.source) || inRange(link.target));
+    links = links.filter(link => inRange(link.source) && inRange(link.target));
 
     // Compute node size
     nodeSize = innerHeight() / 80;
