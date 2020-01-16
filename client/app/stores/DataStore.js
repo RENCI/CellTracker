@@ -827,6 +827,13 @@ function pushHistory() {
     });
   }
 
+  if (frameIndex < experiment.segmentationData.length - 1) {
+    savedFrames.push({
+      index: frameIndex + 1,
+      frame: cloneData(experiment.segmentationData[frameIndex + 1])
+    });
+  }
+
   // Add to the end
   history.index = history.edits.push({
     segmentationData: savedFrames,
