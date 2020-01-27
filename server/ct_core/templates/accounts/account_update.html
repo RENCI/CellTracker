@@ -24,8 +24,11 @@
                 {{ formset.management_form }}
                 {{ formset.as_table }}
             </div>
+            <div class="alert alert-secondary" role="alert">
+                Your total score is {{ total_score }}
+            </div>
             {% if is_poweruser %}
-                <div class="alert alert-success">
+                <div class="alert alert-success" role="alert">
                     You are assigned as a power user, so your saved edits will update system data automatically.
                 </div>
             {% endif %}

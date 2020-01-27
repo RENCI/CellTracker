@@ -56,6 +56,8 @@ class UserProfile(models.Model):
     school = models.CharField(max_length=100, blank=True, null=True, default='')
     role = models.CharField(max_length=2, choices=USER_ROLE_CHOICES, default=REGULARUSER)
 
+    score = models.IntegerField(blank=True, null=True, default=0)
+
     def __str__(self):
         return self.user.username
 

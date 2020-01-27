@@ -166,6 +166,7 @@ def edit_user(request, pk):
     is_pu = is_power_user(user)
     return render(request, 'accounts/account_update.html', {"profile_form": user_form,
                                                             "formset": formset,
+                                                            "total_score": user.user_profile.score,
                                                             "is_poweruser": is_pu})
 
 
@@ -208,6 +209,7 @@ def get_user_info(request):
                                   'email': up.email,
                                   'grade': up.grade,
                                   'school': up.school,
+                                  'total_score': up.score,
                                   'is_power_user': 'true' if is_power_user(up.user) else 'false'
                                   })
     else:
@@ -782,7 +784,10 @@ def get_score(request, exp_id, frame_no):
         score, err_msg = get_edit_score(img_file, reg_data['vertices'])
         if err_msg:
             return JsonResponse({'message': err_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+        u = request.user
+        current_score = u.user_profile.score
+        u.user_profile.score = score + current_score
+        u.user_profile.save()
         return JsonResponse({'score': score}, status=status.HTTP_200_OK)
     except AttributeError as ex:
         return JsonResponse({'message': 'Scoring raised AttributeError'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

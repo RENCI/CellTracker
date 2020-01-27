@@ -343,13 +343,6 @@ a[data-toggle="modal"] {
 	overflow: hidden;
 }
 
-.alert {
-  padding: 20px;
-  color: white;
-  background-color: lightblue;
-  margin-bottom: 15px;
-}
-
 /* The close button */
 .closebtn {
   margin-left: 15px;
