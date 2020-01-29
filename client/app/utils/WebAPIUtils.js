@@ -210,7 +210,7 @@ function pollUpdatedTracking(taskId) {
   });
 }
 
-export function saveSegmentationData(id, data) {
+export function saveSegmentationData(id, data, lastEdit) {
   setupAjax();
 
   // Send each edited frame
@@ -229,23 +229,32 @@ export function saveSegmentationData(id, data) {
       return sendRegion;
     });
 
-    const numEdited = regions.reduce((p, c) => c.edited ? p + 1 : p, 0);
+    const saveData = {
+      regions: JSON.stringify(regions),
+      num_edited: regions.reduce((p, c) => c.edited ? p + 1 : p, 0)
+    }
 
-    const regionsString = JSON.stringify(regions);
+    if (lastEdit.frame === frame.frame) {
+      saveData["last_edit"] = JSON.stringify(lastEdit);
+    }
+
+    console.log(saveData);
 
     $.ajax({
       type: "POST",
       url: "/save_segmentation_data/" + id + "/" + frame.frame,
-      data: {
-        regions: regionsString,
-        num_edited: numEdited
-      },
+      data: saveData,
       success: data => {
         /*
         if (data.task_id) {
           pollUpdatedTracking(data.task_id);
         }
         */
+        const score = +data.score;
+
+        if (!isNaN(score)) {
+          alert("Score: " + data.score);
+        }
       },
       error: (xhr, textStatus, errorThrown) => {
         console.log(textStatus + ": " + errorThrown);
@@ -254,6 +263,7 @@ export function saveSegmentationData(id, data) {
   });
 }
 
+/*
 export function getRegionScore(id, frame, region) {
   setupAjax();
 
@@ -278,3 +288,4 @@ export function getRegionScore(id, frame, region) {
     }
   });
 }
+*/

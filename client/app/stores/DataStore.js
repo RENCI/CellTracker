@@ -697,6 +697,14 @@ function editRegion(frame, region) {
     region.unsavedEdit = true;
     experiment.segmentationData[frame].edited = true;
 
+    const remove = experiment.segmentationData[frame].regions.indexOf(region) === -1;
+
+    experiment.lastEdit = {
+      type: remove ? "remove" : "edit",
+      frame: experiment.segmentationData[frame].frame,
+      id: region.id
+    };
+
     // Update rbush
     updateRBush(experiment.segmentationData[frame].tree, experiment.segmentationData[frame].regions);
   }
@@ -916,7 +924,7 @@ function cloneData(d) {
 
 function saveSegmentationData() {
   // Clear edited flags
-  experiment.segmentationData.forEach(function (frame) {
+  experiment.segmentationData.forEach(frame => {
     frame.edited = false;
 
     frame.regions.forEach(region => {
@@ -1329,12 +1337,12 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
             DataStore.emitChange();
           }
           break;
-
+/*
         case "Enter":
           saveSegmentationData();
           DataStore.emitChange();
           break;
-
+*/
         case "ArrowLeft":
           frameDelta(-1);
           DataStore.emitChange();

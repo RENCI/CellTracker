@@ -53,7 +53,8 @@ const DataControls = props => {
   const onSaveClick = () => {
     ViewActionCreators.saveSegmentationData(
       props.experiment.id,
-      props.experiment.segmentationData
+      props.experiment.segmentationData,
+      props.experiment.lastEdit
     );
   }
 

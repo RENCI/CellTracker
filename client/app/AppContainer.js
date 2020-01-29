@@ -2,7 +2,7 @@ import React, { useState, useLayoutEffect, useEffect, useRef } from 'react';
 import MainSection from "./components/MainSection";
 import ResizeListener from "./components/ResizeListener";
 import DataStore from "./stores/DataStore";
-import { getUserInfo, getExperimentList, keyPress, getRegionScore } from "./actions/ViewActionCreators";
+import { getUserInfo, getExperimentList, keyPress, /*getRegionScore*/ } from "./actions/ViewActionCreators";
 
 function getStateFromStore() {
   return {
@@ -69,7 +69,7 @@ const AppContainer = () => {
       case "Control":
         ctrlDown = false;
         break;
-
+/*
       case "0": {
         if (experiment && experiment.segmentationData && playback) {
           const currentRegion = experiment.segmentationData[playback.frame].regions.filter(region => region.highlight);
@@ -83,6 +83,7 @@ const AppContainer = () => {
 
         break;
       }
+*/      
 
       default:
         keyPress(event.key, ctrlDown);
