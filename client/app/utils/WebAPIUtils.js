@@ -223,8 +223,12 @@ export function saveSegmentationData(id, data, lastEdit) {
         vertices: region.vertices,
         edited: region.edited || region.unsavedEdit,
         link_id: region.link_id,
-        manual_link: region.manual_link
+        manual_link: region.manual_link 
       };
+
+      if (region.labels && region.labels.length > 0) {
+        sendRegion["labels"] = region.labels;
+      }
 
       return sendRegion;
     });
@@ -237,8 +241,6 @@ export function saveSegmentationData(id, data, lastEdit) {
     if (lastEdit.frame === frame.frame) {
       saveData["last_edit"] = JSON.stringify(lastEdit);
     }
-
-    console.log(saveData);
 
     $.ajax({
       type: "POST",

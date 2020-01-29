@@ -1036,8 +1036,6 @@ function zoom(view, direction) {
 function setEditMode(mode, option) {
   settings.editMode = mode;
 
-  console.log(mode, option);
-
   if (mode === "regionLabel") settings.currentLabel = option;
 
   if (linking.region) linking.region.isLinkRegion = false;
