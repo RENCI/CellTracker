@@ -28,6 +28,8 @@ export default keyMirror({
   TRANSLATE: null,
   EDIT_REGION: null,
   LINK_REGION: null,
+  LABEL_REGION: null,
+
   SAVE_SEGMENTATION_DATA: null,
   UNDO_HISTORY: null,
   REDO_HISTORY: null,

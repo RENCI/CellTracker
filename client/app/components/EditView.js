@@ -62,7 +62,8 @@ const EditView = props => {
         <div className="offset-md-2 col-md-8">
           <EditControls 
             editMode={props.settings.editMode}
-            history={props.history} />        
+            history={props.history}
+            labels={props.experiment.labels} />        
         </div>
         <div className="col-md-2">
           <FilmstripControls />        
@@ -81,6 +82,7 @@ const EditView = props => {
             zoomPoint={props.settings.zoomPoint}
             frame={props.playback.frame}
             editMode={props.settings.editMode}
+            currentLabel={props.settings.currentLabel}
             onMouseWheel={handleMouseWheel}
             onHighlightRegion={handleHighlightRegion}
             onSelectRegion={handleSelectRegion}

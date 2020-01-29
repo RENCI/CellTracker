@@ -4,7 +4,7 @@ import { lineSegmentIntersection, insidePolygon, normalizeVector } from "../util
 import { 
   addVertex, removeVertex, moveVertex, mergeRegions, splitRegionPointDirection, trimRegion, 
   removeRegion, addRegion, moveRegion, rotateRegion, 
-  copiedRegion, copyRegion, pasteRegion } from "../utils/RegionEditing";
+  copiedRegion, copyRegion, pasteRegion, labelRegion } from "../utils/RegionEditing";
 import { regionColors } from "../utils/ColorUtils";
 
 export default function(sketch) {
@@ -57,7 +57,8 @@ export default function(sketch) {
       dragPointX = -1, dragPointY = -1,
       dragVertices = null,
       splitLine = null,
-      actionString = "";
+      actionString = "",
+      currentLabel = "";
 
   // Transform
   let zoom = 1,
@@ -93,6 +94,7 @@ export default function(sketch) {
     zoom = props.zoom;
     zoomPoint = props.zoomPoint;
     editMode = props.editMode;
+    currentLabel = props.currentLabel;
     onMouseWheel = props.onMouseWheel;
     onHighlightRegion = props.onHighlightRegion;
     onSelectRegion = props.onSelectRegion;
@@ -265,8 +267,6 @@ export default function(sketch) {
         //if (region.highlight) sketch.noFill();
         //else sketch.fill(fillColorMap(region.trajectory_id));
         sketch.noFill();
-        //if (editMode === "filmstrip" && region.highlight) sketch.fill(fillColorMap(region.trajectory_id));
-        //else sketch.noFill();
 
         sketch.beginShape();
         closedVertices.forEach(vertex => {
@@ -274,23 +274,6 @@ export default function(sketch) {
           sketch.vertex(v[0], v[1]);
         });
         sketch.endShape();        
-
-        // Draw highlight outline
-        if (editMode === "filmstrip" && (region.highlight || region.isLinkRegion)) {
-          sketch.strokeWeight(lineWeight / zoom);        
-          sketch.canvas.getContext("2d").setLineDash([3 / zoom, 3 / zoom]);
-
-          sketch.beginShape();
-          closedVertices.forEach(vertex => {
-            const offset = normalizeVector([vertex[0] - region.center[0], vertex[1] - region.center[1]]);
-            offset[0] *= 0.075 / zoom;
-            offset[1] *= 0.075 / zoom;
-            const v = scalePoint([vertex[0] + offset[0], vertex[1] + offset[1]]);
-            sketch.vertex(v[0], v[1]);
-          });
-          sketch.endShape();             
-        }
-
 
         const showVertices = 
           (editMode === "vertex" && region === currentRegion) || 
@@ -387,7 +370,7 @@ export default function(sketch) {
         dragVertices = currentRegion.vertices.slice();
       }
     }
-    else if (editMode === "filmstrip" || editMode === "regionSelect") {
+    else if (editMode === "regionSelect") {
       dragStartX = sketch.mouseX;
       dragStartY = sketch.mouseY;
 
@@ -412,7 +395,6 @@ export default function(sketch) {
     moveMouse = true;
 
     switch (editMode) {
-      case "filmstrip":
       case "regionSelect":
         if (sketch.mouseIsPressed) {
           const m = [sketch.mouseX, sketch.mouseY];
@@ -518,6 +500,9 @@ export default function(sketch) {
       case "regionLink":
       case "regionBreakLink":
         break;
+
+      case "regionLabel":
+        break;
     }
 
     highlight();
@@ -550,7 +535,6 @@ export default function(sketch) {
     const regions = visibleRegions;
 
     switch (editMode) {
-      case "filmstrip":
       case "regionSelect":
         if (!moveMouse) {
           // Select segmentation region
@@ -742,6 +726,16 @@ export default function(sketch) {
         }
 
         break;
+
+      case "regionLabel":
+        if (moveMouse) return;
+
+        if (currentRegion) {
+          labelRegion(currentRegion, currentLabel);
+          onEditRegion(frame, currentRegion);          
+        }
+
+        break;
     }
 
     highlight();
@@ -846,7 +840,6 @@ export default function(sketch) {
     sketch.cursor(sketch.ARROW);
 
     switch (editMode) {
-      case "filmstrip":
       case "regionEdit":
       case "regionMove":
       case "regionRotate":
@@ -855,10 +848,11 @@ export default function(sketch) {
       case "regionMerge":
       case "regionSplit":
       case "regionLink":
-      case "regionBreakLink": {
+      case "regionBreakLink": 
+      case "regionLabel": {
         actionString = 
           editMode === "regionEdit" ? "Add region" : 
-          editMode === "filmstrip" || editMode === "regionSelect" ? "Center on point": ""; 
+          editMode === "regionSelect" ? "Center on point": ""; 
 
         // Test regions
         const p = normalizePoint(m);
@@ -883,7 +877,8 @@ export default function(sketch) {
             editMode === "regionSplit" ? "Split region" :
             editMode === "regionLink" ? "Link region" :
             editMode === "regionBreakLink" ? "Break region link" :
-            editMode === "filmstrip" || editMode === "regionSelect" ? "Center on region" : ""; 
+            editMode === "regionSelect" ? "Center on region" : 
+            editMode === "regionLabel" ? "Toggle " + currentLabel : ""; 
         }
 
         break;

@@ -49,7 +49,8 @@ let settings = {
   stabilize: true,
   framesToLoad: 10,
   frameOverlap: 2,
-  showTrajectories: true
+  showTrajectories: true,
+  currentLabel: ""
 };
 
 // Linking 
@@ -1032,8 +1033,12 @@ function zoom(view, direction) {
   }  
 }
 
-function setEditMode(mode) {
+function setEditMode(mode, option) {
   settings.editMode = mode;
+
+  console.log(mode, option);
+
+  if (mode === "regionLabel") settings.currentLabel = option;
 
   if (linking.region) linking.region.isLinkRegion = false;
   linking.frame = -1;
@@ -1232,9 +1237,9 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       break;
 
     case Constants.SET_FRAME_OVERLAP:
-        setFrameOverlap(action.frameOverlap);
-        DataStore.emitChange();
-        break;
+      setFrameOverlap(action.frameOverlap);
+      DataStore.emitChange();
+      break;
 
     case Constants.ZOOM:
       zoom(action.view, action.direction);
@@ -1242,7 +1247,7 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       break;
 
     case Constants.SET_EDIT_MODE:
-      setEditMode(action.mode);
+      setEditMode(action.mode, action.option);
       DataStore.emitChange();
       break;
 

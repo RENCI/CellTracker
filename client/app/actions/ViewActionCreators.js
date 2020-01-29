@@ -198,10 +198,11 @@ export function zoom(view, direction) {
   });
 };
 
-export function setEditMode(mode) {
+export function setEditMode(mode, option) {
   AppDispatcher.dispatch({
     actionType: Constants.SET_EDIT_MODE,
-    mode: mode
+    mode: mode,
+    option: option
   });
 };
 
