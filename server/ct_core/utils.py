@@ -151,10 +151,7 @@ def get_exp_labels(exp_id):
             label_list = []
             for lbl_md in label_md_list:
                 label_list.append(lbl_md.value)
-            if label_list:
-                return ';'.join(label_list)
-            else:
-                return ''
+            return label_list
         except CollectionDoesNotExist:
             return ''
 
