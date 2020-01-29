@@ -16,7 +16,7 @@ from django.contrib.auth.models import User
 from django_irods.storage import IrodsStorage
 from django.core.exceptions import ObjectDoesNotExist
 
-from ct_core.models import get_path_by_paras, UserProfile
+from ct_core.models import get_path_by_paras, UserProfile, Segmentation, UserSegmentation
 
 frame_no_key = 'frame_no'
 logger = logging.getLogger(__name__)
@@ -147,5 +147,33 @@ def sync_seg_data_to_irods(exp_id='', username='', json_data={}, irods_path=''):
             pass
 
     shutil.rmtree(local_data_path)
-
     return
+
+
+def get_experiment_frame_seg_data(exp_id, frame_no, username=None):
+    """
+    get segmentation data for a specified frame in a specified experiment. If user is not None, user edit segmentation
+    data will be returned if any; otherwise, ground truth segmentation data for the specified experiment will be
+    returned
+    :param exp_id: experiment id
+    :param frame_no: frame number
+    :param username: optional, user name to retrieve segmentation object for
+    :return: segmentation data
+    """
+    if username:
+        try:
+            seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user__username=username,
+                                                   frame_no=frame_no)
+        except ObjectDoesNotExist:
+            try:
+                # check system Segmentation if the next frame of user segmentation does not exist
+                seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=frame_no)
+            except ObjectDoesNotExist:
+                seg_obj = None
+    else:
+        try:
+            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=frame_no)
+        except ObjectDoesNotExist:
+            seg_obj = None
+
+    return seg_obj

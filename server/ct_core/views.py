@@ -34,7 +34,7 @@ from ct_core.utils import get_experiment_list_util, read_video, \
     create_user_segmentation_data_for_download, get_frame_info, create_seg_data_from_csv, \
     sync_seg_data_to_db, delete_one_experiment, get_users, update_experiment_priority, pack_zeros, \
     is_exp_locked, lock_experiment, release_locks_by_user, add_labels_to_exp, get_exp_labels
-from ct_core.task_utils import get_exp_frame_no, is_power_user
+from ct_core.task_utils import get_exp_frame_no, is_power_user, get_experiment_frame_seg_data
 from ct_core.forms import SignUpForm, UserProfileForm, UserPasswordResetForm
 from ct_core.models import UserProfile, Segmentation, UserSegmentation
 from django_irods.storage import IrodsStorage
@@ -352,14 +352,8 @@ def get_frame_seg_data(request, exp_id, frame_no):
     if locked and lock_user.username != u.username:
         # experiment is locked by another user
         return JsonResponse({'locked_by': lock_user.username}, status=status.HTTP_403_FORBIDDEN)
-    try:
-        seg_obj = UserSegmentation.objects.get(user=u, exp_id=exp_id,
-                                               frame_no=int(frame_no))
-    except UserSegmentation.DoesNotExist:
-        try:
-            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=int(frame_no))
-        except Segmentation.DoesNotExist:
-            seg_obj = None
+
+    seg_obj = get_experiment_frame_seg_data(exp_id, int(frame_no), username=u.username)
 
     if seg_obj:
         json_resp_data = seg_obj.data
@@ -701,14 +695,52 @@ def save_frame_seg_data(request, exp_id, frame_no):
         # experiment is locked by another user
         return JsonResponse({'locked_by': lock_user.username}, status=status.HTTP_403_FORBIDDEN)
     try:
+        if 'last_edit' in seg_data:
+            last_edit_data = json.loads(seg_data['last_edit'])
+            edit_type = last_edit_data['type'].lower()
+            edit_reg_id = last_edit_data['id']
+            img_file, err_msg = get_exp_image(exp_id, frame_no)
+            if err_msg:
+                return JsonResponse({'message': err_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            if edit_type == 'edit':
+                edit_data = json.loads(seg_data['regions'])
+            else: # edit type is remove
+                edit_seg_data = get_experiment_frame_seg_data(exp_id, frame_no, username=request.user.username)
+                edit_data = edit_seg_data.data
+
+            edit_reg_data = []
+            if edit_data:
+                for reg in edit_data:
+                    if reg['id'] == edit_reg_id:
+                        edit_reg_data = reg['vertices']
+                        break
+            if edit_reg_data:
+                score, err_msg = get_edit_score(img_file, edit_reg_data, edit_type=edit_type)
+                if err_msg:
+                    return JsonResponse({'message': err_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            else:
+                return JsonResponse({'message': "No last edit region data"}, status=status.HTTP_400_BAD_REQUEST)
+            u = request.user
+            current_score = u.user_profile.score
+            u.user_profile.score = score + current_score
+            u.user_profile.save()
+
         save_user_seg_data_to_db(request.user, exp_id, frame_no, seg_data['regions'], num_edited)
-        #task = add_tracking.apply_async((exp_id, request.user.username, int(frame_no)),
+        # task = add_tracking.apply_async((exp_id, request.user.username, int(frame_no)),
         #                                countdown=1)
-        #return JsonResponse({'task_id': task.task_id}, status=status.HTTP_200_OK)
-        sync_user_edit_frame_from_db_to_irods.apply_async((exp_id, request.user.username, int(frame_no)), countdown=1)
-        return JsonResponse({}, status=status.HTTP_200_OK)
+        # return JsonResponse({'task_id': task.task_id}, status=status.HTTP_200_OK)
+        sync_user_edit_frame_from_db_to_irods.apply_async((exp_id, request.user.username, int(frame_no)),
+                                                          countdown=1)
+        if 'last_edit' in seg_data:
+            return JsonResponse({'score': score}, status=status.HTTP_200_OK)
+        else:
+            return JsonResponse({}, status=status.HTTP_200_OK)
+    except AttributeError as ex:
+        return JsonResponse({'message': 'Scoring raised AttributeError'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     except Exception as ex:
-        err_msg = "Cannot save segmentation data: {}".format(ex)
+        err_msg = "Failed to do scoring and save segmentation data: {}".format(ex)
         logger.error(err_msg)
         return JsonResponse({'message': err_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

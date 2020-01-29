@@ -103,11 +103,12 @@ def _create_mask_overlay_image(in_img_path, vert_arr):
     return Image(overlay_img)
 
 
-def get_edit_score(ifile, vert_list):
+def get_edit_score(ifile, vert_list, edit_type='edit'):
     """
     Get predicted score using the trained model
     :param ifile: experiment base image to be scored on
     :param vert_list: vertices list in the format of [[y, x],...] with y and x normalized within [0,1]
+    :param edit_type: optional parameter, 'remove' type will be assumed if it is not the default 'edit'
     :return: score, err_msg
     """
     model_path = settings.SCORE_MODEL_PATH
@@ -116,4 +117,6 @@ def get_edit_score(ifile, vert_list):
     overlay_img = _create_mask_overlay_image(ifile, vert_list)
     prediction = learn.predict(overlay_img)
     score = int(np.round(float(prediction[2][0])*10,0))
+    if edit_type != 'edit':
+        score = 10 - score
     return score, None

@@ -25,7 +25,7 @@ from django_irods.icommands import SessionException
 from wand.image import Image
 
 from ct_core.models import Segmentation, UserSegmentation, UserProfile, get_path
-from ct_core.task_utils  import get_exp_frame_no, validate_user, is_power_user
+from ct_core.task_utils  import get_exp_frame_no, validate_user, is_power_user, get_experiment_frame_seg_data
 
 
 def is_exp_locked(exp_id):
@@ -642,16 +642,7 @@ def compute_time_series_and_put_in_irods(exp_id, username=''):
         row = [i]
         cids = []
         cell_id_dict = {}
-        if username:
-            try:
-                seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user__username=username,
-                                                       frame_no=i+1)
-            except ObjectDoesNotExist:
-                # check system Segmentation if the next frame of user segmentation does not exist
-                seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=i+1)
-        else:
-            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=i+1)
-
+        seg_obj = get_experiment_frame_seg_data(exp_id, i+1, username=username)
         ifile, err_msg = get_exp_image(exp_id, str(i+1))
 
         if err_msg:
@@ -841,13 +832,7 @@ def create_user_segmentation_data_for_download(exp_id, username):
     min_f = 0
     max_f = fno
     for i in range(min_f, max_f):
-        try:
-            seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user__username=username,
-                                                   frame_no=i + 1)
-        except ObjectDoesNotExist:
-            # check system Segmentation if the frame of user segmentation does not exist
-            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=i + 1)
-
+        seg_obj = get_experiment_frame_seg_data(exp_id, i+1, username=username)
         filename = os.path.basename(seg_obj.file.name)
         out_file_name = os.path.join(local_data_path, filename)
         with open(out_file_name, 'w') as json_file:

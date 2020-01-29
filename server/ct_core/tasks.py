@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from ct_core.models import UserSegmentation, Segmentation, get_path
 from ct_core.task_utils  import get_exp_frame_no, find_centroid, distance_between_point_sets, \
-    sync_seg_data_to_irods, validate_user
+    sync_seg_data_to_irods, validate_user, get_experiment_frame_seg_data
 
 
 logger = logging.getLogger('django')
@@ -49,15 +49,7 @@ def add_tracking(exp_id, username='', frm_idx=-1):
         max_f = frm_idx + 1 if frm_idx < fno else fno
 
     for i in range(max_f, min_f, -1):
-        if username:
-            try:
-                seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user__username=username,
-                                                       frame_no=i)
-            except ObjectDoesNotExist:
-                # check system Segmentation if the next frame of user segmentation does not exist
-                seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=i)
-        else:
-            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=i)
+        seg_obj = get_experiment_frame_seg_data(exp_id, i, username=username)
         data = seg_obj.data
         centroid_list = []
         id_list = []
@@ -131,15 +123,7 @@ def add_tracking(exp_id, username='', frm_idx=-1):
         # the first frame that does not have tracking data. For the former, need to
         # remove link_id data if any for the first frame due to the linkage direction change from
         # forward to backward linkages
-        if username:
-            try:
-                seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user__username=username,
-                                                       frame_no=1)
-            except ObjectDoesNotExist:
-                # check system Segmentation if the next frame of user segmentation does not exist
-                seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=1)
-        else:
-            seg_obj = Segmentation.objects.get(exp_id=exp_id, frame_no=1)
+        seg_obj = get_experiment_frame_seg_data(exp_id, 1, username=username)
         changed = False
         data = seg_obj.data
         if frm_idx == -1:
