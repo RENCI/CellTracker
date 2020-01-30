@@ -695,6 +695,8 @@ def save_frame_seg_data(request, exp_id, frame_no):
         # experiment is locked by another user
         return JsonResponse({'locked_by': lock_user.username}, status=status.HTTP_403_FORBIDDEN)
     try:
+        u = request.user
+        total_score = u.user_profile.score
         if 'last_edit' in seg_data:
             last_edit_data = json.loads(seg_data['last_edit'])
             edit_type = last_edit_data['type'].lower()
@@ -721,9 +723,9 @@ def save_frame_seg_data(request, exp_id, frame_no):
                     return JsonResponse({'message': err_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             else:
                 return JsonResponse({'message': "No last edit region data"}, status=status.HTTP_400_BAD_REQUEST)
-            u = request.user
-            current_score = u.user_profile.score
-            u.user_profile.score = score + current_score
+
+            total_score = score + total_score
+            u.user_profile.score = total_score
             u.user_profile.save()
 
         save_user_seg_data_to_db(request.user, exp_id, frame_no, seg_data['regions'], num_edited)
@@ -733,9 +735,9 @@ def save_frame_seg_data(request, exp_id, frame_no):
         sync_user_edit_frame_from_db_to_irods.apply_async((exp_id, request.user.username, int(frame_no)),
                                                           countdown=1)
         if 'last_edit' in seg_data:
-            return JsonResponse({'score': score}, status=status.HTTP_200_OK)
+            return JsonResponse({'score': score, 'total_score': total_score}, status=status.HTTP_200_OK)
         else:
-            return JsonResponse({}, status=status.HTTP_200_OK)
+            return JsonResponse({'total_score': total_score}, status=status.HTTP_200_OK)
     except AttributeError as ex:
         return JsonResponse({'message': 'Scoring raised AttributeError'},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
