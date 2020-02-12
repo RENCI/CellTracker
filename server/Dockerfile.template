@@ -1,4 +1,4 @@
-FROM renci/cell_tracker_docker_base:2.1.1
+FROM renci/cell_tracker_docker_base:2.1.2
 MAINTAINER Hong Yi <hongyi@renci.org>
 
 RUN usermod -u HOST_USER_UID docker

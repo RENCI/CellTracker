@@ -52,7 +52,7 @@ def index(request):
     #import pydevd_pycharm
     #pydevd_pycharm.settrace('172.17.0.1', port=21000, suspend=False)
 
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         if request.user.is_superuser:
             # go to data management page
             template = loader.get_template('ct_core/admin.html')
@@ -80,7 +80,7 @@ class RequestPasswordResetView(PasswordResetView):
 
 @login_required
 def logout(request):
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         release_locks_by_user(request.user)
     return LogoutView.as_view(
         next_page='/'
@@ -142,7 +142,7 @@ def edit_user(request, pk):
     user = User.objects.get(pk=pk)
     user_form = UserProfileForm(instance=user)
 
-    if not user.is_authenticated() or request.user.id != user.id:
+    if not user.is_authenticated or request.user.id != user.id:
         return HttpResponseForbidden('You are not authenticated to edit user profile')
 
     ProfileInlineFormset = inlineformset_factory(User, UserProfile,
@@ -408,7 +408,7 @@ def save_tracking_data(request, exp_id):
 
 @login_required
 def create_new_experiment(request):
-    if request.user.is_authenticated() and request.user.is_superuser:
+    if request.user.is_authenticated and request.user.is_superuser:
         template = loader.get_template('ct_core/create_new_exp.html')
         context = {}
         return HttpResponse(template.render(context, request))
@@ -419,7 +419,7 @@ def create_new_experiment(request):
 
 @login_required
 def manage_user_role(request):
-    if request.user.is_authenticated() and request.user.is_superuser:
+    if request.user.is_authenticated and request.user.is_superuser:
         template = loader.get_template('ct_core/manage_user_role.html')
         power_users, reg_users = get_users()
         context = {
@@ -459,7 +459,7 @@ def update_user_role(request):
 
 @login_required
 def sort_task_priority(request):
-    if request.user.is_authenticated() and request.user.is_superuser:
+    if request.user.is_authenticated and request.user.is_superuser:
         template = loader.get_template('ct_core/sort_task_priority.html')
         exp_list, err_msg = get_experiment_list_util()
         if exp_list:
@@ -501,7 +501,7 @@ def update_task_priority(request):
 
 @login_required
 def add_experiment_to_server(request):
-    if request.user.is_authenticated() and request.user.is_superuser:
+    if request.user.is_authenticated and request.user.is_superuser:
         exp_name = request.POST.get('exp_name', '')
         exp_id = request.POST.get('exp_id', '')
         exp_labels = request.POST.get('exp_label', '')
@@ -640,7 +640,7 @@ def add_experiment_to_server(request):
 
 @login_required
 def delete_experiment(request, exp_id):
-    if request.user.is_authenticated() and request.user.is_superuser:
+    if request.user.is_authenticated and request.user.is_superuser:
         ret_msg = delete_one_experiment(exp_id)
         if ret_msg == 'success':
             return JsonResponse({'message': 'Selected experiment deleted successfully'},
@@ -656,7 +656,7 @@ def delete_experiment(request, exp_id):
 
 @login_required
 def update_label_association(request, exp_id):
-    if request.user.is_authenticated() and request.user.is_superuser:
+    if request.user.is_authenticated and request.user.is_superuser:
         exp_labels = request.POST.get('exp_label', '')
         if not exp_labels:
             return JsonResponse({"message": 'Bad request: input labels are empty'}, status=status.HTTP_400_BAD_REQUEST)

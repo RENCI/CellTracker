@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 def is_power_user(u):
-    if u and not u.is_superuser and u.is_authenticated():
+    if u and not u.is_superuser and u.is_authenticated:
         return True if u.user_profile.role == UserProfile.POWERUSER else False
     else:
         return False

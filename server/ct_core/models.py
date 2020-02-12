@@ -48,7 +48,7 @@ class UserProfile(models.Model):
         (REGULARUSER, 'Regular'),
     )
 
-    user = models.OneToOneField(User, related_name='user_profile')
+    user = models.OneToOneField(User, related_name='user_profile', on_delete=models.CASCADE)
     # cannot use email field in User model in order to guarantee uniqueness of emails at DB level
     email = models.EmailField(blank=True, null=True, unique=True)
     grade = models.PositiveIntegerField(blank=True, null=True, validators=[MaxValueValidator(12),
@@ -73,7 +73,7 @@ class Segmentation(models.Model):
     # the time when the experiment is locked by a power user. A value of null
     # means the experiment is not locked
     locked_time = models.DateTimeField(null=True, blank=True)
-    locked_user = models.ForeignKey(User, null=True, blank=True, related_name='locked_user')
+    locked_user = models.ForeignKey(User, null=True, blank=True, related_name='locked_user', on_delete=models.CASCADE)
     class Meta:
         unique_together = ("exp_id", "frame_no")
 
@@ -83,7 +83,7 @@ class Segmentation(models.Model):
 
 
 class UserSegmentation(models.Model):
-    user = models.ForeignKey(User, related_name='segmentation_user')
+    user = models.ForeignKey(User, related_name='segmentation_user', on_delete=models.CASCADE)
     exp_id = models.CharField(max_length=50)
     frame_no = models.PositiveIntegerField()
     num_edited = models.IntegerField(default=0)

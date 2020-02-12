@@ -52,7 +52,7 @@ def is_exp_locked(exp_id):
 
 
 def release_locks_by_user(u):
-    if u and not u.is_anonymous():
+    if u and not u.is_anonymous:
         for item in Segmentation.objects.filter(locked_user=u):
             item.locked_time = None
             item.locked_user = None
@@ -61,7 +61,7 @@ def release_locks_by_user(u):
 
 def lock_experiment(exp_id, u):
     try:
-        if u and not u.is_anonymous():
+        if u and not u.is_anonymous:
             # release lockes this user placed on other experiments before locking this experiment
             release_locks_by_user(u)
             # lock this experiment by this user
