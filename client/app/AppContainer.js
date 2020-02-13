@@ -2,7 +2,12 @@ import React, { useState, useLayoutEffect, useEffect, useRef } from 'react';
 import MainSection from "./components/MainSection";
 import ResizeListener from "./components/ResizeListener";
 import DataStore from "./stores/DataStore";
-import { getUserInfo, getExperimentList, keyPress, /*getRegionScore*/ } from "./actions/ViewActionCreators";
+import { 
+  getUserInfo, 
+  getExperimentList, 
+  keyPress, 
+  saveSegmentationData 
+} from "./actions/ViewActionCreators";
 
 function getStateFromStore() {
   return {
@@ -19,7 +24,6 @@ function getStateFromStore() {
 // Store some state here to make it more accessible from keypress callbacks
 let ctrlDown = false;
 let experiment = null;
-let playback = null;
 
 const AppContainer = () => {
   const [state, setState] = useState(getStateFromStore());
@@ -42,7 +46,6 @@ const AppContainer = () => {
     setState(getStateFromStore());
 
     experiment = DataStore.getExperiment();
-    playback = DataStore.getPlayback();
   };
 
   useEffect(() => {
@@ -64,7 +67,7 @@ const AppContainer = () => {
     if (event.key === "Control") ctrlDown = true;
   }
 
-  const onKeyUp = event => {    
+  const onKeyUp = event => {
     switch (event.key) {
       case "Control":
         ctrlDown = false;
@@ -83,7 +86,14 @@ const AppContainer = () => {
 
         break;
       }
-*/      
+*/    
+      case " ":
+        saveSegmentationData(
+          experiment.id,
+          experiment.segmentationData,
+          experiment.lastEdit
+        );
+        break;  
 
       default:
         keyPress(event.key, ctrlDown);

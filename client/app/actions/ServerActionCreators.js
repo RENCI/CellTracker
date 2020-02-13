@@ -1,6 +1,5 @@
 import AppDispatcher from "../dispatcher/AppDispatcher";
 import Constants from "../constants/Constants";
-import * as WebAPIUtils from "../utils/WebAPIUtils";
 
 export function receiveUserInfo(userInfo) {
   AppDispatcher.dispatch({
@@ -52,3 +51,12 @@ export function updateTracking(trackingData) {
     trackingData: trackingData
   });
 };
+
+export function receiveScore(score, totalScore, timeStamp) {
+  AppDispatcher.dispatch({
+    actionType: Constants.RECEIVE_SCORE,
+    score: score,
+    totalScore: totalScore,
+    timeStamp: timeStamp
+  });
+}

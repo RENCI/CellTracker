@@ -6,6 +6,7 @@ import EditControls from "./EditControls";
 import TrajectoryGraphWrapper from "../visualizations/TrajectoryGraphWrapper";
 import Filmstrip from "./Filmstrip";
 import FilmstripControls from "./FilmstripControls";
+import Score from "./Score";
 import * as ViewActionCreators from "../actions/ViewActionCreators";
 
 function handleMouseWheel(delta) {
@@ -99,6 +100,13 @@ const EditView = props => {
         </div>
         <div className="col-md-2 text-center">
           <Filmstrip height={sketchWidth} {...props} />
+        </div>
+      </div>
+
+      <div className="row text-center mt-3">
+        <div className="offset-md-2 col-md-8">
+          <h4>Score</h4>
+          <Score {...props} />
         </div>
       </div>
     </>

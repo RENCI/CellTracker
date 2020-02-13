@@ -1071,6 +1071,12 @@ function setEditMode(mode, option) {
 //  pushHistory();
 }
 
+function receiveScore(score, totalScore, timeStamp) {
+  userInfo.score = score;
+  userInfo.total_score = totalScore;
+  userInfo.score_time_stamp = timeStamp;
+}
+
 const DataStore = assign({}, EventEmitter.prototype, {
   emitChange: function () {
     this.emit(CHANGE_EVENT);
@@ -1280,6 +1286,11 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       DataStore.emitChange();
       break;
 
+    case Constants.RECEIVE_SCORE:
+      receiveScore(action.score, action.totalScore, action.timeStamp);
+      DataStore.emitChange();
+      break;
+
     case Constants.KEY_PRESS: {
       switch (action.key) {
         case "a":
@@ -1329,11 +1340,6 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
 
         case "w":
           setEditMode("regionTrim");
-          DataStore.emitChange();
-          break;
-
-        case " ":
-          saveSegmentationData(-1, null);
           DataStore.emitChange();
           break;
           

@@ -257,9 +257,10 @@ export function saveSegmentationData(id, data, lastEdit) {
         }
         */
         const score = +data.score;
+        const totalScore = +data.total_score;
 
-        if (!isNaN(score)) {
-          alert("Score: " + data.score);
+        if (!isNaN(score) && !isNaN(totalScore)) {
+          ServerActionCreators.receiveScore(score, totalScore, Date.now());
         }
       },
       error: (xhr, textStatus, errorThrown) => {

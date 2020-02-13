@@ -2,9 +2,11 @@ import React from "react";
 import PropTypes from "prop-types";
 import LoadingProgress from "./LoadingProgress";
 
+const splash = "static/ct_core/images/tracy_up.gif";
+
 const Loading = props => {
   return (
-    <div>
+    <>
       <LoadingProgress
         heading={"Loading " + props.experiment.name}
         subHeading={
@@ -15,8 +17,8 @@ const Loading = props => {
         max1={props.loading.numFrames}
         value2={props.loading.segFramesLoaded}
         max2={props.loading.numSegFrames} />
-      <img src="static/ct_core/images/tracy_up.gif" />
-    </div>
+      <img src={ splash } />
+    </>
   );
 }
 
