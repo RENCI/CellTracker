@@ -230,7 +230,9 @@ export default function() {
       link.exit().remove();
 
       function stroke(d) {
-        return colorMap(d.target.data.region.trajectory_id);
+        const region = d.target.data.region;
+
+        return region.done ? "#eee" : colorMap(region.trajectory_id);
       }
 
       function linkWidth(d) {
@@ -302,11 +304,14 @@ export default function() {
 
       function fill(d) {
         //return "#fff";
-        return d.data.region.highlight || d.data.region.isLinkRegion ? colorMap(d.data.region.trajectory_id) : "#fff";
+        return (d.data.region.highlight || d.data.region.isLinkRegion) && !d.data.region.done ? 
+          colorMap(d.data.region.trajectory_id) : "#fff";
       }
 
       function stroke(d) {;
-        return d.data.region.highlight || d.data.region.isLinkRegion ? "#333" : colorMap(d.data.region.trajectory_id);
+        return d.data.region.highlight || d.data.region.isLinkRegion ? "#333" : 
+          d.data.region.done ? "#eee" : 
+          colorMap(d.data.region.trajectory_id);
         //return d.data.region.highlight ? "#fff" : colorMap(d.data.region.trajectory_id);
         //return colorMap(d.data.region.trajectory_id);
       }
