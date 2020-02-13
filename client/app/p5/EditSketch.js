@@ -271,7 +271,7 @@ export default function(sketch) {
         //if (region.highlight) sketch.noFill();
         //else sketch.fill(fillColorMap(region.trajectory_id));
         //sketch.noFill();
-        if (region.done) sketch.fill(doneColor, 127);
+        if (region.done) sketch.fill(doneColor, 200);
         else sketch.noFill();
 
         sketch.beginShape();
