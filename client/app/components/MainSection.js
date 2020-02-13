@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import DataControls from "./DataControls";
-import LoadingProgress from "./LoadingProgress";
+import Loading from "./Loading";
 import EditView from "./EditView";
 
 const MainSection = props => {
@@ -26,16 +26,7 @@ const MainSection = props => {
               </div>
             :
               props.loading !== null ?
-                <LoadingProgress
-                  heading={"Loading " + props.experiment.name}
-                  subHeading={
-                    props.experiment.start ?
-                    ("Frames " + props.experiment.start + "-" + props.experiment.stop) : null
-                  }
-                  value1={props.loading.framesLoaded}
-                  max1={props.loading.numFrames}
-                  value2={props.loading.segFramesLoaded}
-                  max2={props.loading.numSegFrames} />
+                <Loading {...props} />
               : <EditView {...props} />              
             }
           </div>
