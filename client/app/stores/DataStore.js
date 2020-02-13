@@ -1333,7 +1333,7 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
           break;
 
         case " ":
-          selectRegion(-1, null);
+          saveSegmentationData(-1, null);
           DataStore.emitChange();
           break;
           
@@ -1371,12 +1371,7 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
             DataStore.emitChange();
           }
           break;
-/*
-        case "Enter":
-          saveSegmentationData();
-          DataStore.emitChange();
-          break;
-*/
+
         case "ArrowLeft":
           frameDelta(-1);
           DataStore.emitChange();
