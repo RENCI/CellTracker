@@ -36,6 +36,10 @@ function handleLinkRegion(frame, region) {
   ViewActionCreators.linkRegion(frame, region);
 }
 
+function handleRegionDone(region, done) {
+  ViewActionCreators.regionDone(region, done);
+}
+
 const EditView = props => {
   const [sketchWidth, setSketchWidth] = useState(100);
   const sketchRef = useRef(null);
@@ -89,7 +93,8 @@ const EditView = props => {
             onSelectZoomPoint={handleSelectZoomPoint}
             onTranslate={handleTranslate}
             onEditRegion={handleEditRegion}
-            onLinkRegion={handleLinkRegion} />
+            onLinkRegion={handleLinkRegion}
+            onRegionDone={handleRegionDone} />
           <MediaControls {...props} />
         </div>
         <div className="col-md-2 text-center">

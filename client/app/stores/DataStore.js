@@ -126,6 +126,8 @@ function setExperiment(newExperiment) {
         });
       }
     }    
+
+    if (experiment.labels) experiment.labels.sort();
   }
 
   resetLoading();  
@@ -695,6 +697,11 @@ function translate(point) {
 
 function editRegion(frame, region) {
   if (region) {
+    // Clear done
+    if (region.done) {
+      regionDone(region, false);
+    }
+
     region.unsavedEdit = true;
     experiment.segmentationData[frame].edited = true;
 
@@ -745,6 +752,11 @@ function editRegion(frame, region) {
 
 function linkRegion(frame, region) {
   if (linking.region) linking.region.isLinkRegion = false;
+
+  // Clear done
+  if (region.done) {
+    regionDone(region, false);
+  }
 
   switch (settings.editMode) {
     case "regionLink":
@@ -811,6 +823,20 @@ function linkRegion(frame, region) {
 
       break;
   }
+}
+
+function regionDone(region, done) {
+  const id = region.trajectory_id;
+
+  experiment.segmentationData.forEach(frame => {
+    frame.regions.forEach(region => {
+      if (region.trajectory_id === id) {
+        region.done = done;
+        region.unsavedEdit = true;
+        frame.edited = true;
+      }
+    });
+  });
 }
 
 function resetHistory() {
@@ -1206,6 +1232,11 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
 
     case Constants.LINK_REGION:
       linkRegion(action.frame, action.region);
+      DataStore.emitChange();
+      break;
+
+    case Constants.REGION_DONE:
+      regionDone(action.region, action.done);
       DataStore.emitChange();
       break;
 

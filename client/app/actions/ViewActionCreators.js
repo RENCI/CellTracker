@@ -144,6 +144,14 @@ export function linkRegion(frame, region) {
   });
 };
 
+export function regionDone(region, done) {
+  AppDispatcher.dispatch({
+    actionType: Constants.REGION_DONE,
+    region: region,
+    done: done
+  });
+};
+
 export function saveSegmentationData(id, segmentationData, lastEdit) {
   WebAPIUtils.saveSegmentationData(id, segmentationData, lastEdit);
 

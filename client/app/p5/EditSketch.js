@@ -41,7 +41,8 @@ export default function(sketch) {
       onSelectZoomPoint = null,
       onTranslate = null,
       onEditRegion = null,
-      onLinkRegion = null;
+      onLinkRegion = null,
+      onRegionDone = null;;
 
   // Editing
   let editMode = "",
@@ -102,6 +103,7 @@ export default function(sketch) {
     onTranslate = props.onTranslate;
     onEditRegion = props.onEditRegion;
     onLinkRegion = props.onLinkRegion;
+    onRegionDone = props.onRegionDone;
 
     if (editMode !== "regionSplit" && editMode !== "regionTrim") splitLine = null;
 
@@ -257,8 +259,10 @@ export default function(sketch) {
           sketch.endShape();
         }
 
+        const doneColor = 50;
+
         // Draw outline
-        sketch.stroke(strokeColorMap(region.trajectory_id));
+        sketch.stroke(region.done ? doneColor : strokeColorMap(region.trajectory_id));
         sketch.strokeWeight(weight);        
         sketch.canvas.getContext("2d").setLineDash(region === copiedRegion ? [5 / zoom, 5 / zoom] : []);
 
@@ -266,7 +270,9 @@ export default function(sketch) {
         //else sketch.noFill();
         //if (region.highlight) sketch.noFill();
         //else sketch.fill(fillColorMap(region.trajectory_id));
-        sketch.noFill();
+        //sketch.noFill();
+        if (region.done) sketch.fill(doneColor, 127);
+        else sketch.noFill();
 
         sketch.beginShape();
         closedVertices.forEach(vertex => {
@@ -731,8 +737,13 @@ export default function(sketch) {
         if (moveMouse) return;
 
         if (currentRegion) {
-          labelRegion(currentRegion, currentLabel);
-          onEditRegion(frame, currentRegion);          
+          if (currentLabel === "Done") {
+            onRegionDone(currentRegion, !currentRegion.done);
+          }
+          else {
+            labelRegion(currentRegion, currentLabel);
+            onEditRegion(frame, currentRegion); 
+          }         
         }
 
         break;

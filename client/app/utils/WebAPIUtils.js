@@ -223,11 +223,15 @@ export function saveSegmentationData(id, data, lastEdit) {
         vertices: region.vertices,
         edited: region.edited || region.unsavedEdit,
         link_id: region.link_id,
-        manual_link: region.manual_link 
+        manual_link: region.manual_link
       };
 
       if (region.labels && region.labels.length > 0) {
         sendRegion["labels"] = region.labels;
+      }
+
+      if (region.done) {
+        sendRegion["done"] = true;
       }
 
       return sendRegion;

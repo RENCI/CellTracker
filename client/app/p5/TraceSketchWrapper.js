@@ -50,7 +50,8 @@ TraceSketchWrapper.propTypes = {
   onSelectZoomPoint: PropTypes.func.isRequired,
   onTranslate: PropTypes.func.isRequired,
   onEditRegion: PropTypes.func,
-  onLinkRegion: PropTypes.func
+  onLinkRegion: PropTypes.func,
+  onRegionDone: PropTypes.func
 };
 
 TraceSketchWrapper.defaultProps = {
@@ -63,7 +64,8 @@ TraceSketchWrapper.defaultProps = {
   onHighlightRegion: null,
   onSelectRegion: null,
   onEditRegion: null,
-  onLinkRegion: null
+  onLinkRegion: null,
+  onRegionDone: null
 };
 
 export default TraceSketchWrapper;
