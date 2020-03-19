@@ -9,7 +9,7 @@ class TrajectoryGraphWrapper extends React.Component {
     super();
 
     this.state = { 
-      scrollPosition: 0 
+      scrollPosition: 0
     };
 
     this.onHighlightRegion = this.onHighlightRegion.bind(this);
@@ -22,6 +22,8 @@ class TrajectoryGraphWrapper extends React.Component {
         .on("highlightRegion", this.onHighlightRegion)
         .on("selectRegion", this.onSelectRegion)
         .on("setFrame", this.onSetFrame);
+
+    this.centerRegion = null;
   }
 
   onHighlightRegion(frame, region) {
@@ -48,6 +50,23 @@ class TrajectoryGraphWrapper extends React.Component {
 
   shouldComponentUpdate(props, state) {
     this.drawVisualization(props, state);
+
+    // Make sure newly selected region visible
+    if (props.experiment.centerRegion !== this.centerRegion) {
+      this.centerRegion = props.experiment.centerRegion;
+
+      const x = this.trajectoryGraph.getX(this.centerRegion);
+      const pos = this.ref.scrollLeft;
+      const width = this.ref.clientWidth;
+
+      if (x < pos || x > pos + width) {
+        this.ref.scrollTo({
+          top: 0,
+          left: x - width / 2,
+          behavior: "smooth"
+        });
+      }
+    }
 
     return false;
   }

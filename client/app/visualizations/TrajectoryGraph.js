@@ -432,9 +432,25 @@ export default function() {
     return trajectoryGraph;
   };
 
-trajectoryGraph.update = function() {
-  draw();
-}
+  trajectoryGraph.update = function() {
+    draw();
+  };
+
+  trajectoryGraph.getX = function(region) {
+    let node = data.trajectoryGraph.nodes.filter(node => {
+      return node.data.region === region;
+    });
+
+    node = node.length > 0 ? node[0] : null;
+
+    return node ? node.x * nodeSize + nodeSize / 2 : 0;
+  };
+
+  trajectoryGraph.highlightRegion = function(region) {
+    svg.select(".nodes").selectAll(".node").filter(node => {
+      return node.data.region === region;
+    }).style("stroke", "#333");
+  };
 
   // For registering event callbacks
   trajectoryGraph.on = function() {
