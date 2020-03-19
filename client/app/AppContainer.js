@@ -1,5 +1,6 @@
 import React, { useState, useLayoutEffect, useEffect, useRef } from 'react';
 import MainSection from "./components/MainSection";
+import Leaderboard from "./components/Leaderboard";
 import ResizeListener from "./components/ResizeListener";
 import DataStore from "./stores/DataStore";
 import { 
@@ -28,6 +29,7 @@ let experiment = null;
 const AppContainer = () => {
   const [state, setState] = useState(getStateFromStore());
   const [width, setWidth] = useState(0);
+  const [page, setPage] = useState("home");
   const ref = useRef(null);
 
   const onResize = () => {
@@ -110,10 +112,33 @@ const AppContainer = () => {
     }
   }, []);
 
+  const onNavClick = value => {
+    setPage(value);
+  };
+
   return (
     <div ref={ref}>
+      <ul className="nav nav-pills justify-content-center mb-3">
+        <li className="nav-item">
+          <a 
+            className={ "nav-link" + (page === "home" ? " active" : "") } 
+            href="#" 
+            onClick={ () => onNavClick("home") }>
+              Home
+          </a>
+        </li>
+        <li className="nav-item">
+        <a 
+            className={ "nav-link" + (page === "leaderboard" ? " active" : "") } 
+            href="#" 
+            onClick={ () => onNavClick("leaderboard") }>
+              Leaderboard
+          </a>
+        </li>
+      </ul>
       <div className="container-fluid" style={{width: width}}>   
-        <MainSection {...state} width={width} />
+        { page === "leaderboard" ? <Leaderboard />
+        : <MainSection {...state} width={width} /> }
       </div>
       <ResizeListener onResize={onResize} />
     </div>
