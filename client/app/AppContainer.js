@@ -137,7 +137,8 @@ const AppContainer = () => {
         </li>
       </ul>
       <div className="container-fluid" style={{width: width}}>   
-        { page === "leaderboard" ? <Leaderboard />
+        { page === "leaderboard" ? 
+          <Leaderboard {...state} />
         : <MainSection {...state} width={width} /> }
       </div>
       <ResizeListener onResize={onResize} />
