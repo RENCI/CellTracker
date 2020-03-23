@@ -1,6 +1,8 @@
 db:
   image: postgres:9.4
   container_name: ct-db
+  environment:
+    POSTGRES_HOST_AUTH_METHOD: "trust"
 rabbitmq:
   image: rabbitmq:3.5
   container_name: ct-rabbitmq
@@ -48,10 +50,7 @@ nginx:
   image: nginx:1.9
   volumes_from:
     - celltracker
-  volumes:
-    - "/opt/cc-certs:/cc-certs"
   ports:
     - "80:80"
-    - "443:443"
   links:
     - celltracker:celltracker
