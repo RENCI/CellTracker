@@ -105,7 +105,6 @@ const EditView = props => {
 
       <div className="row text-center mt-3">
         <div className="offset-md-2 col-md-8">
-          <h4>Score</h4>
           <Score {...props} />
         </div>
       </div>

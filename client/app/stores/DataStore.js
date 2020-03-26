@@ -50,7 +50,8 @@ let settings = {
   framesToLoad: 10,
   frameOverlap: 2,
   showTrajectories: true,
-  currentLabel: ""
+  currentLabel: "",
+  scoring: false
 };
 
 // Linking 
@@ -961,6 +962,8 @@ function saveSegmentationData() {
       }
     });
   });
+
+  settings.scoring = true;
 }
 
 function toggleStabilize() {
@@ -1075,6 +1078,8 @@ function receiveScore(score, totalScore, timeStamp) {
   userInfo.score = score;
   userInfo.total_score = totalScore;
   userInfo.score_time_stamp = timeStamp;
+
+  settings.scoring = false;
 }
 
 const DataStore = assign({}, EventEmitter.prototype, {

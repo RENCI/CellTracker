@@ -153,6 +153,8 @@ export function regionDone(region, done) {
 };
 
 export function saveSegmentationData(id, segmentationData, lastEdit) {
+  if (segmentationData.filter(frame => frame.edited).length === 0) return;
+
   WebAPIUtils.saveSegmentationData(id, segmentationData, lastEdit);
 
   AppDispatcher.dispatch({
