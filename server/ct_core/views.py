@@ -33,10 +33,10 @@ from ct_core.utils import get_experiment_list_util, read_video, \
     save_user_seg_data_to_db, get_start_frame, get_exp_image, get_edited_frames, get_all_edit_users, \
     create_user_segmentation_data_for_download, get_frame_info, create_seg_data_from_csv, \
     sync_seg_data_to_db, delete_one_experiment, get_users, update_experiment_priority, pack_zeros, \
-    is_exp_locked, lock_experiment, release_locks_by_user, add_labels_to_exp, get_exp_labels
+    is_exp_locked, lock_experiment, release_locks_by_user, add_labels_to_exp, get_exp_labels, get_all_user_scores
 from ct_core.task_utils import get_exp_frame_no, is_power_user, get_experiment_frame_seg_data
 from ct_core.forms import SignUpForm, UserProfileForm, UserPasswordResetForm
-from ct_core.models import UserProfile, Segmentation, UserSegmentation
+from ct_core.models import UserProfile
 from django_irods.storage import IrodsStorage
 from django_irods.icommands import SessionException
 from ct_core.tasks import add_tracking, sync_user_edit_frame_from_db_to_irods
@@ -215,6 +215,19 @@ def get_user_info(request):
     else:
         return JsonResponse(status=status.HTTP_400_BAD_REQUEST,
                             data={'error': "Requested user info for user {} does not exist".format(user_name)})
+
+
+@login_required
+def get_all_user_info(request):
+    """
+    return all user info for leaderboard. Currently, only scores for all users are returned, but more info could
+    be added in the future as needed.
+    :param request:
+    :return: all user's score info in JSON format
+    """
+    user_list = get_all_user_scores()
+    return JsonResponse(status=status.HTTP_200_OK,
+                        data=user_list)
 
 
 @login_required

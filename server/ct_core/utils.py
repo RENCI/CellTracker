@@ -1003,3 +1003,11 @@ def get_users():
             ru_list[up.user.username] = up.user.get_full_name()
 
     return pu_list, ru_list
+
+
+def get_all_user_scores():
+    u_list = OrderedDict()
+    for up in UserProfile.objects.order_by('-score'):
+        u_list[up.user.username] = up.score
+
+    return u_list
