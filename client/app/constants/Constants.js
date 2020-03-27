@@ -10,6 +10,7 @@ export default keyMirror({
   RECEIVE_SEGMENTATION_FRAME: null,
   UPDATE_TRACKING: null,
   RECEIVE_SCORE: null,
+  RECEIVE_ALL_USER_INFO: null,
 
   LOAD_FRAMES: null,
   ADVANCE_FRAMES: null,

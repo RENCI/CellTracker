@@ -44,6 +44,8 @@ export function getUserInfo() {
     success: data => {
       // Create an action
       ServerActionCreators.receiveUserInfo(data);
+
+      getAllUserInfo();
     },
     error: (xhr, textStatus, errorThrown) => {
       console.log(textStatus + ": " + errorThrown);
@@ -210,6 +212,21 @@ function pollUpdatedTracking(taskId) {
   });
 }
 
+function getAllUserInfo() {
+  setupAjax();
+
+  $.ajax({
+    type: "POST",
+    url: "/get_all_user_info/",
+    success: data => {
+      ServerActionCreators.receiveAllUserInfo(data);
+    },
+    error: (xhr, textStatus, errorThrown) => {
+      console.log(textStatus + ": " + errorThrown);
+    }
+  });
+}
+
 export function saveSegmentationData(id, data, lastEdit) {
   setupAjax();
 
@@ -262,6 +279,8 @@ export function saveSegmentationData(id, data, lastEdit) {
         if (!isNaN(score) && !isNaN(totalScore)) {
           ServerActionCreators.receiveScore(score, totalScore, Date.now());
         }
+
+        getAllUserInfo();
       },
       error: (xhr, textStatus, errorThrown) => {
         console.log(textStatus + ": " + errorThrown);

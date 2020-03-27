@@ -60,3 +60,10 @@ export function receiveScore(score, totalScore, timeStamp) {
     timeStamp: timeStamp
   });
 }
+
+export function receiveAllUserInfo(info) {
+  AppDispatcher.dispatch({
+    actionType: Constants.RECEIVE_ALL_USER_INFO,
+    info: info
+  });
+}

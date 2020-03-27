@@ -5,6 +5,7 @@ import ResizeListener from "./components/ResizeListener";
 import DataStore from "./stores/DataStore";
 import { 
   getUserInfo, 
+  getAllUserInfo,
   getExperimentList, 
   keyPress, 
   saveSegmentationData 

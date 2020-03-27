@@ -1082,6 +1082,10 @@ function receiveScore(score, totalScore, timeStamp) {
   settings.scoring = false;
 }
 
+function receiveAllUserInfo(info) {
+  userInfo.allUsers = info;
+}
+
 const DataStore = assign({}, EventEmitter.prototype, {
   emitChange: function () {
     this.emit(CHANGE_EVENT);
@@ -1293,6 +1297,11 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
 
     case Constants.RECEIVE_SCORE:
       receiveScore(action.score, action.totalScore, action.timeStamp);
+      DataStore.emitChange();
+      break;
+
+    case Constants.RECEIVE_ALL_USER_INFO:
+      receiveAllUserInfo(action.info);
       DataStore.emitChange();
       break;
 
