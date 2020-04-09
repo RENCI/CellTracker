@@ -45,7 +45,7 @@ const Leaderboard = props => {
   return (
     <div className="offset-md-2 col-md-8 text-center mt-2">
       <h4>Leaderboard</h4>
-      <table className="table">
+      <table className="table table-striped">
         <thead>
           <tr>
             <th scope="col">Username</th>
