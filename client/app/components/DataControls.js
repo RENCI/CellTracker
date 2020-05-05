@@ -17,11 +17,11 @@ function onStabilizeClick() {
 }
 
 function onFramesToLoadChange(e) {
-  ViewActionCreators.setFramesToLoad(+e.target.value);
+  ViewActionCreators.setFramesToLoad(e.target.value);
 }
 
 function onFrameOverlapChange(e) {
-  ViewActionCreators.setFrameOverlap(+e.target.value);
+  ViewActionCreators.setFrameOverlap(e.target.value);
 }
 
 
@@ -36,14 +36,14 @@ const DataControls = props => {
     }
   }, [props, loading]);
 
-  const onExperimentSelectChange = (e) => {
+  const onExperimentSelectChange = e => {
     const index = props.experimentList.experiments.map(e => e.id).indexOf(e.target.value);
 
     ViewActionCreators.selectExperiment(props.experimentList.experiments[index]);
   }  
 
-  const onStartFrameChange = (e) => {
-    setStartFrame(+e.target.value);
+  const onStartFrameChange = e => {
+    setStartFrame(e.target.value);
   }
 
   const onLoadClick = () => {
@@ -157,7 +157,12 @@ const DataControls = props => {
             <button 
               className={buttonClasses} 
               type="button" 
-              disabled={!frameControlsEnabled}
+              disabled={
+                !frameControlsEnabled || 
+                startFrame === "" || 
+                props.settings.framesToLoad === "" || 
+                props.settings.frameOverlap === ""
+              }
               onClick={onLoadClick}>
                 Load
             </button>
