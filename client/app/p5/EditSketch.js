@@ -188,6 +188,10 @@ export default function(sketch) {
       return;
     }
 
+    sketch.textSize(8);
+    sketch.textAlign(sketch.CENTER);
+    sketch.textStyle(sketch.BOLD);
+
     // Get image
     const im = colorImages[frame];
 
@@ -308,6 +312,21 @@ export default function(sketch) {
               sketch.ellipse(v[0], v[1], r);
             }
           });
+        }
+
+        // Draw labels
+        if (region.labels && region.labels.length > 0) {
+          sketch.noStroke();
+          sketch.fill(region.done ? doneColor : strokeColorMap(region.trajectory_id));
+
+          const p = scalePoint([region.center[0], region.min[1]]);
+          p[1] -= 5;
+
+          const labels = region.labels.map(label => {
+            return experiment.labels.indexOf(label) + 1;
+          }).sort().join(", ");
+
+          sketch.text(labels, p[0], p[1]);
         }
 /*
         // Draw circle marker

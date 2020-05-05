@@ -2,6 +2,12 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 
 const LabelButton = props => {
+  const label = d => {
+    const i = props.options.indexOf(d);
+
+    return i >= 0 ? (i + 1) + ": " + d : d;
+  };
+
   const [value, setValue] = useState(props.options.length > 0 ? props.options[0] : "Done");
 
   let classes = props.classes;
@@ -17,7 +23,7 @@ const LabelButton = props => {
           setValue(d);
           if (props.callback) props.callback(d);
         }}>
-          {d}
+          { label(d) }
       </button>
     );
   };
@@ -32,7 +38,7 @@ const LabelButton = props => {
         data-toggle={props.tooltip ? "tooltip" : null}
         title={props.tooltip ? props.tooltip : null}
         onClick={props.callback ? () => props.callback(value) : null}>
-          {value}
+          { label(value) }
       </button>
       <button 
         type="button" 
