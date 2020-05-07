@@ -1438,6 +1438,14 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
           DataStore.emitChange();
           break;
 
+        case "0":
+          if (settings.defaultLabels.length > 0 ) {
+            setCurrentLabel(settings.defaultLabels[0]);
+            setEditMode("regionLabel");
+            DataStore.emitChange();
+          }
+          break;
+
         case "1":
         case "2":
         case "3":
@@ -1454,6 +1462,8 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
             setEditMode("regionLabel");
             DataStore.emitChange();
           }
+          
+          break;
         }
       }
     }

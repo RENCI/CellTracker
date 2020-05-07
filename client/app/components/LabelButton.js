@@ -5,7 +5,7 @@ const LabelButton = props => {
   const label = d => {
     const i = props.experimentLabels.indexOf(d);
 
-    return i >= 0 ? (i + 1) + ": " + d : d;
+    return i >= 0 ? (i + 1) + ": " + d : d === "Done" ? "0: " + d : d;
   };
 
   let classes = props.classes;
