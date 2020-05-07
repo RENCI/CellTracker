@@ -24,6 +24,9 @@ function onFrameOverlapChange(e) {
   ViewActionCreators.setFrameOverlap(e.target.value);
 }
 
+function onDoneOpacityChange(e) {
+  ViewActionCreators.setDoneOpacity(e.target.value);
+}
 
 const DataControls = props => {
   const [loading, setLoading] = useState(props.loading);
@@ -232,6 +235,18 @@ const DataControls = props => {
                       max={Math.floor(props.settings.framesToLoad / 2)}
                       value={props.settings.frameOverlap}
                       onChange={onFrameOverlapChange} />
+                  </div>
+                  <div className="form-group mt-3">
+                    <label htmlFor="doneOpacityInput">Done opacity</label>
+                    <input 
+                      className="form-control form-control-sm" 
+                      id="doneOpacityInput"
+                      type="number" 
+                      min={0} 
+                      max={1}
+                      step={0.1}
+                      value={props.settings.doneOpacity}
+                      onChange={onDoneOpacityChange} />
                   </div>
                 </div>
               </div>

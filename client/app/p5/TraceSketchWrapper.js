@@ -44,6 +44,7 @@ TraceSketchWrapper.propTypes = {
   stabilize: PropTypes.bool,
   highlightRegion: PropTypes.object,
   currentLabel: PropTypes.string,
+  doneOpacity: PropTypes.number,
   onMouseWheel: PropTypes.func.isRequired,
   onHighlightRegion: PropTypes.func,
   onSelectRegion: PropTypes.func,

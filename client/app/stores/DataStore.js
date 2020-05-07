@@ -52,6 +52,7 @@ let settings = {
   showTrajectories: true,
   defaultLabels: ["Done"],
   currentLabel: "Done",
+  doneOpacity: 0.2,
   scoring: false
 };
 
@@ -987,6 +988,10 @@ function setFrameOverlap(frameOverlap) {
   settings.frameOverlap = frameOverlap;
 }
 
+function setDoneOpacity(doneOpacity) {
+  settings.doneOpacity = doneOpacity;
+}
+
 function getZoomLevels(item) {
   if (settings.zoomDefault && settings.filmstripZoomDefault) {
     return {
@@ -1293,6 +1298,11 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
 
     case Constants.SET_FRAME_OVERLAP:
       setFrameOverlap(action.frameOverlap);
+      DataStore.emitChange();
+      break;
+
+    case Constants.SET_DONE_OPACITY:
+      setDoneOpacity(action.doneOpacity);
       DataStore.emitChange();
       break;
 

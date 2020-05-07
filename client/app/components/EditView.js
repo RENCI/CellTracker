@@ -91,6 +91,7 @@ const EditView = props => {
             frame={props.playback.frame}
             editMode={props.settings.editMode}
             currentLabel={props.settings.currentLabel}
+            doneOpacity={props.settings.doneOpacity}
             onMouseWheel={handleMouseWheel}
             onHighlightRegion={handleHighlightRegion}
             onSelectRegion={handleSelectRegion}

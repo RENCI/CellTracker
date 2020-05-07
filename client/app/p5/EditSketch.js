@@ -70,7 +70,8 @@ export default function(sketch) {
   let lineWeight = 2,
       lineHighlightWeight = 3,
       handleRadius = 3,
-      handleHighlightRadius = 5;
+      handleHighlightRadius = 5,
+      doneOpacity = 0.2;
 
   sketch.setup = function() {
     // Create canvas with default size
@@ -96,6 +97,7 @@ export default function(sketch) {
     zoomPoint = props.zoomPoint;
     editMode = props.editMode;
     currentLabel = props.currentLabel;
+    doneOpacity = props.doneOpacity;
     onMouseWheel = props.onMouseWheel;
     onHighlightRegion = props.onHighlightRegion;
     onSelectRegion = props.onSelectRegion;
@@ -275,7 +277,7 @@ export default function(sketch) {
         //if (region.highlight) sketch.noFill();
         //else sketch.fill(fillColorMap(region.trajectory_id));
         //sketch.noFill();
-        if (region.done) sketch.fill(doneColor, 200);
+        if (region.done) sketch.fill(doneColor, doneOpacity * 255);
         else sketch.noFill();
 
         sketch.beginShape();

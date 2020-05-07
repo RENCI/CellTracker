@@ -39,6 +39,7 @@ export default keyMirror({
   TOGGLE_STABILIZE: null,
   SET_FRAMES_TO_LOAD: null,
   SET_FRAME_OVERLAP: null,
+  SET_DONE_OPACITY: null,
 
   ZOOM: null,
   SET_EDIT_MODE: null,

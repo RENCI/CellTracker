@@ -200,6 +200,13 @@ export function setFrameOverlap(frameOverlap) {
   });
 }
 
+export function setDoneOpacity(doneOpacity) {
+  AppDispatcher.dispatch({
+    actionType: Constants.SET_DONE_OPACITY,
+    doneOpacity: doneOpacity
+  });
+}
+
 export function zoom(view, direction) {
   AppDispatcher.dispatch({
     actionType: Constants.ZOOM,
