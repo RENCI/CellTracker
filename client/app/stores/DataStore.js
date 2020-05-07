@@ -830,6 +830,9 @@ function linkRegion(frame, region) {
 
       break;
   }
+
+  // Region has been edited
+  editRegion(frame, region);
 }
 
 function regionDone(region, done) {
