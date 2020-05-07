@@ -364,6 +364,7 @@ export default function(sketch) {
     const fontSize = sketch.constrain(sketch.width / 20, 10, 24);
     sketch.textSize(fontSize);
     sketch.textAlign(sketch.RIGHT);
+    sketch.textStyle(sketch.NORMAL);
     sketch.text(actionString, sketch.width - fontSize / 2, sketch.height - fontSize / 2);
   }
 

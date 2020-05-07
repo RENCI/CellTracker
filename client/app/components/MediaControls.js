@@ -35,6 +35,10 @@ function onRangeChange(e) {
   ViewActionCreators.setFrame(+e.target.value);
 }
 
+function onKeyDown(evt) {
+  evt.preventDefault();
+}
+
 const frameRateOptions = [0.25, 0.5, 1, 2, 4, 8, 16].map(function (frameRate, i) {
   return (
     <option key={i} value={frameRate}>
@@ -42,10 +46,6 @@ const frameRateOptions = [0.25, 0.5, 1, 2, 4, 8, 16].map(function (frameRate, i)
     </option>
   );
 });
-
-const rangeStyle = {
-  marginLeft: 5
-};
 
 function MediaControls(props) {
   const playIcon = props.playback.play ? "oi-media-pause" : "oi-media-play";
@@ -60,7 +60,7 @@ function MediaControls(props) {
   const maxDigits = ("" + numFrames).length * 2 + 1;
 
   return (
-    <div className="input-group input-group-sm">
+    <div className="input-group input-group-sm" onKeyDown={onKeyDown}>
       <div className="input-group-prepend">
         <IconButton iconName={loopIcon} callback={onLoopClick} active={looping} />
         <IconButton iconName="oi-media-skip-backward" callback={onSkipBackwardClick} />
