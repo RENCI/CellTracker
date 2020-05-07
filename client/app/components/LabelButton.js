@@ -27,7 +27,7 @@ const LabelButton = props => {
 
   const options = props.options.map(option);
 
-  const value = props.value;
+  let value = props.value;
 
   if (value === "") {
     value = "Done";
