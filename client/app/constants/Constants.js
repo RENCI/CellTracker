@@ -42,6 +42,7 @@ export default keyMirror({
 
   ZOOM: null,
   SET_EDIT_MODE: null,
+  SET_CURRENT_LABEL: null,
 
   KEY_PRESS: null
 });

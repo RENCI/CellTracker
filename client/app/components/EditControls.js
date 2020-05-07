@@ -73,8 +73,12 @@ function onRedoClick() {
   ViewActionCreators.redoHistory();
 }
 
-function onLabelClick(label) {
-  ViewActionCreators.setEditMode("regionLabel", label);
+function onLabelClick() {
+  ViewActionCreators.setEditMode("regionLabel");
+}
+
+function onLabelChange(label) {
+  ViewActionCreators.setCurrentLabel(label);
 }
 
 const EditControls = props => {
@@ -90,7 +94,7 @@ const EditControls = props => {
     <div className="form-inline justify-content-center" ref={ref}>
       <div className="btn-group-sm">
         <IconButton 
-          iconName="oi-home" callback={onResetClick} tooltip="Reset" shortcut="space" />
+          iconName="oi-home" callback={onResetClick} tooltip="Reset" shortcut="Esc" />
         <IconButton 
           iconName="oi-zoom-in" callback={onZoomInClick} tooltip="Zoom in" shortcut="+/=" />
         <IconButton 
@@ -133,7 +137,7 @@ const EditControls = props => {
           iconName="oi-action-redo" callback={onRedoClick} disabled={!redoEnabled} tooltip="Redo" shortcut="Ctrl-y" />
       </div>
       <div className={spacing}>
-        <LabelButton callback={onLabelClick} active={props.editMode === "regionLabel"} tooltip="Toggle label" shortcut="l" options={props.labels} value="1" />
+        <LabelButton onClick={onLabelClick} onChange={onLabelChange} active={props.editMode === "regionLabel"} tooltip="Toggle label" shortcut="l" options={props.labels} value={props.currentLabel} />
       </div>
     </div>
   );
@@ -142,7 +146,8 @@ const EditControls = props => {
 EditControls.propTypes = {
   editMode: PropTypes.string.isRequired,
   history: PropTypes.object,
-  labels: PropTypes.arrayOf(PropTypes.string).isRequired
+  labels: PropTypes.arrayOf(PropTypes.string).isRequired,
+  currentLabel: PropTypes.string.isRequired
 };
 
 export default EditControls;

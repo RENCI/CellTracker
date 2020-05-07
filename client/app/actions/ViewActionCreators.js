@@ -208,11 +208,17 @@ export function zoom(view, direction) {
   });
 };
 
-export function setEditMode(mode, option) {
+export function setEditMode(mode) {
   AppDispatcher.dispatch({
     actionType: Constants.SET_EDIT_MODE,
-    mode: mode,
-    option: option
+    mode: mode
+  });
+};
+
+export function setCurrentLabel(label) {
+  AppDispatcher.dispatch({
+    actionType: Constants.SET_CURRENT_LABEL,
+    label: label
   });
 };
 

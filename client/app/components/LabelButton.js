@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 
 const LabelButton = props => {
@@ -7,8 +7,6 @@ const LabelButton = props => {
 
     return i >= 0 ? (i + 1) + ": " + d : d;
   };
-
-  const [value, setValue] = useState(props.options.length > 0 ? props.options[0] : "Done");
 
   let classes = props.classes;
   if (props.active) classes += " active";
@@ -20,8 +18,7 @@ const LabelButton = props => {
         key={i >= 0 ? i : null} 
         className="dropdown-item"
         onClick={() => {
-          setValue(d);
-          if (props.callback) props.callback(d);
+          if (props.onChange) props.onChange(d);
         }}>
           { label(d) }
       </button>
@@ -30,6 +27,13 @@ const LabelButton = props => {
 
   const options = props.options.map(option);
 
+  const value = props.value;
+
+  if (value === "") {
+    value = "Done";
+    props.onChange(value);
+  }
+
   return (
     <div className="btn-group">
       <button 
@@ -37,7 +41,7 @@ const LabelButton = props => {
         className={classes}
         data-toggle={props.tooltip ? "tooltip" : null}
         title={props.tooltip ? props.tooltip : null}
-        onClick={props.callback ? () => props.callback(value) : null}>
+        onClick={props.onClick ? () => props.onClick(value) : null}>
           { label(value) }
       </button>
       <button 
@@ -60,9 +64,10 @@ LabelButton.propTypes = {
   active: PropTypes.bool,
   tooltip: PropTypes.string,
   shortcut: PropTypes.string,
-  callback: PropTypes.func,
+  onClick: PropTypes.func,
+  onChange: PropTypes.func,
   options: PropTypes.arrayOf(PropTypes.string).isRequired,
-  value: PropTypes.string
+  value: PropTypes.string.isRequired
 };
 
 LabelButton.defaultProps = {
