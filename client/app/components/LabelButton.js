@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 
 const LabelButton = props => {
   const label = d => {
-    const i = props.options.indexOf(d);
+    const i = props.experimentLabels.indexOf(d);
 
     return i >= 0 ? (i + 1) + ": " + d : d;
   };
@@ -25,14 +25,8 @@ const LabelButton = props => {
     );
   };
 
-  const options = props.options.map(option);
-
-  let value = props.value;
-
-  if (value === "") {
-    value = "Done";
-    props.onChange(value);
-  }
+  const experimentOptions = props.experimentLabels.map(option);
+  const defaultOptions = props.defaultLabels.map(option);
 
   return (
     <div className="btn-group">
@@ -41,8 +35,8 @@ const LabelButton = props => {
         className={classes}
         data-toggle={props.tooltip ? "tooltip" : null}
         title={props.tooltip ? props.tooltip : null}
-        onClick={props.onClick ? () => props.onClick(value) : null}>
-          { label(value) }
+        onClick={props.onClick ? () => props.onClick(props.value) : null}>
+          { label(props.value) }
       </button>
       <button 
         type="button" 
@@ -51,9 +45,9 @@ const LabelButton = props => {
       />
       <div className="dropdown-menu">
         <h6 className="dropdown-header">Select label</h6>
-        {options}
-        {options.length > 0 ? <div className="dropdown-divider"></div> : null}
-        {option("Done")}
+        {experimentOptions}
+        {experimentOptions.length > 0 ? <div className="dropdown-divider"></div> : null}
+        {defaultOptions}
       </div>
     </div>
   );
@@ -66,7 +60,8 @@ LabelButton.propTypes = {
   shortcut: PropTypes.string,
   onClick: PropTypes.func,
   onChange: PropTypes.func,
-  options: PropTypes.arrayOf(PropTypes.string).isRequired,
+  experimentLabels: PropTypes.arrayOf(PropTypes.string).isRequired,
+  defaultLabels: PropTypes.arrayOf(PropTypes.string).isRequired,
   value: PropTypes.string.isRequired
 };
 

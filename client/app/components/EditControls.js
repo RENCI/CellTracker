@@ -137,7 +137,8 @@ const EditControls = props => {
           iconName="oi-action-redo" callback={onRedoClick} disabled={!redoEnabled} tooltip="Redo" shortcut="Ctrl-y" />
       </div>
       <div className={spacing}>
-        <LabelButton onClick={onLabelClick} onChange={onLabelChange} active={props.editMode === "regionLabel"} tooltip="Toggle label" shortcut="l" options={props.labels} value={props.currentLabel} />
+        <LabelButton onClick={onLabelClick} onChange={onLabelChange} active={props.editMode === "regionLabel"} tooltip="Toggle label" shortcut="l" 
+          experimentLabels={props.experimentLabels} defaultLabels={props.defaultLabels} value={props.currentLabel} />
       </div>
     </div>
   );
@@ -146,7 +147,8 @@ const EditControls = props => {
 EditControls.propTypes = {
   editMode: PropTypes.string.isRequired,
   history: PropTypes.object,
-  labels: PropTypes.arrayOf(PropTypes.string).isRequired,
+  experimentLabels: PropTypes.arrayOf(PropTypes.string).isRequired,
+  defaultLabels: PropTypes.arrayOf(PropTypes.string).isRequired,
   currentLabel: PropTypes.string.isRequired
 };
 

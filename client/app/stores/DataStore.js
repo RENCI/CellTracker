@@ -50,7 +50,8 @@ let settings = {
   framesToLoad: 10,
   frameOverlap: 2,
   showTrajectories: true,
-  currentLabel: "",
+  defaultLabels: ["Done"],
+  currentLabel: "Done",
   scoring: false
 };
 
@@ -131,7 +132,8 @@ function setExperiment(newExperiment) {
     if (experiment.labels) {
       experiment.labels.sort();
 
-      settings.currentLabel = experiment.labels.length > 0 ? experiment.labels[0] : "";
+      settings.currentLabel = experiment.labels.length > 0 ? 
+        experiment.labels[0] : settings.defaultLabels[0];
     }
   }
 

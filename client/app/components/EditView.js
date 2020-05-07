@@ -69,7 +69,8 @@ const EditView = props => {
           <EditControls 
             editMode={props.settings.editMode}
             history={props.history}
-            labels={props.experiment.labels}
+            experimentLabels={props.experiment.labels}
+            defaultLabels={props.settings.defaultLabels}
             currentLabel={props.settings.currentLabel} />        
         </div>
         <div className="col-md-2">
