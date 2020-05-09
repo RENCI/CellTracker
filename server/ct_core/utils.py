@@ -77,6 +77,37 @@ def pack_zeros(input_str, string_len=settings.MAX_PRIORITY_STRING_LEN):
     return input_str.zfill(string_len)
 
 
+def _get_experiment_name(col = None):
+    if not col:
+        return ''
+    try:
+        # str() is needed by python irods client metadata method
+        key = str('experiment_name')
+        col_md = col.metadata.get_one(key)
+        return col_md.value
+    except KeyError:
+        return col.name
+
+
+def _get_experiment_frame_no(session=None, col = None, exp_path=None):
+    fno = -1
+    if not col or not session or not exp_path:
+        return fno
+    key = str('frame_no')
+    try:
+        col_md = col.metadata.get_one(key)
+        return int(col_md.value)
+    except KeyError:
+        ipath = exp_path + '/data/image/jpg'
+        try:
+            icoll = session.collections.get(ipath)
+        except CollectionDoesNotExist:
+            return fno
+        fno = len(icoll.data_objects)
+        col.metadata.add(key, str(fno))
+        return fno
+
+
 def get_experiment_list_util(req_user=None):
     """
     Get all experiments from iRODS and return it as a list of dicts along with error message
@@ -100,14 +131,8 @@ def get_experiment_list_util(req_user=None):
                 exp_dict = {}
                 exp_dict['id'] = col.name
                 exp_dict['locked_by'] = ''
-                try:
-                    # str() is needed by python irods client metadata method
-                    key = str('experiment_name')
-                    col_md = col.metadata.get_one(key)
-                    exp_dict['name'] = col_md.value
-                except KeyError:
-                    exp_dict['name'] = col.name
-
+                exp_dict['name'] = _get_experiment_name(col)
+                exp_dict['frames'] = _get_experiment_frame_no(session, col, hpath + '/' + col.name)
                 key = str('priority')
                 def_pri = pack_zeros(str(index))
                 col.metadata.add(key, def_pri)
@@ -119,9 +144,8 @@ def get_experiment_list_util(req_user=None):
                 exp_dict['id'] = exp_id
                 exp_path = hpath + '/' + exp_id
                 col = session.collections.get(exp_path)
-                key = str('experiment_name')
-                col_md = col.metadata.get_one(key)
-                exp_dict['name'] = col_md.value
+                exp_dict['name'] = _get_experiment_name(col)
+                exp_dict['frames'] = _get_experiment_frame_no(session, col, exp_path)
                 if req_user:
                     locked, l_user = is_exp_locked(exp_id)
                     if locked:
