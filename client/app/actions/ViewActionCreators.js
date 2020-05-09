@@ -200,6 +200,13 @@ export function setFrameOverlap(frameOverlap) {
   });
 }
 
+export function setDoneOpacity(doneOpacity) {
+  AppDispatcher.dispatch({
+    actionType: Constants.SET_DONE_OPACITY,
+    doneOpacity: doneOpacity
+  });
+}
+
 export function zoom(view, direction) {
   AppDispatcher.dispatch({
     actionType: Constants.ZOOM,
@@ -208,11 +215,17 @@ export function zoom(view, direction) {
   });
 };
 
-export function setEditMode(mode, option) {
+export function setEditMode(mode) {
   AppDispatcher.dispatch({
     actionType: Constants.SET_EDIT_MODE,
-    mode: mode,
-    option: option
+    mode: mode
+  });
+};
+
+export function setCurrentLabel(label) {
+  AppDispatcher.dispatch({
+    actionType: Constants.SET_CURRENT_LABEL,
+    label: label
   });
 };
 

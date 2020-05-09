@@ -17,13 +17,16 @@ function onStabilizeClick() {
 }
 
 function onFramesToLoadChange(e) {
-  ViewActionCreators.setFramesToLoad(+e.target.value);
+  ViewActionCreators.setFramesToLoad(e.target.value);
 }
 
 function onFrameOverlapChange(e) {
-  ViewActionCreators.setFrameOverlap(+e.target.value);
+  ViewActionCreators.setFrameOverlap(e.target.value);
 }
 
+function onDoneOpacityChange(e) {
+  ViewActionCreators.setDoneOpacity(e.target.value);
+}
 
 const DataControls = props => {
   const [loading, setLoading] = useState(props.loading);
@@ -36,14 +39,14 @@ const DataControls = props => {
     }
   }, [props, loading]);
 
-  const onExperimentSelectChange = (e) => {
+  const onExperimentSelectChange = e => {
     const index = props.experimentList.experiments.map(e => e.id).indexOf(e.target.value);
 
     ViewActionCreators.selectExperiment(props.experimentList.experiments[index]);
   }  
 
-  const onStartFrameChange = (e) => {
-    setStartFrame(+e.target.value);
+  const onStartFrameChange = e => {
+    setStartFrame(e.target.value);
   }
 
   const onLoadClick = () => {
@@ -157,7 +160,12 @@ const DataControls = props => {
             <button 
               className={buttonClasses} 
               type="button" 
-              disabled={!frameControlsEnabled}
+              disabled={
+                !frameControlsEnabled || 
+                startFrame === "" || 
+                props.settings.framesToLoad === "" || 
+                props.settings.frameOverlap === ""
+              }
               onClick={onLoadClick}>
                 Load
             </button>
@@ -227,6 +235,18 @@ const DataControls = props => {
                       max={Math.floor(props.settings.framesToLoad / 2)}
                       value={props.settings.frameOverlap}
                       onChange={onFrameOverlapChange} />
+                  </div>
+                  <div className="form-group mt-3">
+                    <label htmlFor="doneOpacityInput">Done opacity</label>
+                    <input 
+                      className="form-control form-control-sm" 
+                      id="doneOpacityInput"
+                      type="number" 
+                      min={0} 
+                      max={1}
+                      step={0.1}
+                      value={props.settings.doneOpacity}
+                      onChange={onDoneOpacityChange} />
                   </div>
                 </div>
               </div>

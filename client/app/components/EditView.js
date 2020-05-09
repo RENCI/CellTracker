@@ -69,7 +69,9 @@ const EditView = props => {
           <EditControls 
             editMode={props.settings.editMode}
             history={props.history}
-            labels={props.experiment.labels} />        
+            experimentLabels={props.experiment.labels}
+            defaultLabels={props.settings.defaultLabels}
+            currentLabel={props.settings.currentLabel} />        
         </div>
         <div className="col-md-2">
           <FilmstripControls />        
@@ -89,6 +91,7 @@ const EditView = props => {
             frame={props.playback.frame}
             editMode={props.settings.editMode}
             currentLabel={props.settings.currentLabel}
+            doneOpacity={props.settings.doneOpacity}
             onMouseWheel={handleMouseWheel}
             onHighlightRegion={handleHighlightRegion}
             onSelectRegion={handleSelectRegion}

@@ -70,7 +70,8 @@ export default function(sketch) {
   let lineWeight = 2,
       lineHighlightWeight = 3,
       handleRadius = 3,
-      handleHighlightRadius = 5;
+      handleHighlightRadius = 5,
+      doneOpacity = 0.2;
 
   sketch.setup = function() {
     // Create canvas with default size
@@ -96,6 +97,7 @@ export default function(sketch) {
     zoomPoint = props.zoomPoint;
     editMode = props.editMode;
     currentLabel = props.currentLabel;
+    doneOpacity = props.doneOpacity;
     onMouseWheel = props.onMouseWheel;
     onHighlightRegion = props.onHighlightRegion;
     onSelectRegion = props.onSelectRegion;
@@ -188,6 +190,10 @@ export default function(sketch) {
       return;
     }
 
+    sketch.textSize(8);
+    sketch.textAlign(sketch.CENTER);
+    sketch.textStyle(sketch.BOLD);
+
     // Get image
     const im = colorImages[frame];
 
@@ -271,7 +277,7 @@ export default function(sketch) {
         //if (region.highlight) sketch.noFill();
         //else sketch.fill(fillColorMap(region.trajectory_id));
         //sketch.noFill();
-        if (region.done) sketch.fill(doneColor, 200);
+        if (region.done) sketch.fill(doneColor, doneOpacity * 255);
         else sketch.noFill();
 
         sketch.beginShape();
@@ -309,6 +315,21 @@ export default function(sketch) {
             }
           });
         }
+
+        // Draw labels
+        if (region.labels && region.labels.length > 0) {
+          sketch.noStroke();
+          sketch.fill(region.done ? doneColor : strokeColorMap(region.trajectory_id));
+
+          const p = scalePoint([region.center[0], region.min[1]]);
+          p[1] -= 5;
+
+          const labels = region.labels.map(label => {
+            return experiment.labels.indexOf(label) + 1;
+          }).sort().join(", ");
+
+          sketch.text(labels, p[0], p[1]);
+        }
 /*
         // Draw circle marker
         sketch.ellipseMode(sketch.RADIUS);
@@ -345,6 +366,7 @@ export default function(sketch) {
     const fontSize = sketch.constrain(sketch.width / 20, 10, 24);
     sketch.textSize(fontSize);
     sketch.textAlign(sketch.RIGHT);
+    sketch.textStyle(sketch.NORMAL);
     sketch.text(actionString, sketch.width - fontSize / 2, sketch.height - fontSize / 2);
   }
 

@@ -50,7 +50,9 @@ let settings = {
   framesToLoad: 10,
   frameOverlap: 2,
   showTrajectories: true,
-  currentLabel: "",
+  defaultLabels: ["Done"],
+  currentLabel: "Done",
+  doneOpacity: 0.2,
   scoring: false
 };
 
@@ -128,7 +130,12 @@ function setExperiment(newExperiment) {
       }
     }    
 
-    if (experiment.labels) experiment.labels.sort();
+    if (experiment.labels) {
+      experiment.labels.sort();
+
+      settings.currentLabel = experiment.labels.length > 0 ? 
+        experiment.labels[0] : settings.defaultLabels[0];
+    }
   }
 
   resetLoading();  
@@ -824,6 +831,9 @@ function linkRegion(frame, region) {
 
       break;
   }
+
+  // Region has been edited
+  editRegion(frame, region);
 }
 
 function regionDone(region, done) {
@@ -978,6 +988,10 @@ function setFrameOverlap(frameOverlap) {
   settings.frameOverlap = frameOverlap;
 }
 
+function setDoneOpacity(doneOpacity) {
+  settings.doneOpacity = doneOpacity;
+}
+
 function getZoomLevels(item) {
   if (settings.zoomDefault && settings.filmstripZoomDefault) {
     return {
@@ -1062,16 +1076,18 @@ function zoom(view, direction) {
   }  
 }
 
-function setEditMode(mode, option) {
+function setEditMode(mode) {
   settings.editMode = mode;
-
-  if (mode === "regionLabel") settings.currentLabel = option;
 
   if (linking.region) linking.region.isLinkRegion = false;
   linking.frame = -1;
   linking.region = null;
 
 //  pushHistory();
+}
+
+function setCurrentLabel(label) {
+  settings.currentLabel = label;
 }
 
 function receiveScore(score, totalScore, timeStamp) {
@@ -1285,13 +1301,23 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       DataStore.emitChange();
       break;
 
+    case Constants.SET_DONE_OPACITY:
+      setDoneOpacity(action.doneOpacity);
+      DataStore.emitChange();
+      break;
+
     case Constants.ZOOM:
       zoom(action.view, action.direction);
       DataStore.emitChange();
       break;
 
     case Constants.SET_EDIT_MODE:
-      setEditMode(action.mode, action.option);
+      setEditMode(action.mode);
+      DataStore.emitChange();
+      break;
+
+    case Constants.SET_CURRENT_LABEL:
+      setCurrentLabel(action.label);
       DataStore.emitChange();
       break;
 
@@ -1402,10 +1428,43 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
           DataStore.emitChange();
           break;
 
+        case "Escape":
+          selectRegion(-1, null);
+          DataStore.emitChange();
+          break;
+
         case "k":
           settings.showTrajectories = !settings.showTrajectories;
           DataStore.emitChange();
           break;
+
+        case "0":
+          if (settings.defaultLabels.length > 0 ) {
+            setCurrentLabel(settings.defaultLabels[0]);
+            setEditMode("regionLabel");
+            DataStore.emitChange();
+          }
+          break;
+
+        case "1":
+        case "2":
+        case "3":
+        case "4":
+        case "5":
+        case "6":
+        case "7":
+        case "8":
+        case "9": {
+          const index = +action.key - 1;
+
+          if (index < experiment.labels.length) {
+            setCurrentLabel(experiment.labels[index]);
+            setEditMode("regionLabel");
+            DataStore.emitChange();
+          }
+          
+          break;
+        }
       }
     }
   }

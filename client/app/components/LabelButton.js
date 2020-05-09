@@ -1,8 +1,12 @@
-import React, { useState } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 
 const LabelButton = props => {
-  const [value, setValue] = useState(props.options.length > 0 ? props.options[0] : "Done");
+  const label = d => {
+    const i = props.experimentLabels.indexOf(d);
+
+    return i >= 0 ? (i + 1) + ": " + d : d === "Done" ? "0: " + d : d;
+  };
 
   let classes = props.classes;
   if (props.active) classes += " active";
@@ -14,15 +18,15 @@ const LabelButton = props => {
         key={i >= 0 ? i : null} 
         className="dropdown-item"
         onClick={() => {
-          setValue(d);
-          if (props.callback) props.callback(d);
+          if (props.onChange) props.onChange(d);
         }}>
-          {d}
+          { label(d) }
       </button>
     );
   };
 
-  const options = props.options.map(option);
+  const experimentOptions = props.experimentLabels.map(option);
+  const defaultOptions = props.defaultLabels.map(option);
 
   return (
     <div className="btn-group">
@@ -31,8 +35,8 @@ const LabelButton = props => {
         className={classes}
         data-toggle={props.tooltip ? "tooltip" : null}
         title={props.tooltip ? props.tooltip : null}
-        onClick={props.callback ? () => props.callback(value) : null}>
-          {value}
+        onClick={props.onClick ? () => props.onClick(props.value) : null}>
+          { label(props.value) }
       </button>
       <button 
         type="button" 
@@ -41,9 +45,9 @@ const LabelButton = props => {
       />
       <div className="dropdown-menu">
         <h6 className="dropdown-header">Select label</h6>
-        {options}
-        {options.length > 0 ? <div className="dropdown-divider"></div> : null}
-        {option("Done")}
+        {experimentOptions}
+        {experimentOptions.length > 0 ? <div className="dropdown-divider"></div> : null}
+        {defaultOptions}
       </div>
     </div>
   );
@@ -54,9 +58,11 @@ LabelButton.propTypes = {
   active: PropTypes.bool,
   tooltip: PropTypes.string,
   shortcut: PropTypes.string,
-  callback: PropTypes.func,
-  options: PropTypes.arrayOf(PropTypes.string).isRequired,
-  value: PropTypes.string
+  onClick: PropTypes.func,
+  onChange: PropTypes.func,
+  experimentLabels: PropTypes.arrayOf(PropTypes.string).isRequired,
+  defaultLabels: PropTypes.arrayOf(PropTypes.string).isRequired,
+  value: PropTypes.string.isRequired
 };
 
 LabelButton.defaultProps = {
