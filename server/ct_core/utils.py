@@ -133,6 +133,8 @@ def get_experiment_list_util(req_user=None):
                 exp_dict['locked_by'] = ''
                 exp_dict['name'] = _get_experiment_name(col)
                 exp_dict['frames'] = _get_experiment_frame_no(session, col, hpath + '/' + col.name)
+                if req_user:
+                    exp_dict['start_frame'] = get_start_frame(req_user, col.name)
                 key = str('priority')
                 def_pri = pack_zeros(str(index))
                 col.metadata.add(key, def_pri)
@@ -146,6 +148,8 @@ def get_experiment_list_util(req_user=None):
                 col = session.collections.get(exp_path)
                 exp_dict['name'] = _get_experiment_name(col)
                 exp_dict['frames'] = _get_experiment_frame_no(session, col, exp_path)
+                if req_user:
+                    exp_dict['start_frame'] = get_start_frame(req_user, exp_id)
                 if req_user:
                     locked, l_user = is_exp_locked(exp_id)
                     if locked:
