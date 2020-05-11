@@ -454,17 +454,17 @@ function updateLoading() {
 }
 
 function loadFrames(startFrame) {
-  let n = settings.framesToLoad;
+  let n = +settings.framesToLoad;
 
-  let stop = Math.min(startFrame + n - 1, experiment.totalFrames);
+  let stop = Math.min(+startFrame + n - 1, experiment.totalFrames);
   let start = Math.max(stop - n + 1, 1);
 
   updateFrames(start, stop);
 }
 
 function advanceFrames() {
-  let n = settings.framesToLoad;
-  let overlap = settings.frameOverlap;
+  let n = +settings.framesToLoad;
+  let overlap = +settings.frameOverlap;
 
   let stop = Math.min(experiment.stop + n - overlap, experiment.totalFrames);
   let start = Math.max(stop - n + 1, 1);
@@ -473,8 +473,8 @@ function advanceFrames() {
 }
 
 function reverseFrames() {
-  let n = settings.framesToLoad;
-  let overlap = settings.frameOverlap;
+  let n = +settings.framesToLoad;
+  let overlap = +settings.frameOverlap;
 
   let start = Math.max(experiment.start - n + overlap, 1);
   let stop = Math.min(start + n - 1, experiment.totalFrames);
