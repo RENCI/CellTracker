@@ -146,15 +146,28 @@ export function getFrames(experiment) {
     }
   }
 
-  for (let i = 0; i < experiment.frames; i++) {
-    const frame = experiment.start + i;
+  // Get relative start index
+  let offset = 0;
+  for (let frame = experiment.start; frame <= experiment.stop; frame++) {
+    if (experiment.segmentationData.find(d => d.frame === frame)) break;
+
+    offset++;
+  }
+
+  console.log(offset);
+
+  for (let frame = experiment.start; frame <= experiment.stop; frame++) {
+    if (experiment.segmentationData.find(d => d.frame === frame)) continue;
+
+    const i = 
+
     const imageURL = "/display-image/" + experiment.id + "/" + imageType + "/" + frame;
 
     // Load image
     $.ajax({
       type: "POST",
       url: imageURL,
-      success: imageCallback(i, imageURL),
+      success: imageCallback(frame, imageURL),
       error: errorCallback
     });  
 

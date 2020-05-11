@@ -48,7 +48,7 @@ let settings = {
   editMode: "regionSelect",
   stabilize: true,
   framesToLoad: 10,
-  frameOverlap: 2,
+  frameExpansion: 2,
   showTrajectories: true,
   defaultLabels: ["Done"],
   currentLabel: "Done",
@@ -210,7 +210,7 @@ function receiveSegmentationFrame(frame, regions) {
 
   loading.segFramesLoaded++;
 
-  if (loading.segFramesLoaded === experiment.frames) {
+  if (loading.segFramesLoaded === loading.numSegFrames) {
     generateTrajectoryIds();
 
     pushHistory();
@@ -432,11 +432,18 @@ function updateTracking(trackingData) {
 }
 
 function resetLoading() {
+  let n = 0;
+  for (let i = experiment.start; i <= experiment.stop; i++) {
+    if (!experiment.segmentationData.find(d => d.frame === i)) n++;
+  }
+
+  console.log(n);
+
   loading = {
     framesLoaded: 0,
-    numFrames: experiment.frames ? experiment.frames : 0,
+    numFrames: n,
     segFramesLoaded: 0,
-    numSegFrames: experiment.frames && experiment.has_segmentation ? experiment.frames : 0
+    numSegFrames: experiment.has_segmentation ? n : 0
   };
 }
 
@@ -460,37 +467,39 @@ function loadFrames(startFrame) {
   let start = Math.max(stop - n + 1, 1);
 
   updateFrames(start, stop);
-}
-
-function advanceFrames() {
-  let n = settings.framesToLoad;
-  let overlap = settings.frameOverlap;
-
-  let stop = Math.min(experiment.stop + n - overlap, experiment.totalFrames);
-  let start = Math.max(stop - n + 1, 1);
-
-  updateFrames(start, stop);
-}
-
-function reverseFrames() {
-  let n = settings.framesToLoad;
-  let overlap = settings.frameOverlap;
-
-  let start = Math.max(experiment.start - n + overlap, 1);
-  let stop = Math.min(start + n - 1, experiment.totalFrames);
-
-  updateFrames(start, stop);
-}
-
-function updateFrames(start, stop) {
-  experiment.start = start;
-  experiment.stop = stop;
-  experiment.frames = stop - start + 1;
 
   setExperiment(experiment);
 
   reset();
   setPlay(false);
+}
+
+function expandForward() {
+  const n = +settings.frameExpansion;
+  const stop = Math.min(experiment.stop + n, experiment.totalFrames);
+
+  updateFrames(experiment.start, stop);
+
+  reset();
+  setPlay(false);
+}
+
+function expandBackward() {
+  const n = +settings.frameExpansion;
+  const start = Math.max(experiment.start - n, 1);
+
+  updateFrames(start, experiment.stop);
+
+  reset();
+  setPlay(false);
+}
+
+function updateFrames(start, stop) {
+  console.log(start, stop);
+
+  experiment.start = start;
+  experiment.stop = stop;
+  experiment.frames = stop - start + 1;
 }
 
 function resetPlayback() {
@@ -984,8 +993,8 @@ function setFramesToLoad(framesToLoad) {
   settings.framesToLoad = framesToLoad;
 }
 
-function setFrameOverlap(frameOverlap) {
-  settings.frameOverlap = frameOverlap;
+function setFrameExpansion(frameExpansion) {
+  settings.frameExpansion = frameExpansion;
 }
 
 function setDoneOpacity(doneOpacity) {
@@ -1186,13 +1195,13 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       DataStore.emitChange();
       break;
 
-    case Constants.ADVANCE_FRAMES:
-      advanceFrames();
+    case Constants.EXPAND_FORWARD:
+      expandForward();
       DataStore.emitChange();
       break;
 
-    case Constants.REVERSE_FRAMES:
-      reverseFrames();
+    case Constants.EXPAND_BACKWARD:
+      expandBackward();
       DataStore.emitChange();
       break;
 
@@ -1296,8 +1305,8 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       DataStore.emitChange();
       break;
 
-    case Constants.SET_FRAME_OVERLAP:
-      setFrameOverlap(action.frameOverlap);
+    case Constants.SET_FRAME_EXPANSION:
+      setFrameExpansion(action.frameExpansion);
       DataStore.emitChange();
       break;
 
@@ -1462,7 +1471,7 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
             setEditMode("regionLabel");
             DataStore.emitChange();
           }
-          
+
           break;
         }
       }

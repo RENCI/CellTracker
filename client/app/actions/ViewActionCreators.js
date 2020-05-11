@@ -30,17 +30,17 @@ export function loadFrames(startFrame) {
   WebAPIUtils.getFrames(DataStore.getExperiment());
 };
 
-export function advanceFrames() {
+export function expandForward() {
   AppDispatcher.dispatch({
-    actionType: Constants.ADVANCE_FRAMES
+    actionType: Constants.EXPAND_FORWARD
   });
 
   WebAPIUtils.getFrames(DataStore.getExperiment());
 };
   
-export function reverseFrames() {
+export function expandBackward() {
   AppDispatcher.dispatch({
-    actionType: Constants.REVERSE_FRAMES
+    actionType: Constants.EXPAND_BACKWARD
   });
 
   WebAPIUtils.getFrames(DataStore.getExperiment());
@@ -193,10 +193,10 @@ export function setFramesToLoad(framesToLoad) {
   });
 }
 
-export function setFrameOverlap(frameOverlap) {
+export function setFrameExpansion(frameExpansion) {
   AppDispatcher.dispatch({
-    actionType: Constants.SET_FRAME_OVERLAP,
-    frameOverlap: frameOverlap
+    actionType: Constants.SET_FRAME_EXPANSION,
+    frameExpansion: frameExpansion
   });
 }
 
