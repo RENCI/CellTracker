@@ -58,6 +58,9 @@ class UserProfile(models.Model):
 
     score = models.IntegerField(blank=True, null=True, default=0)
 
+    # user specific settings set up by the user on the UI such as frames to load, frame overlap, etc
+    settings = JSONField(default=list)
+
     def __str__(self):
         return self.user.username
 

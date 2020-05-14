@@ -192,6 +192,27 @@ def get_experiment_list(request):
 
 
 @login_required
+def set_user_setting(request):
+    """
+    set user settings as a JSONField which can be retrieved from get_user_info endpoint
+    :param request:
+    :return: 200 response if succeed; otherwise, return server error response
+    """
+    user_name = request.user.username
+    user_settings = request.POST.get('settings', [])
+    if not user_settings:
+        return HttpResponseBadRequest("settings array in the request post is empty")
+    up = UserProfile.objects.filter(user__username=user_name).first()
+    if up:
+        up.settings = user_settings
+        up.save()
+        return JsonResponse(status=status.HTTP_200_OK, data={'status': 'success'})
+    else:
+        return JsonResponse(status=status.HTTP_400_BAD_REQUEST,
+                            data={'error': "Requested user is not valid and does not have a profile".format(user_name)})
+
+
+@login_required
 def get_user_info(request):
     """
     return request user info if username GET parameter is not in the request; otherwise, return user info
@@ -210,6 +231,7 @@ def get_user_info(request):
                                   'grade': up.grade,
                                   'school': up.school,
                                   'total_score': up.score,
+                                  'settings': up.settings,
                                   'is_power_user': 'true' if is_power_user(up.user) else 'false'
                                   })
     else:
