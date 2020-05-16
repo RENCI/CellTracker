@@ -40,7 +40,7 @@ from ct_core.forms import SignUpForm, UserProfileForm, UserPasswordResetForm
 from ct_core.models import UserProfile
 from django_irods.storage import IrodsStorage
 from django_irods.icommands import SessionException
-from ct_core.tasks import add_tracking, sync_user_edit_frame_from_db_to_irods
+from ct_core.tasks import add_tracking, sync_user_edit_frame_from_db_to_irods, apply_colormap_to_exp_task
 
 
 logger = logging.getLogger(__name__)
@@ -633,6 +633,7 @@ def add_experiment_to_server(request):
             coll.metadata.add('experiment_name', exp_name)
             coll.metadata.add('priority', pack_zeros(str(len(exp_list))))
             coll.metadata.add('colormap', exp_lut)
+            apply_colormap_to_exp_task.apply_async((exp_id, exp_lut,), countdown=1)
             if exp_labels:
                 try:
                     add_labels_to_exp(coll, exp_labels)
@@ -737,6 +738,7 @@ def update_colormap_association(request, exp_id):
 
             try:
                 add_colormap_to_exp(coll, exp_cm)
+                apply_colormap_to_exp_task.apply_async((exp_id, exp_cm,), countdown=1)
             except Exception as ex:
                 return JsonResponse({"message": str(ex)},
                                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
