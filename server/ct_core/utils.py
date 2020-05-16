@@ -895,6 +895,21 @@ def add_labels_to_exp(exp_coll, label_str):
             exp_coll.metadata.add('label', label)
 
 
+def add_colormap_to_exp(exp_coll, colormap_str):
+    """
+    Adding colormap string to iRODS AVU metadata for corresponding experiment collection
+    :param exp_id: experiment id
+    :param colormap_str: colormap string associated with the experiment
+    :return:
+    """
+    if not colormap_str or not exp_coll:
+        return
+    colormap_str = colormap_str.strip()
+    # need to erase all previously set existing AVU with 'colormap' attribute if any
+    new_meta = iRODSMeta('colormap', colormap_str)
+    exp_coll.metadata['colormap'] = new_meta
+
+
 def create_seg_data_from_csv(exp_id, input_csv_file, irods_path):
     """
     Create frame json segmentation data from input csv file and put them in iRODS

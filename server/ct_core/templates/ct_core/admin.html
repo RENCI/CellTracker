@@ -11,7 +11,9 @@
         <button id="associate_label_id" data-toggle="modal"  class="btn btn-sm btn-info hid-element" data-target="#submit-for-label-association-dialog">
             <i class="oi oi-tags" data-toggle="tooltip" data-placement="bottom" title="Associate labels with selected experiment"></i>
         </button>
-
+        <button id="associate_colormap_id" data-toggle="modal"  class="btn btn-sm btn-info hid-element" data-target="#submit-for-colormap-association-dialog">
+            <i class="oi oi-brush" data-toggle="tooltip" data-placement="bottom" title="Associate a colormap with selected experiment"></i>
+        </button>
         <a id="create_new_exp" href="/create_new_experiment/" title="create a new experiment">
             <span class="oi oi-plus"></span>
         </a>
@@ -64,6 +66,32 @@
                 <div class="modal-footer">
                     <button class="btn btn-default" data-dismiss="modal">Cancel</button>
                     <button id="associate-label-btn" class="btn btn-success" data-dismiss="modal">Associate Labels</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="submit-for-colormap-association-dialog" tabindex="-1" role="dialog" tabindex="-1"
+         role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="submit-for-colormap-association">Associate a colormap with selected experiment</h4>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="exp_lut" class="col-form-label-lg">Select a color map: </label>
+                        <select id="exp_lut" name="exp_lut" class="form-control">
+                            {% for cm in COLOR_MAPS %}
+                                <option value="{{ cm }}">{{ cm }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button id="associate-colormap-btn" class="btn btn-success" data-dismiss="modal">Associate Colormap</button>
                 </div>
             </div>
         </div>

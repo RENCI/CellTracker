@@ -186,76 +186,79 @@ MAX_PRIORITY_STRING_LEN = 10
 SCORE_MODEL_PATH = os.path.join(BASE_DIR, 'models', 'scoreNet_t3_180_unfreeze.pkl')
 SCORE_IMAGE_DIMENSION = (180, 180)
 
+# settings for supported color maps
+SUPPORTED_COLOR_MAPS = ('gray','cividis','viridis','bone','gist_heat','magma')
+
 # set experiment lock timeout to be 12 hours
 LOCK_TIMEOUT_SECONDS = 43200
 
 ####################
 # LOGGING SETTINGS #
 ####################
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-            'datefmt' : "%d/%b/%Y %H:%M:%S"
-        },
-        'simple': {
-            'format': '[%(asctime)s] %(levelname)s %(message)s',
-            'datefmt' : "%d/%b/%Y %H:%M:%S"
-        },
-    },
-    'handlers': {
-        'syslog': {
-            'level': 'WARNING',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/home/docker/celltracker/log/system.log',
-            'formatter': 'simple',
-            'maxBytes': 1024*1024*15, # 15MB
-            'backupCount': 10,
-        },
-        'djangolog': {
-            'level': 'WARNING',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/home/docker/celltracker/log/django.log',
-            'formatter': 'verbose',
-            'maxBytes': 1024*1024*15, # 15MB
-            'backupCount': 10,
-        },
-        'celltrackerlog': {
-            'level': 'WARNING',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/home/docker/celltracker/log/celltracker.log',
-            'formatter': 'verbose',
-            'maxBytes': 1024*1024*15, # 15MB
-            'backupCount': 10,
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['syslog', 'djangolog'],
-            'propagate': True,
-            'level': 'WARNING',
-        },
-        # https://docs.djangoproject.com/en/1.11/topics/logging/#django-template
-        'django.template': {
-            'handlers': ['syslog', 'djangolog'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'django.db.backends': {
-            'handlers': ['syslog'],
-            'level': 'WARNING',
-            'propagate': False,
-        },
-        # Catch-all logger for CellTracker  apps
-        '': {
-            'handlers': ['celltrackerlog'],
-            'propagate': False,
-            'level': 'WARNING'
-        },
-    }
-}
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'formatters': {
+#         'verbose': {
+#             'format' : "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
+#             'datefmt' : "%d/%b/%Y %H:%M:%S"
+#         },
+#         'simple': {
+#             'format': '[%(asctime)s] %(levelname)s %(message)s',
+#             'datefmt' : "%d/%b/%Y %H:%M:%S"
+#         },
+#     },
+#     'handlers': {
+#         'syslog': {
+#             'level': 'WARNING',
+#             'class': 'logging.handlers.RotatingFileHandler',
+#             'filename': '/home/docker/celltracker/log/system.log',
+#             'formatter': 'simple',
+#             'maxBytes': 1024*1024*15, # 15MB
+#             'backupCount': 10,
+#         },
+#         'djangolog': {
+#             'level': 'WARNING',
+#             'class': 'logging.handlers.RotatingFileHandler',
+#             'filename': '/home/docker/celltracker/log/django.log',
+#             'formatter': 'verbose',
+#             'maxBytes': 1024*1024*15, # 15MB
+#             'backupCount': 10,
+#         },
+#         'celltrackerlog': {
+#             'level': 'WARNING',
+#             'class': 'logging.handlers.RotatingFileHandler',
+#             'filename': '/home/docker/celltracker/log/celltracker.log',
+#             'formatter': 'verbose',
+#             'maxBytes': 1024*1024*15, # 15MB
+#             'backupCount': 10,
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['syslog', 'djangolog'],
+#             'propagate': True,
+#             'level': 'WARNING',
+#         },
+#         # https://docs.djangoproject.com/en/1.11/topics/logging/#django-template
+#         'django.template': {
+#             'handlers': ['syslog', 'djangolog'],
+#             'level': 'INFO',
+#             'propagate': True,
+#         },
+#         'django.db.backends': {
+#             'handlers': ['syslog'],
+#             'level': 'WARNING',
+#             'propagate': False,
+#         },
+#         # Catch-all logger for CellTracker  apps
+#         '': {
+#             'handlers': ['celltrackerlog'],
+#             'propagate': False,
+#             'level': 'WARNING'
+#         },
+#     }
+# }
 
 # info django that a reverse proxy sever (nginx) is handling ssl/https for it
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
