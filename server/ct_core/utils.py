@@ -366,6 +366,8 @@ def get_exp_image(exp_id, frame_no, type='jpg', gray=True):
         if exp_info:
             if exp_info.colormap == 'gray':
                 need_gray = True
+        else:
+            need_gray = True
     if need_gray:
         prefix_str = 'frame'
     else:
