@@ -37,7 +37,7 @@ from ct_core.utils import get_experiment_list_util, read_video, \
     add_colormap_to_exp
 from ct_core.task_utils import get_exp_frame_no, is_power_user, get_experiment_frame_seg_data
 from ct_core.forms import SignUpForm, UserProfileForm, UserPasswordResetForm
-from ct_core.models import UserProfile
+from ct_core.models import UserProfile, ExperimentInfo
 from django_irods.storage import IrodsStorage
 from django_irods.icommands import SessionException
 from ct_core.tasks import add_tracking, sync_user_edit_frame_from_db_to_irods, apply_colormap_to_exp_task
@@ -357,7 +357,7 @@ def display_image(request, exp_id, type, frame_no):
         # experiment is locked by another user
         return JsonResponse({'locked_by': lock_user.username}, status=status.HTTP_403_FORBIDDEN)
 
-    img_file, err_msg = get_exp_image(exp_id, frame_no, type)
+    img_file, err_msg = get_exp_image(exp_id, frame_no, type=type, gray=False)
 
     if err_msg:
         return HttpResponseServerError(err_msg)
@@ -632,7 +632,7 @@ def add_experiment_to_server(request):
             coll = session.collections.get(cpath)
             coll.metadata.add('experiment_name', exp_name)
             coll.metadata.add('priority', pack_zeros(str(len(exp_list))))
-            coll.metadata.add('colormap', exp_lut)
+            ExperimentInfo.objects.create(exp_id=exp_id, colormap=exp_lut)
             apply_colormap_to_exp_task.apply_async((exp_id, exp_lut,), countdown=1)
             if exp_labels:
                 try:
@@ -726,22 +726,13 @@ def update_colormap_association(request, exp_id):
         exp_cm = request.POST.get('colormap', '')
         if not exp_cm:
             return JsonResponse({"message": 'Bad request: input colormap is empty'}, status=status.HTTP_400_BAD_REQUEST)
-        cpath = '/{}/home/{}/{}'.format(settings.IRODS_ZONE, settings.IRODS_USER, exp_id)
-        with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT,
-                          user=settings.IRODS_USER,
-                          password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
-            try:
-                coll = session.collections.get(cpath)
-            except CollectionDoesNotExist:
-                return JsonResponse({"message": 'Bad request: input experiment id does not exist'},
-                                    status=status.HTTP_400_BAD_REQUEST)
 
-            try:
-                add_colormap_to_exp(coll, exp_cm)
-                apply_colormap_to_exp_task.apply_async((exp_id, exp_cm,), countdown=1)
-            except Exception as ex:
-                return JsonResponse({"message": str(ex)},
-                                    status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        try:
+            add_colormap_to_exp(exp_id, exp_cm)
+            apply_colormap_to_exp_task.apply_async((exp_id, exp_cm,), countdown=1)
+        except Exception as ex:
+            return JsonResponse({"message": str(ex)},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return JsonResponse({'message': 'Colormap {} is associated with experiment {} successfully'.format(exp_cm,
                                                                                                            exp_id)},
                             status=status.HTTP_200_OK)

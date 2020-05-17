@@ -4,7 +4,6 @@ import shutil
 import errno
 
 import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 from PIL import Image
 
 import numpy as np
@@ -194,19 +193,16 @@ def apply_colormap_to_experiment(exp_id, colormap, type='jpg'):
     istorage = IrodsStorage()
     irods_img_path = os.path.join(exp_id, 'data', 'image', type)
     file_list = istorage.listdir(irods_img_path)[1]
-    cm = plt.get_cmap(colormap)
     for img_name in file_list:
-        dest_path = istorage.get_one_image_frame(exp_id, type, img_name, image_path)
-        ifile = os.path.join(dest_path, img_name)
-        if os.path.isfile(ifile):
-            # convert colormap to image
-            img_src = Image.open(ifile)
-            im = np.array(img_src)
-            im = cm(im)
-            im = np.uint8(im * 255)
-            im = Image.fromarray(im)
-            color_img_name = 'color_{}'.format(img_name)
-            color_img_path = os.path.join(dest_path, color_img_name)
-            im.save(color_img_path)
-            # save to iRODS
-            istorage.save_file(color_img_path, os.path.join(irods_img_path, color_img_name))
+        if img_name.startswith('frame'):
+            dest_path = istorage.get_one_image_frame(exp_id, type, img_name, image_path)
+            ifile = os.path.join(dest_path, img_name)
+            if os.path.isfile(ifile):
+                # convert colormap to image
+                img_src = Image.open(ifile)
+                im = np.array(img_src)
+                color_img_name = 'color_{}'.format(img_name)
+                color_img_path = os.path.join(dest_path, color_img_name)
+                plt.imsave(color_img_path, im, cmap=colormap)
+                # save to iRODS
+                istorage.save_file(color_img_path, os.path.join(irods_img_path, color_img_name))

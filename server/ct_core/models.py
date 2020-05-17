@@ -102,3 +102,8 @@ class UserSegmentation(models.Model):
         return 'User {} experiment {} frame {} segmentation'.format(self.user.username,
                                                                     self.exp_id,
                                                                     self.frame_no)
+
+
+class ExperimentInfo(models.Model):
+    exp_id = models.CharField(max_length=50)
+    colormap = models.CharField(max_length=50, default='gray')

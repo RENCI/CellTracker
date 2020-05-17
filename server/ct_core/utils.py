@@ -24,7 +24,7 @@ from django_irods.icommands import SessionException
 
 from wand.image import Image
 
-from ct_core.models import Segmentation, UserSegmentation, UserProfile, get_path
+from ct_core.models import Segmentation, UserSegmentation, UserProfile, get_path, ExperimentInfo
 from ct_core.task_utils  import get_exp_frame_no, validate_user, is_power_user, get_experiment_frame_seg_data
 
 
@@ -328,12 +328,13 @@ def get_exp_image_size(exp_id):
                 return -1, -1
 
 
-def get_exp_image(exp_id, frame_no, type='jpg'):
+def get_exp_image(exp_id, frame_no, type='jpg', gray=True):
     """
     return the specified frame image in the specified experiment
     :param exp_id: experiment id
     :param frame_no: frame number that starts from 1
     :param type: jpg or png, with default being jpg
+    :param gray: whether to always return the native grayscale image, with default being True
     :return: image file name, error message if any
     """
     image_path = os.path.join(settings.IRODS_ROOT, exp_id, 'image')
@@ -358,7 +359,18 @@ def get_exp_image(exp_id, frame_no, type='jpg'):
     # check whether image frame data in iRODS backend starts with 1 or 0
     if "frame0.jpg" in file_list and frame_no > 0:
         fno -= 1
-    img_name = 'frame' + str(fno) + '.jpg'
+
+    need_gray = gray
+    if not need_gray:
+        exp_info = ExperimentInfo.objects.filter(exp_id=exp_id).first()
+        if exp_info:
+            if exp_info.colormap == 'gray':
+                need_gray = True
+    if need_gray:
+        prefix_str = 'frame'
+    else:
+        prefix_str = 'color_frame'
+    img_name = prefix_str + str(fno) + '.jpg'
     if not img_name in file_list:
         if len(file_list) == 1:
             if fno == 1:
@@ -367,16 +379,19 @@ def get_exp_image(exp_id, frame_no, type='jpg'):
                 return None, 'Requested frame_no does not exist'
         else:
             img1_name = file_list[0]
-            start_idx = len('frame')
+            if img1_name.startswith('frame'):
+                start_idx = len('frame')
+            else:
+                start_idx = len('color_frame')
             seq_len = len(img1_name[start_idx:-4])
             if len(frame_no) > seq_len:
                 return None, 'Requested frame_no does not exist'
             elif len(frame_no) == seq_len:
-                img_name = 'frame' + frame_no + '.' + type
+                img_name = prefix_str + frame_no + '.' + type
             else:
                 # len(frame_no) < seq_len
                 packstr = pack_zeros(frame_no, seq_len)
-                img_name = 'frame' + packstr + '.' + type
+                img_name = prefix_str + packstr + '.' + type
 
     ifile = os.path.join(image_path, img_name)
     if os.path.isfile(ifile):
@@ -895,19 +910,21 @@ def add_labels_to_exp(exp_coll, label_str):
             exp_coll.metadata.add('label', label)
 
 
-def add_colormap_to_exp(exp_coll, colormap_str):
+def add_colormap_to_exp(exp_id, colormap_str):
     """
-    Adding colormap string to iRODS AVU metadata for corresponding experiment collection
+    Adding colormap string to ExperimentInfo model for corresponding experiment collection
     :param exp_id: experiment id
     :param colormap_str: colormap string associated with the experiment
     :return:
     """
-    if not colormap_str or not exp_coll:
+    if not colormap_str or not exp_id:
         return
     colormap_str = colormap_str.strip()
-    # need to erase all previously set existing AVU with 'colormap' attribute if any
-    new_meta = iRODSMeta('colormap', colormap_str)
-    exp_coll.metadata['colormap'] = new_meta
+    obj, created = ExperimentInfo.objects.get_or_create(exp_id=exp_id, defaults={'colormap': colormap_str})
+    if not created:
+        # Segmentation object already exists, update it with new json data
+        obj.colormap = colormap_str
+        obj.save()
 
 
 def create_seg_data_from_csv(exp_id, input_csv_file, irods_path):

@@ -397,7 +397,7 @@ $('#associate-label-btn').click(function(e) {
         success: function (json_response) {
             $('#submit-for-label-association-dialog').modal('hide');
             $('#notification_msg').show();
-            $('#notification_msg').css({"background-color": "darkgreen"});
+            $('#notification_msg').css({"background-color": "yellow"});
             $('#notification_msg_str').text(json_response.message);
             return true;
         },
@@ -424,7 +424,7 @@ $('#associate-colormap-btn').click(function(e) {
         success: function (json_response) {
             $('#submit-for-colormap-association-dialog').modal('hide');
             $('#notification_msg').show();
-            $('#notification_msg').css({"background-color": "darkgreen"});
+            $('#notification_msg').css({"background-color": "yellow"});
             $('#notification_msg_str').text(json_response.message);
             return true;
         },
