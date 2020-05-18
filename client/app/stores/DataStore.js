@@ -48,7 +48,7 @@ let settings = {
   editMode: "regionSelect",
   stabilize: true,
   framesToLoad: 10,
-  frameOverlap: 2,
+  frameExpansion: 2,
   showTrajectories: true,
   defaultLabels: ["Done"],
   currentLabel: "Done",
@@ -97,6 +97,7 @@ function setExperiment(newExperiment) {
       return e.id === experiment.id;
     })[0].name;
     experiment.images = [];
+    experiment.segmentationData = [];
 
     // Number of frames
     const n = Math.min(experiment.frames, settings.framesToLoad);
@@ -109,13 +110,20 @@ function setExperiment(newExperiment) {
     experiment.totalFrames = experiment.frames;
     experiment.frames = n;
     experiment.start = start;
-    experiment.stop = stop;
+    experiment.stop = stop;      
   }
 
   if (experiment) {
+    // Keep existing images
+    experiment.images = experiment.images.filter(({ frame }) => {
+      return frame >= experiment.start && frame <= experiment.stop;
+    });
+
     if (experiment.has_segmentation) {
       // Empty array to be filled in
-      experiment.segmentationData = [];
+      experiment.segmentationData = experiment.segmentationData.filter(({ frame }) => {
+        return frame >= experiment.start && frame <= experiment.stop;
+      });
     }
     else {
       // Create data with no regions
@@ -150,11 +158,21 @@ function experimentLocked(info) {
   loading = null;
 }
 
-function receiveFrame(i, image) {
+function receiveFrame(frame, image) {
   if (!experiment.images) return;
 
-  experiment.images[i] = image;
+  experiment.images.push({
+    frame: frame,
+    image: image
+  });
+
   loading.framesLoaded++;
+  
+  if (loading.framesLoaded === loading.numFrames) {
+    experiment.images.sort((a, b) => {
+      return a.frame - b.frame;
+    });
+  }
 
   updateLoading();
 }
@@ -201,16 +219,20 @@ function receiveSegmentationFrame(frame, regions) {
   const tree = new rbush();
   updateRBush(tree, regions);
 
-  experiment.segmentationData[frame] = {
-    frame: experiment.start + frame,
+  experiment.segmentationData.push({
+    frame: frame,
     edited: false,
     regions: regions,
     tree: tree
-  };
+  });
 
   loading.segFramesLoaded++;
 
-  if (loading.segFramesLoaded === experiment.frames) {
+  if (loading.segFramesLoaded === loading.numSegFrames) {
+    experiment.segmentationData.sort((a, b) => {
+      return a.frame - b.frame;
+    });
+
     generateTrajectoryIds();
 
     pushHistory();
@@ -432,11 +454,13 @@ function updateTracking(trackingData) {
 }
 
 function resetLoading() {
+  let n = experiment.stop - experiment.start + 1;
+
   loading = {
-    framesLoaded: 0,
-    numFrames: experiment.frames ? experiment.frames : 0,
-    segFramesLoaded: 0,
-    numSegFrames: experiment.frames && experiment.has_segmentation ? experiment.frames : 0
+    framesLoaded: experiment.images ? experiment.images.length : 0,
+    numFrames: n,
+    segFramesLoaded: experiment.segmentationData ? experiment.segmentationData.length : 0,
+    numSegFrames: experiment.has_segmentation ? n : 0
   };
 }
 
@@ -460,37 +484,37 @@ function loadFrames(startFrame) {
   let start = Math.max(stop - n + 1, 1);
 
   updateFrames(start, stop);
+
+  setExperiment(experiment);
+
+  reset();
+  setPlay(false);
 }
 
-function advanceFrames() {
-  let n = +settings.framesToLoad;
-  let overlap = +settings.frameOverlap;
+function expandForward() {
+  const n = +settings.frameExpansion;
+  const stop = Math.min(experiment.stop + n, experiment.totalFrames);
 
-  let stop = Math.min(experiment.stop + n - overlap, experiment.totalFrames);
-  let start = Math.max(stop - n + 1, 1);
+  updateFrames(experiment.start, stop);
 
-  updateFrames(start, stop);
+  reset();
+  setPlay(false);
 }
 
-function reverseFrames() {
-  let n = +settings.framesToLoad;
-  let overlap = +settings.frameOverlap;
+function expandBackward() {
+  const n = +settings.frameExpansion;
+  const start = Math.max(experiment.start - n, 1);
 
-  let start = Math.max(experiment.start - n + overlap, 1);
-  let stop = Math.min(start + n - 1, experiment.totalFrames);
+  updateFrames(start, experiment.stop);
 
-  updateFrames(start, stop);
+  reset();
+  setPlay(false);
 }
 
 function updateFrames(start, stop) {
   experiment.start = start;
   experiment.stop = stop;
   experiment.frames = stop - start + 1;
-
-  setExperiment(experiment);
-
-  reset();
-  setPlay(false);
 }
 
 function resetPlayback() {
@@ -984,8 +1008,8 @@ function setFramesToLoad(framesToLoad) {
   settings.framesToLoad = framesToLoad;
 }
 
-function setFrameOverlap(frameOverlap) {
-  settings.frameOverlap = frameOverlap;
+function setFrameExpansion(frameExpansion) {
+  settings.frameExpansion = frameExpansion;
 }
 
 function setDoneOpacity(doneOpacity) {
@@ -1186,13 +1210,13 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       DataStore.emitChange();
       break;
 
-    case Constants.ADVANCE_FRAMES:
-      advanceFrames();
+    case Constants.EXPAND_FORWARD:
+      expandForward();
       DataStore.emitChange();
       break;
 
-    case Constants.REVERSE_FRAMES:
-      reverseFrames();
+    case Constants.EXPAND_BACKWARD:
+      expandBackward();
       DataStore.emitChange();
       break;
 
@@ -1296,8 +1320,8 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       DataStore.emitChange();
       break;
 
-    case Constants.SET_FRAME_OVERLAP:
-      setFrameOverlap(action.frameOverlap);
+    case Constants.SET_FRAME_EXPANSION:
+      setFrameExpansion(action.frameExpansion);
       DataStore.emitChange();
       break;
 
@@ -1462,7 +1486,7 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
             setEditMode("regionLabel");
             DataStore.emitChange();
           }
-          
+
           break;
         }
       }

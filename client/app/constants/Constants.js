@@ -13,8 +13,8 @@ export default keyMirror({
   RECEIVE_ALL_USER_INFO: null,
 
   LOAD_FRAMES: null,
-  ADVANCE_FRAMES: null,
-  REVERSE_FRAMES: null,
+  EXPAND_FORWARD: null,
+  EXPAND_BACKWARD: null,
 
   CYCLE_LOOP: null,
   TOGGLE_PLAY: null,
@@ -38,7 +38,7 @@ export default keyMirror({
 
   TOGGLE_STABILIZE: null,
   SET_FRAMES_TO_LOAD: null,
-  SET_FRAME_OVERLAP: null,
+  SET_FRAME_EXPANSION: null,
   SET_DONE_OPACITY: null,
 
   ZOOM: null,

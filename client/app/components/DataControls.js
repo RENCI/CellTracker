@@ -5,11 +5,11 @@ import ButtonDivider from "./ButtonDivider";
 import * as ViewActionCreators from "../actions/ViewActionCreators";
 
 function onBackClick() {
-  ViewActionCreators.reverseFrames();
+  ViewActionCreators.expandBackward();
 }
 
 function onForwardClick() {
-  ViewActionCreators.advanceFrames();
+  ViewActionCreators.expandForward();
 }
 
 function onStabilizeClick() {
@@ -20,8 +20,8 @@ function onFramesToLoadChange(e) {
   ViewActionCreators.setFramesToLoad(e.target.value);
 }
 
-function onFrameOverlapChange(e) {
-  ViewActionCreators.setFrameOverlap(e.target.value);
+function onFrameExpansionChange(e) {
+  ViewActionCreators.setFrameExpansion(e.target.value);
 }
 
 function onDoneOpacityChange(e) {
@@ -164,7 +164,7 @@ const DataControls = props => {
                 !frameControlsEnabled || 
                 startFrame === "" || 
                 props.settings.framesToLoad === "" || 
-                props.settings.frameOverlap === ""
+                props.settings.frameExpansion === ""
               }
               onClick={onLoadClick}>
                 Load
@@ -226,15 +226,15 @@ const DataControls = props => {
                       onChange={onFramesToLoadChange} />
                   </div>
                   <div className="form-group mt-3">
-                    <label htmlFor="frameOverlapInput">Frame overlap</label>
+                    <label htmlFor="frameExpansionInput">Frame expansion</label>
                     <input 
                       className="form-control form-control-sm" 
-                      id="frameOverlapInput"
+                      id="frameExpansionInput"
                       type="number" 
                       min={0} 
-                      max={Math.floor(props.settings.framesToLoad / 2)}
-                      value={props.settings.frameOverlap}
-                      onChange={onFrameOverlapChange} />
+                      max={props.experiment && props.experiment.totalFrames ? props.experiment.totalFrames : 5}
+                      value={props.settings.frameExpansion}
+                      onChange={onFrameExpansionChange} />
                   </div>
                   <div className="form-group mt-3">
                     <label htmlFor="doneOpacityInput">Done opacity</label>
