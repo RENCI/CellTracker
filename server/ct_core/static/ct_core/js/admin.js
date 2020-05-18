@@ -397,7 +397,34 @@ $('#associate-label-btn').click(function(e) {
         success: function (json_response) {
             $('#submit-for-label-association-dialog').modal('hide');
             $('#notification_msg').show();
-            $('#notification_msg').css({"background-color": "darkgreen"});
+            $('#notification_msg').css({"background-color": "yellow"});
+            $('#notification_msg_str').text(json_response.message);
+            return true;
+        },
+        error: function (xhr, errmsg, err) {
+            console.log(xhr.status + ": " + xhr.responseText + ". Error message: " + errmsg);
+            $('#notification_msg').show();
+            $('#notification_msg').css({"background-color": "darkred"});
+            $('#notification_msg_str').text(xhr.responseText);
+            return false;
+        }
+    });
+});
+
+$('#associate-colormap-btn').click(function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    let expId = $('#exp_select_list').val();
+    $.ajax({
+        type: "POST",
+        url: '/update_colormap_association/' + expId + '/',
+        data: {
+            'colormap': $('#exp_lut').val()
+        },
+        success: function (json_response) {
+            $('#submit-for-colormap-association-dialog').modal('hide');
+            $('#notification_msg').show();
+            $('#notification_msg').css({"background-color": "yellow"});
             $('#notification_msg_str').text(json_response.message);
             return true;
         },
@@ -418,6 +445,7 @@ $('#exp_select_list').change(function(e) {
     if(this.value != 'null' && this.val != lastSelExpId) {
         $('#delete_exp').prop('disabled', false);
         $('#associate_label_id').show();
+        $('#associate_colormap_id').show();
         request_exp_info_ajax(this.value);
         lastSelExpId = this.value;
         delete_dict(userEditFrames);
@@ -426,6 +454,7 @@ $('#exp_select_list').change(function(e) {
     else {
         $('#delete_exp').prop('disabled', true);
         $('#associate_label_id').hide();
+        $('#associate_colormap_id').hide();
         $('#seg_info').html('');
         $('#user_edit').hide();
         $('#user_edit_frm_info').html('');

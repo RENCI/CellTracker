@@ -33,13 +33,14 @@ from ct_core.utils import get_experiment_list_util, read_video, \
     save_user_seg_data_to_db, get_start_frame, get_exp_image, get_edited_frames, get_all_edit_users, \
     create_user_segmentation_data_for_download, get_frame_info, create_seg_data_from_csv, \
     sync_seg_data_to_db, delete_one_experiment, get_users, update_experiment_priority, pack_zeros, \
-    is_exp_locked, lock_experiment, release_locks_by_user, add_labels_to_exp, get_exp_labels, get_all_user_scores
+    is_exp_locked, lock_experiment, release_locks_by_user, add_labels_to_exp, get_exp_labels, get_all_user_scores, \
+    add_colormap_to_exp
 from ct_core.task_utils import get_exp_frame_no, is_power_user, get_experiment_frame_seg_data
 from ct_core.forms import SignUpForm, UserProfileForm, UserPasswordResetForm
-from ct_core.models import UserProfile
+from ct_core.models import UserProfile, ExperimentInfo
 from django_irods.storage import IrodsStorage
 from django_irods.icommands import SessionException
-from ct_core.tasks import add_tracking, sync_user_edit_frame_from_db_to_irods
+from ct_core.tasks import add_tracking, sync_user_edit_frame_from_db_to_irods, apply_colormap_to_exp_task
 
 
 logger = logging.getLogger(__name__)
@@ -56,7 +57,7 @@ def index(request):
         if request.user.is_superuser:
             # go to data management page
             template = loader.get_template('ct_core/admin.html')
-            context = {}
+            context = {'COLOR_MAPS': settings.SUPPORTED_COLOR_MAPS}
             return HttpResponse(template.render(context, request))
         else:
             template = loader.get_template('ct_core/index.html')
@@ -356,7 +357,7 @@ def display_image(request, exp_id, type, frame_no):
         # experiment is locked by another user
         return JsonResponse({'locked_by': lock_user.username}, status=status.HTTP_403_FORBIDDEN)
 
-    img_file, err_msg = get_exp_image(exp_id, frame_no, type)
+    img_file, err_msg = get_exp_image(exp_id, frame_no, type=type, gray=False)
 
     if err_msg:
         return HttpResponseServerError(err_msg)
@@ -445,7 +446,7 @@ def save_tracking_data(request, exp_id):
 def create_new_experiment(request):
     if request.user.is_authenticated and request.user.is_superuser:
         template = loader.get_template('ct_core/create_new_exp.html')
-        context = {}
+        context = {'COLOR_MAPS': settings.SUPPORTED_COLOR_MAPS}
         return HttpResponse(template.render(context, request))
     else:
         return HttpResponseForbidden('You must log in as data manager to create a new '
@@ -540,6 +541,7 @@ def add_experiment_to_server(request):
         exp_name = request.POST.get('exp_name', '')
         exp_id = request.POST.get('exp_id', '')
         exp_labels = request.POST.get('exp_label', '')
+        exp_lut = request.POST.get('exp_lut', 'gray')
         if not exp_name:
             messages.error(request, 'Please input a meaningful experiment name.')
             return HttpResponseRedirect(request.META['HTTP_REFERER'])
@@ -630,7 +632,8 @@ def add_experiment_to_server(request):
             coll = session.collections.get(cpath)
             coll.metadata.add('experiment_name', exp_name)
             coll.metadata.add('priority', pack_zeros(str(len(exp_list))))
-
+            ExperimentInfo.objects.create(exp_id=exp_id, colormap=exp_lut)
+            apply_colormap_to_exp_task.apply_async((exp_id, exp_lut,), countdown=1)
             if exp_labels:
                 try:
                     add_labels_to_exp(coll, exp_labels)
@@ -714,6 +717,27 @@ def update_label_association(request, exp_id):
                             status=status.HTTP_200_OK)
     else:
         return JsonResponse({'message': 'You must log in as data manager to associate labels to experiments'},
+                            status=status.HTTP_401_UNAUTHORIZED)
+
+
+@login_required
+def update_colormap_association(request, exp_id):
+    if request.user.is_authenticated and request.user.is_superuser:
+        exp_cm = request.POST.get('colormap', '')
+        if not exp_cm:
+            return JsonResponse({"message": 'Bad request: input colormap is empty'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            add_colormap_to_exp(exp_id, exp_cm)
+            apply_colormap_to_exp_task.apply_async((exp_id, exp_cm,), countdown=1)
+        except Exception as ex:
+            return JsonResponse({"message": str(ex)},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return JsonResponse({'message': 'Colormap {} is associated with experiment {} successfully'.format(exp_cm,
+                                                                                                           exp_id)},
+                            status=status.HTTP_200_OK)
+    else:
+        return JsonResponse({'message': 'You must log in as data manager to associate colormaps to experiments'},
                             status=status.HTTP_401_UNAUTHORIZED)
 
 

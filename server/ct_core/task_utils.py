@@ -3,6 +3,9 @@ import json
 import shutil
 import errno
 
+import matplotlib.pyplot as plt
+from PIL import Image
+
 import numpy as np
 from scipy.spatial import distance
 
@@ -177,3 +180,29 @@ def get_experiment_frame_seg_data(exp_id, frame_no, username=None):
             seg_obj = None
 
     return seg_obj
+
+
+def apply_colormap_to_experiment(exp_id, colormap, type='jpg'):
+    image_path = os.path.join(settings.IRODS_ROOT, exp_id, 'image')
+    try:
+        if not os.path.exists(image_path):
+            os.makedirs(image_path)
+    except OSError:
+        # path already exists
+        pass
+    istorage = IrodsStorage()
+    irods_img_path = os.path.join(exp_id, 'data', 'image', type)
+    file_list = istorage.listdir(irods_img_path)[1]
+    for img_name in file_list:
+        if img_name.startswith('frame'):
+            dest_path = istorage.get_one_image_frame(exp_id, type, img_name, image_path)
+            ifile = os.path.join(dest_path, img_name)
+            if os.path.isfile(ifile):
+                # convert colormap to image
+                img_src = Image.open(ifile)
+                im = np.array(img_src)
+                color_img_name = 'color_{}'.format(img_name)
+                color_img_path = os.path.join(dest_path, color_img_name)
+                plt.imsave(color_img_path, im, cmap=colormap)
+                # save to iRODS
+                istorage.save_file(color_img_path, os.path.join(irods_img_path, color_img_name))

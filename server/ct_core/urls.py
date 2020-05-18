@@ -49,5 +49,7 @@ urlpatterns = [
     url(r'^sort_task_priority/$', views.sort_task_priority, name='sort_task_priority'),
     url(r'^update_task_priority/$', views.update_task_priority, name='update_task_priority'),
     url(r'^update_label_association/(?P<exp_id>.*)/$', views.update_label_association, name='update_label_association'),
+    url(r'^update_colormap_association/(?P<exp_id>.*)/$', views.update_colormap_association,
+        name='update_colormap_association'),
     url(r'^get_score/(?P<exp_id>.*)/(?P<frame_no>[0-9]+)$', views.get_score, name='get_score'),
 ]

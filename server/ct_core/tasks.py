@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from ct_core.models import UserSegmentation, Segmentation, get_path
 from ct_core.task_utils  import get_exp_frame_no, find_centroid, distance_between_point_sets, \
-    sync_seg_data_to_irods, validate_user, get_experiment_frame_seg_data
+    sync_seg_data_to_irods, validate_user, get_experiment_frame_seg_data, apply_colormap_to_experiment
 
 
 logger = logging.getLogger('django')
@@ -170,3 +170,8 @@ def sync_user_edit_frame_from_db_to_irods(exp_id, username, frm_idx):
             exp_id, frm_idx, username))
 
     return
+
+
+@shared_task
+def apply_colormap_to_exp_task(exp_id, colormap):
+    apply_colormap_to_experiment(exp_id, colormap)
