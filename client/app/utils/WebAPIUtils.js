@@ -145,40 +145,30 @@ export function getFrames(experiment) {
       console.log(textStatus + ": " + errorThrown);
     }
   }
-
-  // Get relative start index
-  let offset = 0;
+  
   for (let frame = experiment.start; frame <= experiment.stop; frame++) {
-    if (experiment.segmentationData.find(d => d.frame === frame)) break;
+    if (!experiment.images.find(d => d.frame === frame)) {
+      const imageURL = "/display-image/" + experiment.id + "/" + imageType + "/" + frame;
 
-    offset++;
-  }
-
-  console.log(offset);
-
-  for (let frame = experiment.start; frame <= experiment.stop; frame++) {
-    if (experiment.segmentationData.find(d => d.frame === frame)) continue;
-
-    const i = 
-
-    const imageURL = "/display-image/" + experiment.id + "/" + imageType + "/" + frame;
-
-    // Load image
-    $.ajax({
-      type: "POST",
-      url: imageURL,
-      success: imageCallback(frame, imageURL),
-      error: errorCallback
-    });  
-
-    // Load segmentation frame
-    if (experiment.has_segmentation) {
+      // Load image
       $.ajax({
         type: "POST",
-        url: "/get_frame_seg_data/" + experiment.id + "/" + frame,
-        success: segmentationCallback(i),
+        url: imageURL,
+        success: imageCallback(frame, imageURL),
         error: errorCallback
-      });
+      });  
+    }
+
+    if (!experiment.segmentationData.find(d => d.frame === frame)) {
+      // Load segmentation frame
+      if (experiment.has_segmentation) {
+        $.ajax({
+          type: "POST",
+          url: "/get_frame_seg_data/" + experiment.id + "/" + frame,
+          success: segmentationCallback(frame),
+          error: errorCallback
+        });
+      }
     }
   }
 }

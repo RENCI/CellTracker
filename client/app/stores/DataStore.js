@@ -97,6 +97,7 @@ function setExperiment(newExperiment) {
       return e.id === experiment.id;
     })[0].name;
     experiment.images = [];
+    experiment.segmentationData = [];
 
     // Number of frames
     const n = Math.min(experiment.frames, settings.framesToLoad);
@@ -109,13 +110,20 @@ function setExperiment(newExperiment) {
     experiment.totalFrames = experiment.frames;
     experiment.frames = n;
     experiment.start = start;
-    experiment.stop = stop;
+    experiment.stop = stop;      
   }
 
   if (experiment) {
+    // Keep existing images
+    experiment.images = experiment.images.filter(({ frame }) => {
+      return frame >= experiment.start && frame <= experiment.stop;
+    });
+
     if (experiment.has_segmentation) {
       // Empty array to be filled in
-      experiment.segmentationData = [];
+      experiment.segmentationData = experiment.segmentationData.filter(({ frame }) => {
+        return frame >= experiment.start && frame <= experiment.stop;
+      });
     }
     else {
       // Create data with no regions
@@ -150,11 +158,21 @@ function experimentLocked(info) {
   loading = null;
 }
 
-function receiveFrame(i, image) {
+function receiveFrame(frame, image) {
   if (!experiment.images) return;
 
-  experiment.images[i] = image;
+  experiment.images.push({
+    frame: frame,
+    image: image
+  });
+
   loading.framesLoaded++;
+  
+  if (loading.framesLoaded === loading.numFrames) {
+    experiment.images.sort((a, b) => {
+      return a.frame - b.frame;
+    });
+  }
 
   updateLoading();
 }
@@ -201,16 +219,20 @@ function receiveSegmentationFrame(frame, regions) {
   const tree = new rbush();
   updateRBush(tree, regions);
 
-  experiment.segmentationData[frame] = {
-    frame: experiment.start + frame,
+  experiment.segmentationData.push({
+    frame: frame,
     edited: false,
     regions: regions,
     tree: tree
-  };
+  });
 
   loading.segFramesLoaded++;
 
   if (loading.segFramesLoaded === loading.numSegFrames) {
+    experiment.segmentationData.sort((a, b) => {
+      return a.frame - b.frame;
+    });
+
     generateTrajectoryIds();
 
     pushHistory();
@@ -432,17 +454,12 @@ function updateTracking(trackingData) {
 }
 
 function resetLoading() {
-  let n = 0;
-  for (let i = experiment.start; i <= experiment.stop; i++) {
-    if (!experiment.segmentationData.find(d => d.frame === i)) n++;
-  }
-
-  console.log(n);
+  let n = experiment.stop - experiment.start + 1;
 
   loading = {
-    framesLoaded: 0,
+    framesLoaded: experiment.images ? experiment.images.length : 0,
     numFrames: n,
-    segFramesLoaded: 0,
+    segFramesLoaded: experiment.segmentationData ? experiment.segmentationData.length : 0,
     numSegFrames: experiment.has_segmentation ? n : 0
   };
 }
@@ -495,8 +512,6 @@ function expandBackward() {
 }
 
 function updateFrames(start, stop) {
-  console.log(start, stop);
-
   experiment.start = start;
   experiment.stop = stop;
   experiment.frames = stop - start + 1;

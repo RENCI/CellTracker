@@ -87,12 +87,12 @@ export default function(sketch) {
     if (!experiment || experiment.id !== props.experiment.id) {
       experiment = props.experiment;
 
-      images = experiment.images.map(function(d) {
-        const w = d.width,
-            h = d.height,
+      images = experiment.images.map(d => {    
+        const w = d.image.width,
+            h = d.image.height,
             im = sketch.createImage(w, h);
 
-        im.copy(d, 0, 0, w, h, 0, 0, w, h);
+        im.copy(d.image, 0, 0, w, h, 0, 0, w, h);
 
         return im;
       });
