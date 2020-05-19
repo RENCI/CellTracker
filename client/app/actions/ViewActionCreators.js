@@ -17,8 +17,8 @@ export function selectExperiment(experiment) {
     experiment: experiment
   });
 
-  WebAPIUtils.getExperimentInfo(experiment);
-  WebAPIUtils.getExperimentList();
+  //WebAPIUtils.getExperimentInfo(experiment);
+  //WebAPIUtils.getExperimentList();
 };
 
 export function loadFrames(startFrame) {
@@ -27,7 +27,9 @@ export function loadFrames(startFrame) {
     startFrame: startFrame
   });
 
-  WebAPIUtils.getFrames(DataStore.getExperiment());
+  console.log(DataStore.getExperiment());
+
+  //WebAPIUtils.getFrames(DataStore.getExperiment());
 };
 
 export function expandForward() {

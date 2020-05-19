@@ -49,6 +49,10 @@ const DataControls = props => {
     setStartFrame(e.target.value);
   }
 
+  const cancelEvent = e => {   
+    e.stopPropagation(); 
+  };
+
   const onLoadClick = () => {
     ViewActionCreators.loadFrames(startFrame);
   }
@@ -150,7 +154,8 @@ const DataControls = props => {
             max={props.experiment && props.experiment.totalFrames ? props.experiment.totalFrames : 999}
             value={startFrame}
             disabled={!frameControlsEnabled}
-            onChange={onStartFrameChange} />
+            onChange={onStartFrameChange}
+            onKeyDown={cancelEvent} />
           <div className="input-group-append">
             <span className="input-group-text">
               {props.experiment && props.experiment.totalFrames ? "/ " + props.experiment.totalFrames : ""}

@@ -69,19 +69,19 @@ function setUserInfo(info) {
 function setExperimentList(newList) {
   experimentList.updating = false;
   experimentList.experiments = newList;
-
-  // XXX: Decorate with user-specific info here, until such info is supplied by the server
-  experimentList.experiments.forEach(experiment => {
-    // XXX: Use a fraction since we don't know the number of frames yet
-    experiment.userProgress = Math.random();
-  });
 }
 
 function selectExperiment(newExperiment) {
   experiment = newExperiment;
-  experimentList.updating = true;
 
-  reset();
+  experiment.totalFrames = experiment.frames;
+  experiment.frames = 0;
+
+  console.log(experiment);
+
+  //experimentList.updating = true;
+
+  //reset();
 }
 
 function reset() {
