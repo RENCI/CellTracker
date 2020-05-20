@@ -101,12 +101,14 @@ def _get_experiment_frame_no(session=None, col = None, exp_path=None):
         ipath = exp_path + '/data/image/jpg'
         try:
             icoll = session.collections.get(ipath)
+            image_names = [obj.name for obj in icoll.data_objects]
+            fno = len(icoll.data_objects)
+            if 'frame1.jpg' in image_names and 'color_frame1.jpg' in image_names:
+                fno = fno // 2
+            col.metadata.add(key, str(fno))
+            return fno
         except CollectionDoesNotExist:
             return fno
-        fno = len(icoll.data_objects)
-        col.metadata.add(key, str(fno))
-        return fno
-
 
 def get_experiment_list_util(req_user=None):
     """

@@ -542,6 +542,7 @@ def add_experiment_to_server(request):
         exp_id = request.POST.get('exp_id', '')
         exp_labels = request.POST.get('exp_label', '')
         exp_lut = request.POST.get('exp_lut', 'gray')
+        frame_no = -1
         if not exp_name:
             messages.error(request, 'Please input a meaningful experiment name.')
             return HttpResponseRedirect(request.META['HTTP_REFERER'])
@@ -553,6 +554,7 @@ def add_experiment_to_server(request):
             # validate image frame file name formats
             fname_list = [fn.name for fn in exp_img_files]
             list_len = len(exp_img_files)
+            frame_no = list_len
             for i in range(list_len):
                 fname = 'frame{}.jpg'.format(i + 1)
                 if fname not in fname_list:
@@ -632,6 +634,8 @@ def add_experiment_to_server(request):
             coll = session.collections.get(cpath)
             coll.metadata.add('experiment_name', exp_name)
             coll.metadata.add('priority', pack_zeros(str(len(exp_list))))
+            if frame_no > 0:
+                coll.metadata.add('frame_no', str(frame_no))
             ExperimentInfo.objects.create(exp_id=exp_id, colormap=exp_lut)
             apply_colormap_to_exp_task.apply_async((exp_id, exp_lut,), countdown=1)
             if exp_labels:
