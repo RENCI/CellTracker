@@ -29,7 +29,9 @@ export function loadFrames(startFrame) {
 
   console.log(DataStore.getExperiment());
 
-  //WebAPIUtils.getFrames(DataStore.getExperiment());
+  WebAPIUtils.getExperimentInfo(DataStore.getExperiment());
+  WebAPIUtils.getExperimentList();
+  WebAPIUtils.getFrames(DataStore.getExperiment());
 };
 
 export function expandForward() {

@@ -84,7 +84,7 @@ export function getExperimentInfo(experiment) {
       ServerActionCreators.receiveExperiment(data);
 
       // Start loading frames
-      getFrames(data);
+      //getFrames(data);
     },
     error: (xhr, textStatus, errorThrown) => {
       // Check if locked

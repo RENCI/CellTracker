@@ -74,12 +74,12 @@ function setExperimentList(newList) {
 function selectExperiment(newExperiment) {
   experiment = newExperiment;
 
-  experiment.totalFrames = experiment.frames;
-  experiment.frames = 0;
+  if (!experiment.totalFrames) {
+    experiment.totalFrames = experiment.frames;
+    experiment.frames = 0;
+  }
 
-  console.log(experiment);
-
-  //experimentList.updating = true;
+  experiment.start = experiment.start_frame;
 
   //reset();
 }
@@ -89,64 +89,63 @@ function reset() {
   resetLoading();
 }
 
-function setExperiment(newExperiment) {
-  if (newExperiment && newExperiment !== experiment) {
-    experiment = newExperiment;
-
+function updateExperiment() {
+  if (!experiment.images) {
     experiment.name = experimentList.experiments.filter(e => {
       return e.id === experiment.id;
     })[0].name;
     experiment.images = [];
     experiment.segmentationData = [];
+    experiment.labels = [];
 
     // Number of frames
-    const n = Math.min(experiment.frames, settings.framesToLoad);
+    //const n = Math.min(experiment.totalFrames, settings.framesToLoad);
 
     // Center around start_frame
-    let start = Math.max(experiment.start_frame - Math.ceil(n / 2) + 1, 1);
-    const stop = Math.min(start + n - 1, experiment.frames);
-    start = stop - n + 1;
-
-    experiment.totalFrames = experiment.frames;
-    experiment.frames = n;
-    experiment.start = start;
-    experiment.stop = stop;      
+    //const stop = Math.min(experiment.start + n - 1, experiment.totalFrames);
+    //experiment.frames = n;
+    //experiment.stop = stop;      
   }
 
-  if (experiment) {
-    // Keep existing images
-    experiment.images = experiment.images.filter(({ frame }) => {
+  // Keep existing images
+  experiment.images = experiment.images.filter(({ frame }) => {
+    return frame >= experiment.start && frame <= experiment.stop;
+  });
+
+  if (experiment.has_segmentation) {
+    // Empty array to be filled in
+    experiment.segmentationData = experiment.segmentationData.filter(({ frame }) => {
       return frame >= experiment.start && frame <= experiment.stop;
     });
+  }
+  else {
+    // Create data with no regions
+    experiment.segmentationData = [];
 
-    if (experiment.has_segmentation) {
-      // Empty array to be filled in
-      experiment.segmentationData = experiment.segmentationData.filter(({ frame }) => {
-        return frame >= experiment.start && frame <= experiment.stop;
+    for (let i = experiment.start; i <= experiment.stop; i++) {
+      experiment.segmentationData.push({
+        frame: i,
+        edited: false,
+        regions: []
       });
     }
-    else {
-      // Create data with no regions
-      experiment.segmentationData = [];
+  }    
 
-      for (let i = experiment.start; i <= experiment.stop; i++) {
-        experiment.segmentationData.push({
-          frame: i,
-          edited: false,
-          regions: []
-        });
-      }
-    }    
+  if (experiment.labels) {
+    experiment.labels.sort();
 
-    if (experiment.labels) {
-      experiment.labels.sort();
-
-      settings.currentLabel = experiment.labels.length > 0 ? 
-        experiment.labels[0] : settings.defaultLabels[0];
-    }
+    settings.currentLabel = experiment.labels.length > 0 ? 
+      experiment.labels[0] : settings.defaultLabels[0];
   }
 
   resetLoading();  
+}
+
+function receiveExperimentInfo(info) {
+  console.log("INFO");
+
+  console.log(experiment);
+  console.log(info);
 }
 
 function experimentLocked(info) {
@@ -159,6 +158,8 @@ function experimentLocked(info) {
 }
 
 function receiveFrame(frame, image) {
+  console.log(frame, image);
+
   if (!experiment.images) return;
 
   experiment.images.push({
@@ -454,6 +455,8 @@ function updateTracking(trackingData) {
 }
 
 function resetLoading() {
+  console.log(experiment);
+
   let n = experiment.stop - experiment.start + 1;
 
   loading = {
@@ -462,6 +465,8 @@ function resetLoading() {
     segFramesLoaded: experiment.segmentationData ? experiment.segmentationData.length : 0,
     numSegFrames: experiment.has_segmentation ? n : 0
   };
+
+  console.log(loading);
 }
 
 function updateLoading() {
@@ -485,7 +490,7 @@ function loadFrames(startFrame) {
 
   updateFrames(start, stop);
 
-  setExperiment(experiment);
+  updateExperiment();
 
   reset();
   setPlay(false);
@@ -1180,7 +1185,7 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       break;
 
     case Constants.RECEIVE_EXPERIMENT:
-      setExperiment(action.experiment);
+      receiveExperimentInfo(action.experiment);
       skipBackward();
       DataStore.emitChange();
       break;

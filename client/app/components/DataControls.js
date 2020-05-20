@@ -33,11 +33,14 @@ const DataControls = props => {
   const [startFrame, setStartFrame] = useState("");
 
   useEffect(() => {
-    if (props.experiment && props.experiment.start && props.loading !== loading) {
-      if (props.loading) setStartFrame(props.experiment.start);
-      setLoading(props.loading);
+    if (props.experiment) {
+      setStartFrame(props.experiment.start);
     }
-  }, [props, loading]);
+  }, [props]);
+
+  useEffect(() => {
+    setLoading(props.loading);
+  }, [loading]);
 
   const onExperimentSelectChange = e => {
     const index = props.experimentList.experiments.map(e => e.id).indexOf(e.target.value);
@@ -111,9 +114,13 @@ const DataControls = props => {
     );
   }); 
 
+  console.log(props.experiment);
+  console.log(startFrame);
+
   const numOptions = currentOptions.length + availableOptions.length + lockedOptions.length;
   const experimentSelectEnabled = !props.experimentList.updating && numOptions > 0 && !props.loading && props.userInfo;
   const frameControlsEnabled = props.experiment && !props.loading;
+  const frameExpandEnabled = props.experiment && props.experiment.images && !props.loading;
   const saveEnabled = props.history && props.history.index > 0;
 
   const buttonClasses = "btn btn-primary";
@@ -182,12 +189,12 @@ const DataControls = props => {
           <div className="btn-group mr-2">            
             <IconButton
               iconName="oi-arrow-thick-left"
-              disabled={!frameControlsEnabled}
+              disabled={!frameExpandEnabled}
               classes={buttonClasses}
               callback={onBackClick} />
             <IconButton
               iconName="oi-arrow-thick-right"
-              disabled={!frameControlsEnabled}
+              disabled={!frameExpandEnabled}
               classes={buttonClasses}
               callback={onForwardClick} />
           </div>
