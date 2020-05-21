@@ -232,7 +232,8 @@ const DataControls = props => {
                       min={5} 
                       max={props.experiment && props.experiment.totalFrames ? props.experiment.totalFrames : 5}
                       value={props.settings.framesToLoad}
-                      onChange={onFramesToLoadChange} />
+                      onChange={onFramesToLoadChange}
+                      onKeyUp={cancelEvent} />
                   </div>
                   <div className="form-group mt-3">
                     <label htmlFor="frameExpansionInput">Frame expansion</label>
@@ -243,7 +244,8 @@ const DataControls = props => {
                       min={0} 
                       max={props.experiment && props.experiment.totalFrames ? props.experiment.totalFrames : 5}
                       value={props.settings.frameExpansion}
-                      onChange={onFrameExpansionChange} />
+                      onChange={onFrameExpansionChange}
+                      onKeyUp={cancelEvent} />
                   </div>
                   <div className="form-group mt-3">
                     <label htmlFor="doneOpacityInput">Done opacity</label>
@@ -255,7 +257,8 @@ const DataControls = props => {
                       max={1}
                       step={0.1}
                       value={props.settings.doneOpacity}
-                      onChange={onDoneOpacityChange} />
+                      onChange={onDoneOpacityChange}
+                      onKeyUp={cancelEvent} />
                   </div>
                 </div>
               </div>

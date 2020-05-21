@@ -50,6 +50,8 @@ const EditView = props => {
     setSketchWidth(sketchRef.current.sketch.width);
   });
 
+  const doneOpacity = props.settings.doneOpacity === "" ? 0 : +props.settings.doneOpacity;
+
   return (
     <>
       <div className="row text-center">
@@ -91,7 +93,7 @@ const EditView = props => {
             frame={props.playback.frame}
             editMode={props.settings.editMode}
             currentLabel={props.settings.currentLabel}
-            doneOpacity={props.settings.doneOpacity}
+            doneOpacity={doneOpacity}
             onMouseWheel={handleMouseWheel}
             onHighlightRegion={handleHighlightRegion}
             onSelectRegion={handleSelectRegion}
