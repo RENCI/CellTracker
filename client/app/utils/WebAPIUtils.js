@@ -292,6 +292,24 @@ export function saveSegmentationData(id, data, lastEdit) {
   });
 }
 
+export function saveUserSettings(settings) {
+  setupAjax();
+
+  console.log(settings);
+
+  $.ajax({
+    type: "POST",
+    url: "/set_user_setting/",
+    data: { settings: settings },
+    success: () => {
+      // XXX: Do anything?
+    },
+    error: (xhr, textStatus, errorThrown) => {
+      console.log(textStatus + ": " + errorThrown);
+    }
+  });
+}
+
 /*
 export function getRegionScore(id, frame, region) {
   setupAjax();

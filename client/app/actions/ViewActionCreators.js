@@ -189,12 +189,16 @@ export function toggleShowFrames() {
   AppDispatcher.dispatch({
     actionType: Constants.TOGGLE_SHOW_FRAMES
   });
+
+  WebAPIUtils.saveUserSettings(DataStore.getUserSettings());
 };
 
 export function toggleStabilize() {
   AppDispatcher.dispatch({
     actionType: Constants.TOGGLE_STABILIZE
   });
+  
+  WebAPIUtils.saveUserSettings(DataStore.getUserSettings());
 };
 
 export function setFramesToLoad(framesToLoad) {
@@ -202,6 +206,8 @@ export function setFramesToLoad(framesToLoad) {
     actionType: Constants.SET_FRAMES_TO_LOAD,
     framesToLoad: framesToLoad
   });
+
+  WebAPIUtils.saveUserSettings(DataStore.getUserSettings());
 }
 
 export function setFrameExpansion(frameExpansion) {
@@ -209,6 +215,8 @@ export function setFrameExpansion(frameExpansion) {
     actionType: Constants.SET_FRAME_EXPANSION,
     frameExpansion: frameExpansion
   });
+
+  WebAPIUtils.saveUserSettings(DataStore.getUserSettings());
 }
 
 export function setDoneOpacity(doneOpacity) {
@@ -216,6 +224,8 @@ export function setDoneOpacity(doneOpacity) {
     actionType: Constants.SET_DONE_OPACITY,
     doneOpacity: doneOpacity
   });
+
+  WebAPIUtils.saveUserSettings(DataStore.getUserSettings());
 }
 
 export function zoom(view, direction) {

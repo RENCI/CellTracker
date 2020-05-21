@@ -65,6 +65,10 @@ let linking = {
 
 function setUserInfo(info) {
   userInfo = info;
+
+  for (const property in info.settings) {
+    settings[property] = info[property];
+  }
 }
 
 function setExperimentList(newList) {
@@ -1148,6 +1152,16 @@ const DataStore = assign({}, EventEmitter.prototype, {
   },
   getSettings: function () {
     return settings;
+  },
+  getUserSettings: function () {
+    // Return subset of settings for saving
+    return {
+      showFrames: settings.showFrames,
+      stabilize: settings.stabilize,
+      framesToLoad: settings.framesToLoad,
+      frameExpansion: settings.frameExpansion,
+      doneOpacity: settings.doneOpacity
+    };
   },
   getLoading: function () {
     return loading;
