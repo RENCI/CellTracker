@@ -119,9 +119,9 @@ const AppContainer = () => {
 
   return (
     <div ref={ref}
-    onKeyDown={onKeyDown}
-    onKeyUp={onKeyUp}
-    tabIndex={-1}>
+      onKeyDown={onKeyDown}
+      onKeyUp={onKeyUp}
+      tabIndex={-1}>
       <ul className="nav nav-pills justify-content-center mb-3">
         <li className="nav-item">
           <a 

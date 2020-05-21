@@ -159,7 +159,7 @@ const DataControls = props => {
             value={startFrame}
             disabled={!frameControlsEnabled}
             onChange={onStartFrameChange}
-            onKeyDown={cancelEvent} />
+            onKeyUp={cancelEvent} />
           <div className="input-group-append">
             <span className="input-group-text">
               {props.experiment && props.experiment.totalFrames ? "/ " + props.experiment.totalFrames : ""}

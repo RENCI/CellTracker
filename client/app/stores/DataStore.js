@@ -80,6 +80,8 @@ function selectExperiment(newExperiment) {
   }
 
   experiment.start = experiment.start_frame;
+
+  resetHistory();
 }
 
 function reset() {
