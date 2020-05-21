@@ -46,6 +46,7 @@ let settings = {
   filmstripZoomDefault: null,
   zoomPoint: [0.5, 0.5],
   editMode: "regionSelect",
+  showFrames: true,
   stabilize: true,
   framesToLoad: 10,
   frameExpansion: 2,
@@ -993,6 +994,10 @@ function saveSegmentationData() {
   settings.scoring = true;
 }
 
+function toggleShowFrames() {
+  settings.showFrames = !settings.showFrames;
+}
+
 function toggleStabilize() {
   settings.stabilize = !settings.stabilize;
 }
@@ -1300,6 +1305,11 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
 
     case Constants.REDO_HISTORY:
       redoHistory();
+      DataStore.emitChange();
+      break;
+
+    case Constants.TOGGLE_SHOW_FRAMES:
+      toggleShowFrames();
       DataStore.emitChange();
       break;
 

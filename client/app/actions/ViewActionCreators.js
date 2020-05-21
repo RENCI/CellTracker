@@ -185,6 +185,12 @@ export function redoHistory() {
   });
 };
 
+export function toggleShowFrames() {
+  AppDispatcher.dispatch({
+    actionType: Constants.TOGGLE_SHOW_FRAMES
+  });
+};
+
 export function toggleStabilize() {
   AppDispatcher.dispatch({
     actionType: Constants.TOGGLE_STABILIZE

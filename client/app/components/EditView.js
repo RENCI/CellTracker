@@ -51,23 +51,29 @@ const EditView = props => {
   });
 
   const doneOpacity = props.settings.doneOpacity === "" ? 0 : +props.settings.doneOpacity;
+  const showFrames = props.settings.showFrames;
+
+  const trajectoryCol = showFrames ? "col-md-2" : "col-md-4";
+  const sketchOffset = showFrames ? "offset-md-2" : "offset-md-4";
 
   return (
     <>
       <div className="row text-center">
-        <div className="col-md-2">        
+        <div className={trajectoryCol}>        
           <h4>Trajectories</h4>
         </div>
         <div className="col-md-8">
           <h4>Edit</h4>
         </div>
-        <div className="col-md-2">        
-          <h4>Frames</h4>
-        </div>
+        {props.settings.showFrames ?
+          <div className="col-md-2">        
+            <h4>Frames</h4>
+          </div>
+        : null}
       </div>
 
       <div className="row">
-        <div className="offset-md-2 col-md-8">
+        <div className={sketchOffset + " col-md-8"}>
           <EditControls 
             editMode={props.settings.editMode}
             history={props.history}
@@ -75,13 +81,15 @@ const EditView = props => {
             defaultLabels={props.settings.defaultLabels}
             currentLabel={props.settings.currentLabel} />        
         </div>
-        <div className="col-md-2">
-          <FilmstripControls />        
-        </div>
+        {props.settings.showFrames ?
+          <div className="col-md-2">
+            <FilmstripControls />        
+          </div>
+        : null}
       </div>
 
       <div className="row">
-        <div className="col-md-2">        
+        <div className={trajectoryCol}>        
           {props.settings.showTrajectories ? <TrajectoryGraphWrapper height={sketchWidth} {...props} /> : null}
         </div>
         <div className="col-md-8 text-center">
@@ -104,9 +112,11 @@ const EditView = props => {
             onRegionDone={handleRegionDone} />
           <MediaControls {...props} />
         </div>
-        <div className="col-md-2 text-center">
-          <Filmstrip height={sketchWidth} {...props} />
-        </div>
+        {props.settings.showFrames ?
+          <div className="col-md-2 text-center">
+            <Filmstrip height={sketchWidth} {...props} />
+          </div>
+        : null}
       </div>
 
       <div className="row text-center mt-3">

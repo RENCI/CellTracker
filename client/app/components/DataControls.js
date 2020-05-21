@@ -12,6 +12,10 @@ function onForwardClick() {
   ViewActionCreators.expandForward();
 }
 
+function onShowFramesClick() {
+  ViewActionCreators.toggleShowFrames();
+}
+
 function onStabilizeClick() {
   ViewActionCreators.toggleStabilize();
 }
@@ -212,6 +216,17 @@ const DataControls = props => {
                 dropDown={true} />
               <div className="dropdown-menu">
                 <div className="px-3 small">
+                  <div className="form-check">
+                    <input 
+                      type="checkbox" 
+                      className="form-check-input" 
+                      id="showFramesCheck" 
+                      defaultChecked={props.settings.showFrames}
+                      onClick={onShowFramesClick}/>
+                    <label className="form-check-label" htmlFor="showFramesCheck">
+                      Show frames
+                    </label>
+                  </div>
                   <div className="form-check">
                     <input 
                       type="checkbox" 
