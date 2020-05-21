@@ -110,6 +110,7 @@ def _get_experiment_frame_no(session=None, col = None, exp_path=None):
         except CollectionDoesNotExist:
             return fno
 
+
 def get_experiment_list_util(req_user=None):
     """
     Get all experiments from iRODS and return it as a list of dicts along with error message
@@ -137,6 +138,11 @@ def get_experiment_list_util(req_user=None):
                 exp_dict['frames'] = _get_experiment_frame_no(session, col, hpath + '/' + col.name)
                 if req_user:
                     exp_dict['start_frame'] = get_start_frame(req_user, col.name)
+                coll, _ = _get_seg_coll(session, col.name)
+                if coll:
+                    exp_dict['has_segmentation'] = 'true'
+                else:
+                    exp_dict['has_segmentation'] = 'false'
                 key = str('priority')
                 def_pri = pack_zeros(str(index))
                 col.metadata.add(key, def_pri)
@@ -149,6 +155,11 @@ def get_experiment_list_util(req_user=None):
                 exp_path = hpath + '/' + exp_id
                 col = session.collections.get(exp_path)
                 exp_dict['name'] = _get_experiment_name(col)
+                coll, _ = _get_seg_coll(session, exp_id)
+                if coll:
+                    exp_dict['has_segmentation'] = 'true'
+                else:
+                    exp_dict['has_segmentation'] = 'false'
                 exp_dict['frames'] = _get_experiment_frame_no(session, col, exp_path)
                 if req_user:
                     exp_dict['start_frame'] = get_start_frame(req_user, exp_id)
@@ -409,6 +420,25 @@ def get_exp_image(exp_id, frame_no, type='jpg', gray=True):
             return None, 'Requested image frame does not exist'
 
 
+def _get_seg_coll(session, exp_id):
+    """
+    internal method to return iRODS collection for segmentation data for experiment id
+    :param session: iRODS session
+    :param exp_id: experiment id
+    :return: irods collection, irods collection path, which could be None if
+    experiment does not have segmentation data
+    """
+    if not session or not exp_id:
+        return None, None
+    try:
+        coll_path = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' \
+                    + str(exp_id) + '/data/segmentation'
+        coll = session.collections.get(coll_path)
+        return coll, coll_path
+    except CollectionDoesNotExist:
+        return None, coll_path
+
+
 def get_seg_collection(exp_id):
     """
     return iRODS collection for segmentation data for experiment id
@@ -418,13 +448,8 @@ def get_seg_collection(exp_id):
     """
     with iRODSSession(host=settings.IRODS_HOST, port=settings.IRODS_PORT, user=settings.IRODS_USER,
                       password=settings.IRODS_PWD, zone=settings.IRODS_ZONE) as session:
-        coll_path = '/' + settings.IRODS_ZONE + '/home/' + settings.IRODS_USER + '/' \
-                    + str(exp_id) + '/data/segmentation'
-        try:
-            coll = session.collections.get(coll_path)
-            return session, coll, coll_path
-        except CollectionDoesNotExist:
-            return session, None, coll_path
+        coll, coll_path = _get_seg_coll(session, exp_id)
+        return session, coll, coll_path
 
     return None, None, None
 
