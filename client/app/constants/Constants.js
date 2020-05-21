@@ -26,6 +26,7 @@ export default keyMirror({
   SELECT_FRAME_RATE: null,
 
   SELECT_REGION: null,
+  HIGHLIGHT_REGION: null,
   SELECT_ZOOM_POINT: null,
   TRANSLATE: null,
   EDIT_REGION: null,

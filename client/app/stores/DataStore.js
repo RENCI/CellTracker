@@ -80,8 +80,6 @@ function selectExperiment(newExperiment) {
   }
 
   experiment.start = experiment.start_frame;
-
-  //reset();
 }
 
 function reset() {
@@ -96,15 +94,7 @@ function updateExperiment() {
     })[0].name;
     experiment.images = [];
     experiment.segmentationData = [];
-    experiment.labels = [];
-
-    // Number of frames
-    //const n = Math.min(experiment.totalFrames, settings.framesToLoad);
-
-    // Center around start_frame
-    //const stop = Math.min(experiment.start + n - 1, experiment.totalFrames);
-    //experiment.frames = n;
-    //experiment.stop = stop;      
+    experiment.labels = [];      
   }
 
   // Keep existing images
@@ -113,7 +103,6 @@ function updateExperiment() {
   });
 
   if (experiment.has_segmentation) {
-    // Empty array to be filled in
     experiment.segmentationData = experiment.segmentationData.filter(({ frame }) => {
       return frame >= experiment.start && frame <= experiment.stop;
     });
@@ -129,6 +118,16 @@ function updateExperiment() {
         regions: []
       });
     }
+  }  
+
+  resetLoading();  
+}
+
+function receiveExperimentInfo(info) {
+  for (const property in info) {
+    if (property === "frames") continue;
+
+    experiment[property] = info[property];
   }    
 
   if (experiment.labels) {
@@ -138,14 +137,7 @@ function updateExperiment() {
       experiment.labels[0] : settings.defaultLabels[0];
   }
 
-  resetLoading();  
-}
-
-function receiveExperimentInfo(info) {
-  console.log("INFO");
-
-  console.log(experiment);
-  console.log(info);
+  experiment.hasInfo = true;
 }
 
 function experimentLocked(info) {
@@ -158,8 +150,6 @@ function experimentLocked(info) {
 }
 
 function receiveFrame(frame, image) {
-  console.log(frame, image);
-
   if (!experiment.images) return;
 
   experiment.images.push({
@@ -455,8 +445,6 @@ function updateTracking(trackingData) {
 }
 
 function resetLoading() {
-  console.log(experiment);
-
   let n = experiment.stop - experiment.start + 1;
 
   loading = {
@@ -465,8 +453,6 @@ function resetLoading() {
     segFramesLoaded: experiment.segmentationData ? experiment.segmentationData.length : 0,
     numSegFrames: experiment.has_segmentation ? n : 0
   };
-
-  console.log(loading);
 }
 
 function updateLoading() {
@@ -1184,9 +1170,9 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       DataStore.emitChange();
       break;
 
-    case Constants.RECEIVE_EXPERIMENT:
+    case Constants.RECEIVE_EXPERIMENT_INFO:
       receiveExperimentInfo(action.experiment);
-      skipBackward();
+//      skipBackward();
       DataStore.emitChange();
       break;
 

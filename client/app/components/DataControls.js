@@ -114,9 +114,6 @@ const DataControls = props => {
     );
   }); 
 
-  console.log(props.experiment);
-  console.log(startFrame);
-
   const numOptions = currentOptions.length + availableOptions.length + lockedOptions.length;
   const experimentSelectEnabled = !props.experimentList.updating && numOptions > 0 && !props.loading && props.userInfo;
   const frameControlsEnabled = props.experiment && !props.loading;

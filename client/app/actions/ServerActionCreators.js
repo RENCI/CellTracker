@@ -15,7 +15,7 @@ export function receiveExperimentList(experimentList) {
   });
 };
 
-export function receiveExperiment(experiment) {
+export function receiveExperimentInfo(experiment) {
   AppDispatcher.dispatch({
     actionType: Constants.RECEIVE_EXPERIMENT,
     experiment: experiment

@@ -81,10 +81,10 @@ export function getExperimentInfo(experiment) {
       data.has_segmentation = data.has_segmentation === "true";
 
       // Create an action
-      ServerActionCreators.receiveExperiment(data);
+      ServerActionCreators.receiveExperimentInfo(data);
 
       // Start loading frames
-      //getFrames(data);
+      getFrames(experiment);
     },
     error: (xhr, textStatus, errorThrown) => {
       // Check if locked
