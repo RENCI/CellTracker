@@ -16,9 +16,6 @@ export function selectExperiment(experiment) {
     actionType: Constants.SELECT_EXPERIMENT,
     experiment: experiment
   });
-
-  WebAPIUtils.getExperimentInfo(experiment);
-  WebAPIUtils.getExperimentList();
 };
 
 export function loadFrames(startFrame) {
@@ -27,7 +24,15 @@ export function loadFrames(startFrame) {
     startFrame: startFrame
   });
 
-  WebAPIUtils.getFrames(DataStore.getExperiment());
+  const experiment = DataStore.getExperiment();
+
+  if (experiment.hasInfo) {
+    WebAPIUtils.getFrames(experiment);
+  }
+  else {
+    WebAPIUtils.getExperimentList();
+    WebAPIUtils.getExperimentInfo(experiment);
+  }
 };
 
 export function expandForward() {

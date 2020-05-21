@@ -69,19 +69,17 @@ function setUserInfo(info) {
 function setExperimentList(newList) {
   experimentList.updating = false;
   experimentList.experiments = newList;
-
-  // XXX: Decorate with user-specific info here, until such info is supplied by the server
-  experimentList.experiments.forEach(experiment => {
-    // XXX: Use a fraction since we don't know the number of frames yet
-    experiment.userProgress = Math.random();
-  });
 }
 
 function selectExperiment(newExperiment) {
   experiment = newExperiment;
-  experimentList.updating = true;
 
-  reset();
+  if (!experiment.totalFrames) {
+    experiment.totalFrames = experiment.frames;
+    experiment.frames = 0;
+  }
+
+  experiment.start = experiment.start_frame;
 }
 
 function reset() {
@@ -89,64 +87,57 @@ function reset() {
   resetLoading();
 }
 
-function setExperiment(newExperiment) {
-  if (newExperiment && newExperiment !== experiment) {
-    experiment = newExperiment;
-
+function updateExperiment() {
+  if (!experiment.images) {
     experiment.name = experimentList.experiments.filter(e => {
       return e.id === experiment.id;
     })[0].name;
     experiment.images = [];
     experiment.segmentationData = [];
-
-    // Number of frames
-    const n = Math.min(experiment.frames, settings.framesToLoad);
-
-    // Center around start_frame
-    let start = Math.max(experiment.start_frame - Math.ceil(n / 2) + 1, 1);
-    const stop = Math.min(start + n - 1, experiment.frames);
-    start = stop - n + 1;
-
-    experiment.totalFrames = experiment.frames;
-    experiment.frames = n;
-    experiment.start = start;
-    experiment.stop = stop;      
+    experiment.labels = [];      
   }
 
-  if (experiment) {
-    // Keep existing images
-    experiment.images = experiment.images.filter(({ frame }) => {
+  // Keep existing images
+  experiment.images = experiment.images.filter(({ frame }) => {
+    return frame >= experiment.start && frame <= experiment.stop;
+  });
+
+  if (experiment.has_segmentation) {
+    experiment.segmentationData = experiment.segmentationData.filter(({ frame }) => {
       return frame >= experiment.start && frame <= experiment.stop;
     });
+  }
+  else {
+    // Create data with no regions
+    experiment.segmentationData = [];
 
-    if (experiment.has_segmentation) {
-      // Empty array to be filled in
-      experiment.segmentationData = experiment.segmentationData.filter(({ frame }) => {
-        return frame >= experiment.start && frame <= experiment.stop;
+    for (let i = experiment.start; i <= experiment.stop; i++) {
+      experiment.segmentationData.push({
+        frame: i,
+        edited: false,
+        regions: []
       });
     }
-    else {
-      // Create data with no regions
-      experiment.segmentationData = [];
-
-      for (let i = experiment.start; i <= experiment.stop; i++) {
-        experiment.segmentationData.push({
-          frame: i,
-          edited: false,
-          regions: []
-        });
-      }
-    }    
-
-    if (experiment.labels) {
-      experiment.labels.sort();
-
-      settings.currentLabel = experiment.labels.length > 0 ? 
-        experiment.labels[0] : settings.defaultLabels[0];
-    }
-  }
+  }  
 
   resetLoading();  
+}
+
+function receiveExperimentInfo(info) {
+  for (const property in info) {
+    if (property === "frames") continue;
+
+    experiment[property] = info[property];
+  }    
+
+  if (experiment.labels) {
+    experiment.labels.sort();
+
+    settings.currentLabel = experiment.labels.length > 0 ? 
+      experiment.labels[0] : settings.defaultLabels[0];
+  }
+
+  experiment.hasInfo = true;
 }
 
 function experimentLocked(info) {
@@ -485,7 +476,7 @@ function loadFrames(startFrame) {
 
   updateFrames(start, stop);
 
-  setExperiment(experiment);
+  updateExperiment();
 
   reset();
   setPlay(false);
@@ -1179,9 +1170,9 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       DataStore.emitChange();
       break;
 
-    case Constants.RECEIVE_EXPERIMENT:
-      setExperiment(action.experiment);
-      skipBackward();
+    case Constants.RECEIVE_EXPERIMENT_INFO:
+      receiveExperimentInfo(action.experiment);
+//      skipBackward();
       DataStore.emitChange();
       break;
 
