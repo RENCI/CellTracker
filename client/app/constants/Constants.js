@@ -26,6 +26,7 @@ export default keyMirror({
   SELECT_FRAME_RATE: null,
 
   SELECT_REGION: null,
+  HIGHLIGHT_REGION: null,
   SELECT_ZOOM_POINT: null,
   TRANSLATE: null,
   EDIT_REGION: null,
@@ -36,6 +37,7 @@ export default keyMirror({
   UNDO_HISTORY: null,
   REDO_HISTORY: null,
 
+  TOGGLE_SHOW_FRAMES: null,
   TOGGLE_STABILIZE: null,
   SET_FRAMES_TO_LOAD: null,
   SET_FRAME_EXPANSION: null,

@@ -12,6 +12,10 @@ function onForwardClick() {
   ViewActionCreators.expandForward();
 }
 
+function onShowFramesClick() {
+  ViewActionCreators.toggleShowFrames();
+}
+
 function onStabilizeClick() {
   ViewActionCreators.toggleStabilize();
 }
@@ -33,11 +37,14 @@ const DataControls = props => {
   const [startFrame, setStartFrame] = useState("");
 
   useEffect(() => {
-    if (props.experiment && props.experiment.start && props.loading !== loading) {
-      if (props.loading) setStartFrame(props.experiment.start);
-      setLoading(props.loading);
+    if (props.experiment) {
+      setStartFrame(props.experiment.start);
     }
-  }, [props, loading]);
+  }, [props]);
+
+  useEffect(() => {
+    setLoading(props.loading);
+  }, [loading]);
 
   const onExperimentSelectChange = e => {
     const index = props.experimentList.experiments.map(e => e.id).indexOf(e.target.value);
@@ -48,6 +55,10 @@ const DataControls = props => {
   const onStartFrameChange = e => {
     setStartFrame(e.target.value);
   }
+
+  const cancelEvent = e => {   
+    e.stopPropagation(); 
+  };
 
   const onLoadClick = () => {
     ViewActionCreators.loadFrames(startFrame);
@@ -110,6 +121,7 @@ const DataControls = props => {
   const numOptions = currentOptions.length + availableOptions.length + lockedOptions.length;
   const experimentSelectEnabled = !props.experimentList.updating && numOptions > 0 && !props.loading && props.userInfo;
   const frameControlsEnabled = props.experiment && !props.loading;
+  const frameExpandEnabled = props.experiment && props.experiment.images && !props.loading;
   const saveEnabled = props.history && props.history.index > 0;
 
   const buttonClasses = "btn btn-primary";
@@ -150,7 +162,8 @@ const DataControls = props => {
             max={props.experiment && props.experiment.totalFrames ? props.experiment.totalFrames : 999}
             value={startFrame}
             disabled={!frameControlsEnabled}
-            onChange={onStartFrameChange} />
+            onChange={onStartFrameChange}
+            onKeyUp={cancelEvent} />
           <div className="input-group-append">
             <span className="input-group-text">
               {props.experiment && props.experiment.totalFrames ? "/ " + props.experiment.totalFrames : ""}
@@ -177,12 +190,12 @@ const DataControls = props => {
           <div className="btn-group mr-2">            
             <IconButton
               iconName="oi-arrow-thick-left"
-              disabled={!frameControlsEnabled}
+              disabled={!frameExpandEnabled}
               classes={buttonClasses}
               callback={onBackClick} />
             <IconButton
               iconName="oi-arrow-thick-right"
-              disabled={!frameControlsEnabled}
+              disabled={!frameExpandEnabled}
               classes={buttonClasses}
               callback={onForwardClick} />
           </div>
@@ -207,6 +220,17 @@ const DataControls = props => {
                     <input 
                       type="checkbox" 
                       className="form-check-input" 
+                      id="showFramesCheck" 
+                      defaultChecked={props.settings.showFrames}
+                      onClick={onShowFramesClick}/>
+                    <label className="form-check-label" htmlFor="showFramesCheck">
+                      Show frames
+                    </label>
+                  </div>
+                  <div className="form-check">
+                    <input 
+                      type="checkbox" 
+                      className="form-check-input" 
                       id="stabilizeCheck" 
                       defaultChecked={props.settings.stabilize}
                       onClick={onStabilizeClick}/>
@@ -223,7 +247,8 @@ const DataControls = props => {
                       min={5} 
                       max={props.experiment && props.experiment.totalFrames ? props.experiment.totalFrames : 5}
                       value={props.settings.framesToLoad}
-                      onChange={onFramesToLoadChange} />
+                      onChange={onFramesToLoadChange}
+                      onKeyUp={cancelEvent} />
                   </div>
                   <div className="form-group mt-3">
                     <label htmlFor="frameExpansionInput">Frame expansion</label>
@@ -234,7 +259,8 @@ const DataControls = props => {
                       min={0} 
                       max={props.experiment && props.experiment.totalFrames ? props.experiment.totalFrames : 5}
                       value={props.settings.frameExpansion}
-                      onChange={onFrameExpansionChange} />
+                      onChange={onFrameExpansionChange}
+                      onKeyUp={cancelEvent} />
                   </div>
                   <div className="form-group mt-3">
                     <label htmlFor="doneOpacityInput">Done opacity</label>
@@ -246,7 +272,8 @@ const DataControls = props => {
                       max={1}
                       step={0.1}
                       value={props.settings.doneOpacity}
-                      onChange={onDoneOpacityChange} />
+                      onChange={onDoneOpacityChange}
+                      onKeyUp={cancelEvent} />
                   </div>
                 </div>
               </div>

@@ -102,23 +102,26 @@ const AppContainer = () => {
         keyPress(event.key, ctrlDown);
     }
   }
-
+/*
   useEffect(() => {
-    document.addEventListener("keydown", onKeyDown, true);
-    document.addEventListener("keyup", onKeyUp, true);
+    window.addEventListener("keydown", onKeyDown, true);
+    window.addEventListener("keyup", onKeyUp, true);
 
     return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.removeEventListener("keyup", onKeyUp);
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("keyup", onKeyUp);
     }
   }, []);
-
+*/
   const onNavClick = value => {
     setPage(value);
   };
 
   return (
-    <div ref={ref}>
+    <div ref={ref}
+      onKeyDown={onKeyDown}
+      onKeyUp={onKeyUp}
+      tabIndex={-1}>
       <ul className="nav nav-pills justify-content-center mb-3">
         <li className="nav-item">
           <a 

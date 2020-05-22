@@ -17,7 +17,7 @@ const MainSection = props => {
         </div>
       </div>
       <div className="row">
-        {props.experiment ?
+        {props.experiment && props.experiment.images ?
           <div className={divClass}>
             {props.experiment.locked ? 
               <div className="alert alert-danger">

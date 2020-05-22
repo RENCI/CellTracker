@@ -16,9 +16,6 @@ export function selectExperiment(experiment) {
     actionType: Constants.SELECT_EXPERIMENT,
     experiment: experiment
   });
-
-  WebAPIUtils.getExperimentInfo(experiment);
-  WebAPIUtils.getExperimentList();
 };
 
 export function loadFrames(startFrame) {
@@ -27,7 +24,15 @@ export function loadFrames(startFrame) {
     startFrame: startFrame
   });
 
-  WebAPIUtils.getFrames(DataStore.getExperiment());
+  const experiment = DataStore.getExperiment();
+
+  if (experiment.hasInfo) {
+    WebAPIUtils.getFrames(experiment);
+  }
+  else {
+    WebAPIUtils.getExperimentList();
+    WebAPIUtils.getExperimentInfo(experiment);
+  }
 };
 
 export function expandForward() {
@@ -180,10 +185,20 @@ export function redoHistory() {
   });
 };
 
+export function toggleShowFrames() {
+  AppDispatcher.dispatch({
+    actionType: Constants.TOGGLE_SHOW_FRAMES
+  });
+
+  WebAPIUtils.saveUserSettings(DataStore.getUserSettings());
+};
+
 export function toggleStabilize() {
   AppDispatcher.dispatch({
     actionType: Constants.TOGGLE_STABILIZE
   });
+  
+  WebAPIUtils.saveUserSettings(DataStore.getUserSettings());
 };
 
 export function setFramesToLoad(framesToLoad) {
@@ -191,6 +206,8 @@ export function setFramesToLoad(framesToLoad) {
     actionType: Constants.SET_FRAMES_TO_LOAD,
     framesToLoad: framesToLoad
   });
+
+  WebAPIUtils.saveUserSettings(DataStore.getUserSettings());
 }
 
 export function setFrameExpansion(frameExpansion) {
@@ -198,6 +215,8 @@ export function setFrameExpansion(frameExpansion) {
     actionType: Constants.SET_FRAME_EXPANSION,
     frameExpansion: frameExpansion
   });
+
+  WebAPIUtils.saveUserSettings(DataStore.getUserSettings());
 }
 
 export function setDoneOpacity(doneOpacity) {
@@ -205,6 +224,8 @@ export function setDoneOpacity(doneOpacity) {
     actionType: Constants.SET_DONE_OPACITY,
     doneOpacity: doneOpacity
   });
+
+  WebAPIUtils.saveUserSettings(DataStore.getUserSettings());
 }
 
 export function zoom(view, direction) {
