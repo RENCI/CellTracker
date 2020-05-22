@@ -205,7 +205,7 @@ def set_user_setting(request):
         return HttpResponseBadRequest("settings array in the request post is empty")
     up = UserProfile.objects.filter(user__username=user_name).first()
     if up:
-        up.settings = user_settings
+        up.settings = json.loads(user_settings)
         up.save()
         return JsonResponse(status=status.HTTP_200_OK, data={'status': 'success'})
     else:
