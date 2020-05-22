@@ -46,15 +46,17 @@ let settings = {
   filmstripZoomDefault: null,
   zoomPoint: [0.5, 0.5],
   editMode: "regionSelect",
-  showFrames: true,
-  stabilize: true,
-  framesToLoad: 10,
-  frameExpansion: 2,
   showTrajectories: true,
   defaultLabels: ["Done"],
   currentLabel: "Done",
+  scoring: false,
+  
+  // User settings
+  showFrames: true,
+  stabilize: true,
   doneOpacity: 0.2,
-  scoring: false
+  framesToLoad: 10,
+  frameExpansion: 2
 };
 
 // Linking 
@@ -67,7 +69,7 @@ function setUserInfo(info) {
   userInfo = info;
 
   for (const property in info.settings) {
-    settings[property] = info[property];
+    settings[property] = info.settings[property];
   }
 }
 
@@ -998,12 +1000,12 @@ function saveSegmentationData() {
   settings.scoring = true;
 }
 
-function toggleShowFrames() {
-  settings.showFrames = !settings.showFrames;
+function setShowFrames(show) {
+  settings.showFrames = show;
 }
 
-function toggleStabilize() {
-  settings.stabilize = !settings.stabilize;
+function setStabilize(stabilize) {
+  settings.stabilize = stabilize;
 }
 
 function setFramesToLoad(framesToLoad) {
@@ -1322,13 +1324,13 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       DataStore.emitChange();
       break;
 
-    case Constants.TOGGLE_SHOW_FRAMES:
-      toggleShowFrames();
+    case Constants.SET_SHOW_FRAMES:
+      setShowFrames(action.show);
       DataStore.emitChange();
       break;
 
-    case Constants.TOGGLE_STABILIZE:
-      toggleStabilize();
+    case Constants.SET_STABILIZE:
+      setStabilize(action.stabilize);
       DataStore.emitChange();
       break;
 

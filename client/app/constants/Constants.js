@@ -37,8 +37,8 @@ export default keyMirror({
   UNDO_HISTORY: null,
   REDO_HISTORY: null,
 
-  TOGGLE_SHOW_FRAMES: null,
-  TOGGLE_STABILIZE: null,
+  SET_SHOW_FRAMES: null,
+  SET_STABILIZE: null,
   SET_FRAMES_TO_LOAD: null,
   SET_FRAME_EXPANSION: null,
   SET_DONE_OPACITY: null,

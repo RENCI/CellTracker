@@ -185,17 +185,19 @@ export function redoHistory() {
   });
 };
 
-export function toggleShowFrames() {
+export function setShowFrames(show) {
   AppDispatcher.dispatch({
-    actionType: Constants.TOGGLE_SHOW_FRAMES
+    actionType: Constants.SET_SHOW_FRAMES,
+    show: show
   });
 
   WebAPIUtils.saveUserSettings(DataStore.getUserSettings());
 };
 
-export function toggleStabilize() {
+export function setStabilize(stabilize) {
   AppDispatcher.dispatch({
-    actionType: Constants.TOGGLE_STABILIZE
+    actionType: Constants.SET_STABILIZE,
+    stabilize: stabilize
   });
   
   WebAPIUtils.saveUserSettings(DataStore.getUserSettings());

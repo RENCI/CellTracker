@@ -295,12 +295,10 @@ export function saveSegmentationData(id, data, lastEdit) {
 export function saveUserSettings(settings) {
   setupAjax();
 
-  console.log(settings);
-
   $.ajax({
     type: "POST",
     url: "/set_user_setting/",
-    data: { settings: settings },
+    data: { settings:  JSON.stringify(settings) },
     success: () => {
       // XXX: Do anything?
     },

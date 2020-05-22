@@ -12,12 +12,12 @@ function onForwardClick() {
   ViewActionCreators.expandForward();
 }
 
-function onShowFramesClick() {
-  ViewActionCreators.toggleShowFrames();
+function onShowFramesChange(e) {
+  ViewActionCreators.setShowFrames(e.target.checked);
 }
 
-function onStabilizeClick() {
-  ViewActionCreators.toggleStabilize();
+function onStabilizeChange(e) {
+  ViewActionCreators.setStabilize(e.target.checked);
 }
 
 function onFramesToLoadChange(e) {
@@ -221,8 +221,8 @@ const DataControls = props => {
                       type="checkbox" 
                       className="form-check-input" 
                       id="showFramesCheck" 
-                      defaultChecked={props.settings.showFrames}
-                      onClick={onShowFramesClick}/>
+                      checked={props.settings.showFrames}
+                      onChange={onShowFramesChange}/>
                     <label className="form-check-label" htmlFor="showFramesCheck">
                       Show frames
                     </label>
@@ -232,8 +232,8 @@ const DataControls = props => {
                       type="checkbox" 
                       className="form-check-input" 
                       id="stabilizeCheck" 
-                      defaultChecked={props.settings.stabilize}
-                      onClick={onStabilizeClick}/>
+                      checked={props.settings.stabilize}
+                      onChange={onStabilizeChange}/>
                     <label className="form-check-label" htmlFor="stabilizeCheck">
                       Stabilize playback
                     </label>
