@@ -19,6 +19,7 @@ export default function() {
       startFrame = 0,
       endFrame = 0,
       maxFrames = 10,
+      editMode = null,
 
       // Appearance
       nodeSize = 0,
@@ -28,7 +29,7 @@ export default function() {
       svg = d3.select(),
 
       // Event dispatcher
-      dispatcher = d3.dispatch("highlightRegion", "selectRegion", "setFrame");
+      dispatcher = d3.dispatch("highlightRegion", "selectRegion", "setFrame", "linkRegion");
 
   function trajectoryGraph(selection) {
     selection.each(function(d) {
@@ -43,7 +44,12 @@ export default function() {
 
       // Create skeletal chart
       svg = d3.select(this).selectAll("svg")
-          .data([data]);
+          .data([data])
+          .on("click", () => {
+            if (editMode === "regionLink") {
+              dispatcher.call("linkRegion", this, -1, null);
+            }
+          });
 
       const svgEnter = svg.enter().append("svg")
           .attr("class", "trajectoryGraph");
@@ -258,13 +264,29 @@ export default function() {
       node.enter().append("rect")
           .attr("class", "node")          
           .on("mouseover", function(d) {
+            if (editMode === "regionLink" || editMode === "regionBreakLink") {
+              d3.select(this).style("cursor", "pointer");
+            }
+
             dispatcher.call("highlightRegion", this, null, d.data.region);
           })
-          .on("mouseout", function(d) {
+          .on("mouseout", function() {
+            d3.select(this).style("cursor", "default");
+
             dispatcher.call("highlightRegion", this, null, null);
           })          
           .on("click", function(d) {
-            dispatcher.call("selectRegion", this, d.data.frameIndex, d.data.region);
+            d3.event.stopPropagation();
+
+            if (editMode === "regionLink") {
+              dispatcher.call("linkRegion", this, d.data.frameIndex, d.data.region);
+            }
+            else if (editMode === "regionBreakLink") {
+              dispatcher.call("linkRegion", this, d.data.frameIndex, d.data.region);
+            }
+            else {
+              dispatcher.call("selectRegion", this, d.data.frameIndex, d.data.region);
+            }
           })
         .merge(node)
           .attr("rx", r)
@@ -421,6 +443,12 @@ export default function() {
   trajectoryGraph.maxFrames = function(_) {
     if (!arguments.length) return frames;
     maxFrames = _;
+    return trajectoryGraph;
+  };
+
+  trajectoryGraph.editMode = function(_) {
+    if (!arguments.length) return editMode;
+    editMode = _;
     return trajectoryGraph;
   };
 

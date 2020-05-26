@@ -785,7 +785,7 @@ function linkRegion(frame, region) {
   if (linking.region) linking.region.isLinkRegion = false;
 
   // Clear done
-  if (region.done) {
+  if (region && region.done) {
     regionDone(region, false);
   }
 

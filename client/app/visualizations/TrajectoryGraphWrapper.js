@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import * as d3 from "d3";
 import TrajectoryGraph from "./TrajectoryGraph";
-import { highlightRegion, selectRegion, setFrame } from "../actions/ViewActionCreators";
+import { highlightRegion, selectRegion, setFrame, linkRegion } from "../actions/ViewActionCreators";
 
 class TrajectoryGraphWrapper extends React.Component {
   constructor() {
@@ -15,13 +15,15 @@ class TrajectoryGraphWrapper extends React.Component {
     this.onHighlightRegion = this.onHighlightRegion.bind(this);
     this.onSelectRegion = this.onSelectRegion.bind(this);
     this.onSetFrame = this.onSetFrame.bind(this);
+    this.onLinkRegion = this.onLinkRegion.bind(this);
     this.onScroll = this.onScroll.bind(this);
 
     // Create visualization function
     this.trajectoryGraph = TrajectoryGraph()
         .on("highlightRegion", this.onHighlightRegion)
         .on("selectRegion", this.onSelectRegion)
-        .on("setFrame", this.onSetFrame);
+        .on("setFrame", this.onSetFrame)
+        .on("linkRegion", this.onLinkRegion);
 
     this.centerRegion = null;
   }
@@ -36,6 +38,10 @@ class TrajectoryGraphWrapper extends React.Component {
 
   onSetFrame(frame) {
     setFrame(frame);
+  }
+
+  onLinkRegion(frame, region) {
+    linkRegion(frame, region);
   }
 
   onScroll(event) {
@@ -79,7 +85,8 @@ class TrajectoryGraphWrapper extends React.Component {
         .height(props.height)
         .scrollPosition(state.scrollPosition)
         .currentFrame(props.playback.frame)
-        .maxFrames(props.settings.trajectoryFrames);
+        .maxFrames(props.settings.trajectoryFrames)
+        .editMode(props.settings.editMode);
 
     d3.select(this.ref)
         .datum(props.experiment)
