@@ -145,8 +145,6 @@ function receiveExperimentInfo(info) {
     settings.currentLabel = experiment.labels.length > 0 ? 
       experiment.labels[0] : settings.defaultLabels[0];
   }
-
-  experiment.hasInfo = true;
 }
 
 function experimentLocked(info) {
