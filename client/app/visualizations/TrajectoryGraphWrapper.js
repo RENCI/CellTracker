@@ -79,8 +79,7 @@ class TrajectoryGraphWrapper extends React.Component {
         .height(props.height)
         .scrollPosition(state.scrollPosition)
         .currentFrame(props.playback.frame)
-        .zoomPoint(props.settings.zoomPoint)
-        .zoom(props.settings.zoom);
+        .maxFrames(props.settings.trajectoryFrames);
 
     d3.select(this.ref)
         .datum(props.experiment)

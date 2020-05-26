@@ -42,6 +42,7 @@ export default keyMirror({
   SET_FRAMES_TO_LOAD: null,
   SET_FRAME_EXPANSION: null,
   SET_DONE_OPACITY: null,
+  SET_TRAJECTORY_FRAMES: null,
 
   ZOOM: null,
   SET_EDIT_MODE: null,

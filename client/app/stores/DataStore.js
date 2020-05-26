@@ -14,7 +14,7 @@ let userInfo = null;
 let experimentList = {
   updating: false,
   experiments: []
-}
+};
 
 // Active experiment
 let experiment = null;
@@ -56,14 +56,15 @@ let settings = {
   stabilize: true,
   doneOpacity: 0.2,
   framesToLoad: 10,
-  frameExpansion: 2
+  frameExpansion: 2,
+  trajectoryFrames: 10
 };
 
 // Linking 
 let linking = {
   frame: -1,
   region: null
-}
+};
 
 function setUserInfo(info) {
   userInfo = info;
@@ -1018,6 +1019,10 @@ function setDoneOpacity(doneOpacity) {
   settings.doneOpacity = doneOpacity;
 }
 
+function setTrajectoryFrames(trajectoryFrames) {
+  settings.trajectoryFrames = trajectoryFrames;
+}
+
 function getZoomLevels(item) {
   if (settings.zoomDefault && settings.filmstripZoomDefault) {
     return {
@@ -1160,7 +1165,8 @@ const DataStore = assign({}, EventEmitter.prototype, {
       stabilize: settings.stabilize,
       framesToLoad: settings.framesToLoad,
       frameExpansion: settings.frameExpansion,
-      doneOpacity: settings.doneOpacity
+      doneOpacity: settings.doneOpacity,
+      trajectoryFrames: settings.trajectoryFrames
     };
   },
   getLoading: function () {
@@ -1344,6 +1350,11 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
 
     case Constants.SET_DONE_OPACITY:
       setDoneOpacity(action.doneOpacity);
+      DataStore.emitChange();
+      break;
+
+    case Constants.SET_TRAJECTORY_FRAMES:
+      setTrajectoryFrames(action.trajectoryFrames);
       DataStore.emitChange();
       break;
 

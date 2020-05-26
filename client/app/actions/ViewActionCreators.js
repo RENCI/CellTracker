@@ -230,6 +230,15 @@ export function setDoneOpacity(doneOpacity) {
   WebAPIUtils.saveUserSettings(DataStore.getUserSettings());
 }
 
+export function setTrajectoryFrames(trajectoryFrames) {
+  AppDispatcher.dispatch({
+    actionType: Constants.SET_TRAJECTORY_FRAMES,
+    trajectoryFrames: trajectoryFrames
+  });
+
+  WebAPIUtils.saveUserSettings(DataStore.getUserSettings());
+}
+
 export function zoom(view, direction) {
   AppDispatcher.dispatch({
     actionType: Constants.ZOOM,

@@ -15,11 +15,10 @@ export default function() {
       graph = {},
 
       // Settings
-      currentFrame = 0,
-      zoomPoint = null,
-      zoom = 0,      
+      currentFrame = 0,    
       startFrame = 0,
       endFrame = 0,
+      maxFrames = 10,
 
       // Appearance
       nodeSize = 0,
@@ -74,8 +73,7 @@ export default function() {
     }
 
     // Visible frames
-    const maxNumFrames = 10;
-    const numFrames = Math.min(data.segmentationData.length, maxNumFrames);
+    const numFrames = Math.min(data.segmentationData.length, maxFrames);
     const framePad = Math.floor(numFrames / 2);
     
     startFrame = Math.max(currentFrame - framePad, 0);
@@ -420,15 +418,9 @@ export default function() {
     return trajectoryGraph;
   };
 
-  trajectoryGraph.zoomPoint = function(_) {
-    if (!arguments.length) return zoomPoint;
-    zoomPoint = _;
-    return trajectoryGraph;
-  };
-
-  trajectoryGraph.zoom = function(_) {
-    if (!arguments.length) return zoom;
-    zoom = _;
+  trajectoryGraph.maxFrames = function(_) {
+    if (!arguments.length) return frames;
+    maxFrames = _;
     return trajectoryGraph;
   };
 

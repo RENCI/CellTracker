@@ -23,6 +23,10 @@ function onDoneOpacityChange(e) {
   ViewActionCreators.setDoneOpacity(e.target.value);
 }
 
+function onTrajectoryFramesChange(e) {
+  ViewActionCreators.setTrajectoryFrames(e.target.value);
+}
+
 const UserSettings = props => {
   const cancelEvent = e => {   
     e.stopPropagation(); 
@@ -96,6 +100,17 @@ const UserSettings = props => {
                 step={0.1}
                 value={props.settings.doneOpacity}
                 onChange={onDoneOpacityChange}
+                onKeyUp={cancelEvent} />
+            </div>
+            <div className="form-group mt-3">
+              <label htmlFor="doneOpacityInput">Trajectory frames</label>
+              <input 
+                className="form-control form-control-sm" 
+                id="trajectoryFramesInput"
+                type="number" 
+                min={2} 
+                value={props.settings.trajectoryFrames}
+                onChange={onTrajectoryFramesChange}
                 onKeyUp={cancelEvent} />
             </div>
           </div>
