@@ -34,6 +34,8 @@ const UserSettings = props => {
 
   const buttonClasses = "btn btn-primary";
 
+  const maxFrames = props.experiment && props.experiment.totalFrames ? props.experiment.totalFrames : 5;
+
   return (
     <div className="btn-group">
       <div className="dropdown">          
@@ -72,7 +74,7 @@ const UserSettings = props => {
                 id="framesToLoadInput"
                 type="number" 
                 min={5} 
-                max={props.experiment && props.experiment.totalFrames ? props.experiment.totalFrames : 5}
+                max={maxFrames}
                 value={props.settings.framesToLoad}
                 onChange={onFramesToLoadChange}
                 onKeyUp={cancelEvent} />
@@ -83,8 +85,8 @@ const UserSettings = props => {
                 className="form-control form-control-sm" 
                 id="frameExpansionInput"
                 type="number" 
-                min={0} 
-                max={props.experiment && props.experiment.totalFrames ? props.experiment.totalFrames : 5}
+                min={1} 
+                max={maxFrames}
                 value={props.settings.frameExpansion}
                 onChange={onFrameExpansionChange}
                 onKeyUp={cancelEvent} />
@@ -109,6 +111,7 @@ const UserSettings = props => {
                 id="trajectoryFramesInput"
                 type="number" 
                 min={2} 
+                max={props.settings.framesToLoad}
                 value={props.settings.trajectoryFrames}
                 onChange={onTrajectoryFramesChange}
                 onKeyUp={cancelEvent} />
