@@ -602,6 +602,8 @@ export default function(sketch) {
               onEditRegion(frame, newRegion);
             }
           }
+          
+          splitLine = null;
   
           break;
 

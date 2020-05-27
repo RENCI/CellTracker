@@ -473,6 +473,8 @@ export function splitRegionPointDirection(region, line, offset, regionArray) {
     }
   }
 
+  if (!segment1) return;
+
   // Find closest line segment in the other direction
   v = [-v[0], -v[1]];
   end = [start[0] + v[0], start[1] + v[1]];
