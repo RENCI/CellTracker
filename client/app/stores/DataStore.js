@@ -310,7 +310,7 @@ function updateTrajectoryGraph() {
   const zoomPoint = settings.zoomPoint;
   const zoom = settings.zoom;
 
-  // Find trajectories with visible regions
+  // Find trajectory families with visible regions
   let visibleTrajectories = null;
   
   if (zoomPoint) {
@@ -318,38 +318,70 @@ function updateTrajectoryGraph() {
 
     const z = 1 / zoom / 2,
           bb = [zoomPoint[0] - z, zoomPoint[1] - z, 
-                zoomPoint[0] + z, zoomPoint[1] + z];                  
+                zoomPoint[0] + z, zoomPoint[1] + z];    
 
+    // Clear visibility                
     frames.forEach(frame => {
       frame.regions.forEach(region => {
-        for (let i = 0; i < region.vertices.length; i++) {
-          const v = region.vertices[i];
-
-          if (v[0] >= bb[0] && v[0] <= bb[2] &&
-              v[1] >= bb[1] && v[1] <= bb[3]) {
-            visibleTrajectories.add(region.trajectory_id);
-            return;
-          }
-        }
+        region.visible = false;
       });
     });
+                
+    // Scan from children to parent
+    for (let i = frames.length - 1; i >= 0; i--) {
+      const curr = frames[i];
+      const prev = i === 0 ? null : frames[i - 1];
+      
+      curr.regions.forEach(region => {
+        if (!region.visible) {
+          // Check if visible
+          for (let i = 0; i < region.vertices.length; i++) {
+            const v = region.vertices[i];
 
-    if (visibleTrajectories.size === 0) {
-      experiment.trajectoryGraph = {
-        nodes: [],
-        links: []
-      };
-  
-      return;
+            if (v[0] >= bb[0] && v[0] <= bb[2] &&
+                v[1] >= bb[1] && v[1] <= bb[3]) {
+              region.visible = true;
+              break;
+            }
+          }
+        }
+
+        if (prev && region.visible && region.link_id) {
+          const link = prev.regions.find(({ id }) => id === region.link_id);
+
+          if (link) {          
+            link.visible = true;
+          }
+          else {
+            console.log("Warning: invalid parent.");            
+          }          
+
+        }
+      });
+    }
+
+    // Scan from parents to children
+    for (let i = 1; i < frames.length; i++) {
+      const curr = frames[i];
+      const prev = frames[i - 1];
+      
+      curr.regions.forEach(region => {
+        const link = prev.regions.find(({ id }) => id === region.link_id);
+
+        if (link) {          
+          curr.visible === curr.visible || prev.visible;
+        }
+        else {
+          console.log("Warning: invalid parent.");            
+        }  
+      });
     }
   }
 
   // Nodes with visible trajectories
   const visibleRegions = frames.map(frame => {
-    return frame.regions.filter(region => {
-      return visibleTrajectories ? visibleTrajectories.has(region.trajectory_id) : true;
-    });
-  });
+    return frame.regions.filter(region => region.visible);
+  });  
 
   // Create nodes from regions for tree layout
   const treeNodes = [{
