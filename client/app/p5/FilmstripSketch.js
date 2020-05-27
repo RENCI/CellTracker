@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import { normalizeVector } from "../utils/MathUtils";
-import { regionColors } from "../utils/ColorUtils";
+import { getTrajectoryColor } from "../utils/ColorUtils";
 
 export default function(sketch) {
   // Current experiment
@@ -10,24 +10,13 @@ export default function(sketch) {
   // Images
   let images = [],
       colorImages = [],
-      frame = 0,
-      lut = createLut(d3.interpolateInferno);
+      frame = 0;
 
   // Interaction
   let onMouseWheel = null;
 
   // Segmentation
-  let segmentationData = null,
-      strokeColorMap = d3.scaleOrdinal(regionColors.map(c => {
-        const color = d3.color(c);
-        color.opacity = 0.75;
-        return color.toString();
-      })),
-      fillColorMap = d3.scaleOrdinal(regionColors.map(c => {
-        const color = d3.color(c);
-        color.opacity = 0.75;
-        return color.toString();
-      }));
+  let segmentationData = null;
 
   // Callbacks
   let onSelectZoomPoint = null,
@@ -105,21 +94,6 @@ export default function(sketch) {
 
     if (segmentationData) {
       segmentationData = experiment.segmentationData;
-
-      let trajectories = new Set();
-
-      // Update color map domain
-      // XXX: Could move to DataStore and share same color map
-      segmentationData.forEach(frame => {
-        frame.regions.forEach(region => {
-          trajectories.add(region.trajectory_id);
-        });
-      });
-
-      trajectories = Array.from(trajectories).sort();
-
-      strokeColorMap.domain(trajectories);
-      fillColorMap.domain(trajectories);
     }
 
     allRegions = segmentationData ? segmentationData[frame].regions : null;
@@ -189,6 +163,10 @@ export default function(sketch) {
       allRegions.filter(region => region.trajectory_id === trajectoryId).forEach(region => {
         if (region.vertices.length < 1) return;
 
+        let color = d3.color(getTrajectoryColor(region.trajectory_id));
+        color.opacity = 0.75;
+        color = color.toString();
+
         const weight = lineHighlightWeight / zoom;
 
         const closedVertices = region.vertices.concat([region.vertices[0]]);
@@ -208,16 +186,10 @@ export default function(sketch) {
         sketch.endShape();
 
         // Draw outline
-        sketch.stroke(strokeColorMap(region.trajectory_id));
+        sketch.stroke(color);
         sketch.strokeWeight(weight);        
 
-        //if (region.edited) sketch.fill(fillColorMap(region.trajectory_id));
-        //else sketch.noFill();
-        //if (region.highlight) sketch.noFill();
-        //else sketch.fill(fillColorMap(region.trajectory_id));
         sketch.noFill();
-        //if (editMode === "filmstrip" && region.highlight) sketch.fill(fillColorMap(region.trajectory_id));
-        //else sketch.noFill();
 
         sketch.beginShape();
         closedVertices.forEach(vertex => {

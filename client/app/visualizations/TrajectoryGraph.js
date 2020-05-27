@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { regionColors } from "../utils/ColorUtils";
+import { getTrajectoryColor } from "../utils/ColorUtils";
 
 export default function() {
       // Size
@@ -184,20 +184,6 @@ export default function() {
     // Get nodes and links
     const {nodes, links} = graph;
 
-    // Set color map as it is set in sketch. Should probably do this elsewhere and pass in
-    let trajectories = new Set();
-
-    data.segmentationData.forEach(frame => {
-      frame.regions.forEach(region => {
-        trajectories.add(region.trajectory_id);
-      });
-    });
-
-    trajectories = Array.from(trajectories).sort();
-
-    const colorMap = d3.scaleOrdinal(regionColors)
-        .domain(trajectories);
-
     // Draw the visualization
     drawLinks();
     drawNodes();
@@ -236,7 +222,7 @@ export default function() {
       function stroke(d) {
         const region = d.target.data.region;
 
-        return region.done ? "#eee" : colorMap(region.trajectory_id);
+        return region.done ? "#eee" : getTrajectoryColor(region.trajectory_id);
       }
 
       function linkWidth(d) {
@@ -325,15 +311,15 @@ export default function() {
       function fill(d) {
         //return "#fff";
         return (d.data.region.highlight || d.data.region.isLinkRegion) && !d.data.region.done ? 
-          colorMap(d.data.region.trajectory_id) : "#fff";
+          getTrajectoryColor(d.data.region.trajectory_id) : "#fff";
       }
 
       function stroke(d) {;
         return d.data.region.highlight || d.data.region.isLinkRegion ? "#333" : 
           d.data.region.done ? "#eee" : 
-          colorMap(d.data.region.trajectory_id);
-        //return d.data.region.highlight ? "#fff" : colorMap(d.data.region.trajectory_id);
-        //return colorMap(d.data.region.trajectory_id);
+          getTrajectoryColor(d.data.region.trajectory_id);
+        //return d.data.region.highlight ? "#fff" : getTrajectoryColor(d.data.region.trajectory_id);
+        //return getTrajectoryColor(d.data.region.trajectory_id);
       }
 
       function strokeWidth(d) {

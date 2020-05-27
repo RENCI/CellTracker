@@ -3,6 +3,7 @@ import { EventEmitter } from "events";
 import assign from "object-assign";
 import rbush from "rbush";
 import Constants from "../constants/Constants";
+import { setTrajectoryColor } from "../utils/ColorUtils";
 import * as d3 from "d3";
 
 const CHANGE_EVENT = "change";
@@ -277,7 +278,8 @@ function generateTrajectoryIds() {
     frame.regions.forEach(region => {
       if (!region.trajectory_id || region.trajectory_id === "collision") {
         const id = ("" + counter++).padStart(4, "0");
-        region.trajectory_id = "trajectory_" + id;          
+        region.trajectory_id = "trajectory_" + id;
+        setTrajectoryColor(region.trajectory_id);    
       }
 
       if (i < a.length - 1 && region.link_id) {
@@ -353,9 +355,8 @@ function updateTrajectoryGraph() {
             link.visible = true;
           }
           else {
-            console.log("Warning: invalid parent.");            
+            console.log("Warning: invalid link.");            
           }          
-
         }
       });
     }
@@ -372,7 +373,7 @@ function updateTrajectoryGraph() {
           curr.visible === curr.visible || prev.visible;
         }
         else {
-          console.log("Warning: invalid parent.");            
+          console.log("Warning: invalid link.");            
         }  
       });
     }

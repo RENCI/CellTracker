@@ -5,7 +5,7 @@ import {
   addVertex, removeVertex, moveVertex, mergeRegions, splitRegionPointDirection, trimRegion, 
   removeRegion, addRegion, moveRegion, rotateRegion, 
   copiedRegion, copyRegion, pasteRegion, labelRegion } from "../utils/RegionEditing";
-import { regionColors } from "../utils/ColorUtils";
+import { getTrajectoryColor } from "../utils/ColorUtils";
 
 export default function(sketch) {
   // Current experiment
@@ -16,24 +16,13 @@ export default function(sketch) {
   // Images
   let images = [],
       colorImages = [],
-      frame = 0,
-      lut = createLut(d3.interpolateInferno);
+      frame = 0;
 
   // Interaction
   let onMouseWheel = null;
 
   // Segmentation
-  let segmentationData = null,
-      strokeColorMap = d3.scaleOrdinal(regionColors.map(c => {
-        const color = d3.color(c);
-        color.opacity = 0.75;
-        return color.toString();
-      })),
-      fillColorMap = d3.scaleOrdinal(regionColors.map(c => {
-        const color = d3.color(c);
-        color.opacity = 0.75;
-        return color.toString();
-      }));
+  let segmentationData = null;
 
   // Callbacks
   let onHighlightRegion = null,
@@ -143,9 +132,6 @@ export default function(sketch) {
       });
 
       trajectories = Array.from(trajectories).sort();
-
-      strokeColorMap.domain(trajectories);
-      fillColorMap.domain(trajectories);
     }
 
     if (segmentationData) {
@@ -233,6 +219,12 @@ export default function(sketch) {
       regions.forEach(region => {
         if (region.vertices.length < 1) return;
 
+        let color = d3.color(getTrajectoryColor(region.trajectory_id));
+        color.opacity = 0.75;
+        color = color.toString();
+
+        const doneColor = 50;
+
         const highlightRegion =               
               region.highlight || 
               region === currentRegion || 
@@ -265,18 +257,11 @@ export default function(sketch) {
           sketch.endShape();
         }
 
-        const doneColor = 50;
-
         // Draw outline
-        sketch.stroke(region.done ? doneColor : strokeColorMap(region.trajectory_id));
+        sketch.stroke(region.done ? doneColor : color);
         sketch.strokeWeight(weight);        
         sketch.canvas.getContext("2d").setLineDash(region === copiedRegion ? [5 / zoom, 5 / zoom] : []);
 
-        //if (region.edited) sketch.fill(fillColorMap(region.trajectory_id));
-        //else sketch.noFill();
-        //if (region.highlight) sketch.noFill();
-        //else sketch.fill(fillColorMap(region.trajectory_id));
-        //sketch.noFill();
         if (region.done) sketch.fill(doneColor, doneOpacity * 255);
         else sketch.noFill();
 
@@ -319,7 +304,7 @@ export default function(sketch) {
         // Draw labels
         if (region.labels && region.labels.length > 0) {
           sketch.noStroke();
-          sketch.fill(region.done ? doneColor : strokeColorMap(region.trajectory_id));
+          sketch.fill(region.done ? doneColor : color);
 
           const p = scalePoint([region.center[0], region.min[1]]);
           p[1] -= 5;
@@ -330,18 +315,7 @@ export default function(sketch) {
 
           sketch.text(labels, p[0], p[1]);
         }
-/*
-        // Draw circle marker
-        sketch.ellipseMode(sketch.RADIUS);
-        sketch.fill(strokeColorMap(region.trajectory_id));
-        sketch.noStroke();
-
-        const r = handleHighlightRadius / zoom;
-        const x = (region.max[0] - region.min[0]) * 0.75;
-        const c = scalePoint([region.center[0] + x, region.center[1]]);
-            
-        sketch.ellipse(c[0], c[1], r);
-*/        
+       
         sketch.pop();
       });
     }
