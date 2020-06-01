@@ -10,14 +10,34 @@ const trajectoryColors = {};
 
 let index = 0;
 
-export function setTrajectoryColor(trajectoryId) {
-  if (trajectoryColors[trajectoryId]) return;
+export function getAllTrajectoryColors() {
+  return {...trajectoryColors};
+}
 
-  const color = colorScale(index);
+export function setTrajectoryColor(trajectoryId, color) {
+  if (color) {
+    trajectoryColors[trajectoryId] = color;
+  }
+  else {
+    const newColor = colorScale(index);
 
-  index = (index + 1) % colors.length;
+    index = (index + 1) % colors.length;
 
-  trajectoryColors[trajectoryId] = color;
+    trajectoryColors[trajectoryId] = newColor;
+  }
+}
+
+export function setValidTrajectoryColor(trajectoryId, excludedColors) {
+  for (let i = 0; i < colors.length; i++) {
+    const newColor = colorScale(index);
+
+    index = (index + 1) % colors.length;
+
+    if (!excludedColors.includes(newColor)) {
+      trajectoryColors[trajectoryId] = newColor;
+      return;
+    }
+  }
 }
 
 export function getTrajectoryColor(trajectoryId) {

@@ -3,7 +3,11 @@ import { EventEmitter } from "events";
 import assign from "object-assign";
 import rbush from "rbush";
 import Constants from "../constants/Constants";
-import { setTrajectoryColor } from "../utils/ColorUtils";
+import { 
+  setTrajectoryColor, 
+  setValidTrajectoryColor, 
+  getTrajectoryColor,
+  getAllTrajectoryColors } from "../utils/ColorUtils";
 import * as d3 from "d3";
 
 const CHANGE_EVENT = "change";
@@ -267,30 +271,25 @@ function generateTrajectoryIds() {
     }
   });
 
-  // Remove any existing ids
+  // Clear child links
   experiment.segmentationData.forEach(frame => {
-    frame.regions.forEach(region => region.trajectory_id = null);
+    frame.regions.forEach(region => {
+      region.children = null;
+    });
   });
 
-  // Use link id to generate trajectory ids
-  let counter = 0;
+  // Generate child links
   experiment.segmentationData.slice().reverse().forEach((frame, i, a) => {
     frame.regions.forEach(region => {
-      if (!region.trajectory_id || region.trajectory_id === "collision") {
-        const id = ("" + counter++).padStart(4, "0");
-        region.trajectory_id = "trajectory_" + id;
-        setTrajectoryColor(region.trajectory_id);    
-      }
-
       if (i < a.length - 1 && region.link_id) {
-        let linked = a[i + 1].regions.filter(r => r.id === region.link_id);
+        const linked = a[i + 1].regions.find(({ id }) => id === region.link_id);
 
-        if (linked.length > 0) {
-          linked = linked[0];
+        if (linked) {
+          if (!linked.children) {
+            linked.children = [];
+          }
 
-          // Check for collisions
-          if (linked.trajectory_id) linked.trajectory_id = "collision";
-          else linked.trajectory_id = region.trajectory_id;
+          linked.children.push(region);
         }
         else {
           console.log("Invalid link_id: " + region.link_id);
@@ -298,6 +297,47 @@ function generateTrajectoryIds() {
           console.log(region);
           console.log(frame);
           console.log(experiment.segmentationData);
+        }
+      }
+    });
+  });
+
+  const oldColors = getAllTrajectoryColors();
+
+  // Generate trajectories
+  let counter = 0;
+  experiment.segmentationData.forEach((frame, i, a) => {
+    frame.regions.forEach(region => {
+      if (i === 0 || !region.link_id) {
+        const color = region.trajectory_id ? oldColors[region.trajectory_id] : null;
+        const id = ("" + counter++).padStart(4, "0");
+        region.trajectory_id = "trajectory_" + id;
+        setTrajectoryColor(region.trajectory_id, color);    
+      }
+
+      if (i < a.length - 1 && region.children) {
+        if (region.children.length === 1) {
+          region.children[0].trajectory_id = region.trajectory_id;
+        }
+        else {
+          region.children.forEach(child => {
+            const color = child.trajectory_id ? oldColors[child.trajectory_id] : null;
+            const id = ("" + counter++).padStart(4, "0");
+            child.trajectory_id = "trajectory_" + id;
+            setTrajectoryColor(child.trajectory_id, color);    
+          });
+
+          // Fix colors
+          const colors = [getTrajectoryColor(region.trajectory_id)];
+
+          region.children.forEach(child => {
+            const color = getTrajectoryColor(child.trajectory_id);
+
+            if (colors.includes(color)) {
+              setValidTrajectoryColor(child.trajectory_id, colors);
+              colors.push(getTrajectoryColor(child.trajectory_id));
+            }
+          });          
         }
       }
     });
@@ -787,8 +827,8 @@ function editRegion(frame, region) {
     case "regionSplit":
     case "regionMerge":
     case "regionPaste":  
-        generateTrajectoryIds();
-        break;
+      generateTrajectoryIds();
+      break;
   }
 
   pushHistory();
