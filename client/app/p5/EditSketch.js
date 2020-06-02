@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import knn from "rbush-knn";
-import { lineSegmentIntersection, insidePolygon, normalizeVector } from "../utils/MathUtils";
+import { lineSegmentIntersection, insidePolygon } from "../utils/MathUtils";
 import { 
   addVertex, removeVertex, moveVertex, mergeRegions, splitRegionPointDirection, trimRegion, 
   removeRegion, addRegion, moveRegion, rotateRegion, 
@@ -31,7 +31,7 @@ export default function(sketch) {
       onTranslate = null,
       onEditRegion = null,
       onLinkRegion = null,
-      onRegionDone = null;;
+      onLabelRegion = null;
 
   // Editing
   let editMode = "",
@@ -94,7 +94,7 @@ export default function(sketch) {
     onTranslate = props.onTranslate;
     onEditRegion = props.onEditRegion;
     onLinkRegion = props.onLinkRegion;
-    onRegionDone = props.onRegionDone;
+    onLabelRegion = props.onLabelRegion;
 
     if (editMode !== "regionSplit" && editMode !== "regionTrim") splitLine = null;
 
@@ -735,13 +735,7 @@ export default function(sketch) {
         if (moveMouse) return;
 
         if (currentRegion) {
-          if (currentLabel === "Done") {
-            onRegionDone(currentRegion, !currentRegion.done);
-          }
-          else {
-            labelRegion(currentRegion, currentLabel);
-            onEditRegion(frame, currentRegion); 
-          }         
+          onLabelRegion(currentRegion, currentLabel);     
         }
 
         break;

@@ -31,7 +31,7 @@ export default keyMirror({
   TRANSLATE: null,
   EDIT_REGION: null,
   LINK_REGION: null,
-  REGION_DONE: null,
+  LABEL_REGION: null,
 
   SAVE_SEGMENTATION_DATA: null,
   UNDO_HISTORY: null,

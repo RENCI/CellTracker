@@ -708,16 +708,3 @@ export function pasteRegion(center, regionArray) {
 
   return newRegion;
 }
-
-export function labelRegion(region, label) {
-  if (!region.labels) region.labels = [];
-
-  const index = region.labels.indexOf(label);
-
-  if (index === -1) {
-    region.labels.push(label);
-  }
-  else {
-    region.labels.splice(index, 1);
-  }
-}

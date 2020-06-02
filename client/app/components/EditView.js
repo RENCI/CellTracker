@@ -38,8 +38,8 @@ function handleLinkRegion(frame, region) {
   ViewActionCreators.linkRegion(frame, region);
 }
 
-function handleRegionDone(region, done) {
-  ViewActionCreators.regionDone(region, done);
+function handleLabelRegion(region, label) {
+  ViewActionCreators.labelRegion(region, label);
 }
 
 const EditView = props => {
@@ -109,7 +109,7 @@ const EditView = props => {
             onTranslate={handleTranslate}
             onEditRegion={handleEditRegion}
             onLinkRegion={handleLinkRegion}
-            onRegionDone={handleRegionDone} />
+            onLabelRegion={handleLabelRegion} />
           <MediaControls {...props} />
         </div>
         {props.settings.showFrames ?

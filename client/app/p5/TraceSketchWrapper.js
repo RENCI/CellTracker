@@ -52,7 +52,7 @@ TraceSketchWrapper.propTypes = {
   onTranslate: PropTypes.func.isRequired,
   onEditRegion: PropTypes.func,
   onLinkRegion: PropTypes.func,
-  onRegionDone: PropTypes.func
+  onLabelRegion: PropTypes.func
 };
 
 TraceSketchWrapper.defaultProps = {
@@ -66,7 +66,7 @@ TraceSketchWrapper.defaultProps = {
   onSelectRegion: null,
   onEditRegion: null,
   onLinkRegion: null,
-  onRegionDone: null
+  onLabelRegion: null
 };
 
 export default TraceSketchWrapper;

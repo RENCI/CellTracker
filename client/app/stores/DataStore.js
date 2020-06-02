@@ -800,6 +800,8 @@ function translate(point) {
 }
 
 function editRegion(frame, region) {
+  console.log(settings.editMode);
+
   if (region) {
     // Clear done
     if (region.done) {
@@ -881,7 +883,9 @@ function linkRegion(frame, region) {
         // Link
         linking.region.link_id = region.id;
         linking.region.manual_link = true;
-        linking.region.unsavedEdit = true;
+        //linking.region.unsavedEdit = true;
+        
+        linking.region.unsavedChanges = linking.region.unsavedChanges ? linking.region.unsavedChanges + 1 : 1;
 
         experiment.segmentationData[frame].edited = true;
 
@@ -898,7 +902,9 @@ function linkRegion(frame, region) {
         // Link
         region.link_id = linking.region.id;
         region.manual_link = true;
-        region.unsavedEdit = true;
+        //region.unsavedEdit = true;
+
+        region.unsavedChanges = region.unsavedChanges ? region.unsavedChanges + 1 : 1;
 
         experiment.segmentationData[frame].edited = true;
 
@@ -944,6 +950,30 @@ function regionDone(region, done) {
       }
     });
   });
+}
+
+function labelRegion(region, label) {
+  if (label === "Done") {
+    regionDone(region, !region.done);
+
+    if (region.done) {
+      region.unsavedChanges = region.unsavedChanges ? region.unsavedChanges + 1 : 1;
+    }
+  }
+  else {
+    if (!region.labels) region.labels = [];
+
+    const index = region.labels.indexOf(label);
+
+    if (index === -1) {
+      region.labels.push(label);
+
+      region.unsavedChanges = region.unsavedChanges ? region.unsavedChanges + 1 : 1;
+    }
+    else {
+      region.labels.splice(index, 1);
+    }
+  }
 }
 
 function resetHistory() {
@@ -1381,8 +1411,8 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       DataStore.emitChange();
       break;
 
-    case Constants.REGION_DONE:
-      regionDone(action.region, action.done);
+    case Constants.LABEL_REGION:
+      labelRegion(action.region, action.label);
       DataStore.emitChange();
       break;
 

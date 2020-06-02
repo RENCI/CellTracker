@@ -149,11 +149,11 @@ export function linkRegion(frame, region) {
   });
 };
 
-export function regionDone(region, done) {
+export function labelRegion(region, label) {
   AppDispatcher.dispatch({
-    actionType: Constants.REGION_DONE,
+    actionType: Constants.LABEL_REGION,
     region: region,
-    done: done
+    label: label
   });
 };
 
