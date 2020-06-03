@@ -103,7 +103,7 @@ const DataControls = props => {
   const experimentSelectEnabled = !props.experimentList.updating && numOptions > 0 && !props.loading && props.userInfo;
   const frameControlsEnabled = props.experiment && !props.loading;
   const frameExpandEnabled = props.experiment && props.experiment.images && !props.loading;
-  const saveEnabled = props.history && props.history.index > 0;
+  const saveEnabled = props.experiment && props.experiment.segmentationData && props.experiment.segmentationData.filter(d => d.edited).length > 0;
 
   const buttonClasses = "btn btn-primary";
 

@@ -230,7 +230,7 @@ function getAllUserInfo() {
   });
 }
 
-export function saveSegmentationData(id, data, lastEdit) {
+export function saveSegmentationData(id, data) {
   setupAjax();
 
   // Send each edited frame
@@ -242,16 +242,25 @@ export function saveSegmentationData(id, data, lastEdit) {
         id: region.id,
         vertices: region.vertices,
         edited: region.edited || region.unsavedEdit,
+        changed: region.changed || region.unsavedChanges,
         link_id: region.link_id,
         manual_link: region.manual_link
       };
 
+      if (region.unsavedEdit) {
+        sendRegion.new_edits = true;
+      }
+
+      if (region.unsavedChanges) {
+        sendRegion.new_changes = region.unsavedChanges;
+      }
+
       if (region.labels && region.labels.length > 0) {
-        sendRegion["labels"] = region.labels;
+        sendRegion.labels = region.labels;
       }
 
       if (region.done) {
-        sendRegion["done"] = true;
+        sendRegion.done = true;
       }
 
       return sendRegion;
@@ -260,10 +269,6 @@ export function saveSegmentationData(id, data, lastEdit) {
     const saveData = {
       regions: JSON.stringify(regions),
       num_edited: regions.reduce((p, c) => c.edited ? p + 1 : p, 0)
-    }
-
-    if (lastEdit.frame === frame.frame) {
-      saveData["last_edit"] = JSON.stringify(lastEdit);
     }
 
     $.ajax({

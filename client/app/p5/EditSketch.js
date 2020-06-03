@@ -735,7 +735,7 @@ export default function(sketch) {
         if (moveMouse) return;
 
         if (currentRegion) {
-          onLabelRegion(currentRegion, currentLabel);     
+          onLabelRegion(frame, currentRegion, currentLabel);     
         }
 
         break;

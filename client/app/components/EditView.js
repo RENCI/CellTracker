@@ -38,8 +38,8 @@ function handleLinkRegion(frame, region) {
   ViewActionCreators.linkRegion(frame, region);
 }
 
-function handleLabelRegion(region, label) {
-  ViewActionCreators.labelRegion(region, label);
+function handleLabelRegion(frame, region, label) {
+  ViewActionCreators.labelRegion(frame, region, label);
 }
 
 const EditView = props => {

@@ -149,9 +149,10 @@ export function linkRegion(frame, region) {
   });
 };
 
-export function labelRegion(region, label) {
+export function labelRegion(frame, region, label) {
   AppDispatcher.dispatch({
     actionType: Constants.LABEL_REGION,
+    frame: frame,
     region: region,
     label: label
   });

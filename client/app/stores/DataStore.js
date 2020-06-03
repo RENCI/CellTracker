@@ -800,18 +800,18 @@ function translate(point) {
 }
 
 function editRegion(frame, region) {
-  console.log(settings.editMode);
-
   if (region) {
     // Clear done
     if (region.done) {
       regionDone(region, false);
     }
 
-    region.unsavedEdit = true;
-    experiment.segmentationData[frame].edited = true;
-
     const remove = experiment.segmentationData[frame].regions.indexOf(region) === -1;
+
+    if (!remove) {
+      region.unsavedEdit = true;
+      experiment.segmentationData[frame].edited = true;
+    }
 
     experiment.lastEdit = {
       type: remove ? "remove" : "edit",
@@ -925,8 +925,6 @@ function linkRegion(frame, region) {
       region.manual_link = true;
       region.unsavedEdit = true;
 
-      experiment.segmentationData[frame].edited = true;
-
       generateTrajectoryIds();
 
       pushHistory();
@@ -952,12 +950,14 @@ function regionDone(region, done) {
   });
 }
 
-function labelRegion(region, label) {
+function labelRegion(frame, region, label) {
   if (label === "Done") {
     regionDone(region, !region.done);
 
     if (region.done) {
       region.unsavedChanges = region.unsavedChanges ? region.unsavedChanges + 1 : 1;
+
+      experiment.segmentationData[frame].edited = true;
     }
   }
   else {
@@ -969,6 +969,8 @@ function labelRegion(region, label) {
       region.labels.push(label);
 
       region.unsavedChanges = region.unsavedChanges ? region.unsavedChanges + 1 : 1;
+
+      experiment.segmentationData[frame].edited = true;
     }
     else {
       region.labels.splice(index, 1);
@@ -1095,6 +1097,11 @@ function saveSegmentationData() {
       if (region.unsavedEdit) {
         region.edited = true;
         region.unsavedEdit = false;
+      }
+      
+      if (region.unsavedChanges) {
+        region.changed = true;
+        region.unsavedChanges = 0;
       }
     });
   });
@@ -1412,7 +1419,7 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       break;
 
     case Constants.LABEL_REGION:
-      labelRegion(action.region, action.label);
+      labelRegion(action.frame, action.region, action.label);
       DataStore.emitChange();
       break;
 
