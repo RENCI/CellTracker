@@ -21,7 +21,7 @@ const DataControls = props => {
     if (props.experiment) {
       setStartFrame(props.experiment.start);
     }
-  }, [props]);
+  }, [props.experiment]);
 
   useEffect(() => {
     setLoading(props.loading);
