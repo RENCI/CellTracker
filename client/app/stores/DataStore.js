@@ -213,6 +213,11 @@ function receiveSegmentationFrame(frame, regions) {
         x.reduce((p, c) => p + c) / x.length,
         y.reduce((p, c) => p + c) / y.length
       ];
+
+      if (region.track_id) {
+        region.trajectory_id = "trajectory_" + region.track_id;           
+        setTrajectoryColor(region.trajectory_id);     
+      }
     });
   }
   else {
@@ -313,6 +318,16 @@ function generateTrajectoryIds() {
         const id = ("" + counter++).padStart(4, "0");
         region.trajectory_id = "trajectory_" + id;
         setTrajectoryColor(region.trajectory_id, color);    
+      }
+      else if (region.link_id) {
+        const link = a[i - 1].regions.find(({ id }) => id === region.link_id);
+
+        if (!link) {
+          const color = region.trajectory_id ? oldColors[region.trajectory_id] : null;
+          const id = ("" + counter++).padStart(4, "0");
+          region.trajectory_id = "trajectory_" + id;
+          setTrajectoryColor(region.trajectory_id, color);
+        }
       }
 
       if (i < a.length - 1 && region.children) {

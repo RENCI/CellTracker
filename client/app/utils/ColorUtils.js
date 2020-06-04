@@ -44,8 +44,8 @@ export function getTrajectoryColor(trajectoryId) {
   const color = trajectoryColors[trajectoryId];
 
   if (!color) {
-    console.log("Invalid trajectory id");
-    return "#fff";
+    console.log("Invalid trajectory id: ", trajectoryId);
+    return "#000";
   }
 
   return color;
