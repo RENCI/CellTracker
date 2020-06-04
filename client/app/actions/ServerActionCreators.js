@@ -52,10 +52,9 @@ export function updateTracking(trackingData) {
   });
 };
 
-export function receiveScore(score, totalScore, timeStamp) {
+export function receiveScore(totalScore, timeStamp) {
   AppDispatcher.dispatch({
     actionType: Constants.RECEIVE_SCORE,
-    score: score,
     totalScore: totalScore,
     timeStamp: timeStamp
   });

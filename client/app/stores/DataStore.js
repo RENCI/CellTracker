@@ -352,12 +352,8 @@ function updateTrajectoryGraph() {
   const zoomPoint = settings.zoomPoint;
   const zoom = settings.zoom;
 
-  // Find trajectory families with visible regions
-  let visibleTrajectories = null;
-  
+  // Find trajectory families with visible regions  
   if (zoomPoint) {
-    visibleTrajectories = new Set();
-
     const z = 1 / zoom / 2,
           bb = [zoomPoint[0] - z, zoomPoint[1] - z, 
                 zoomPoint[0] + z, zoomPoint[1] + z];    
@@ -407,16 +403,26 @@ function updateTrajectoryGraph() {
       const prev = frames[i - 1];
       
       curr.regions.forEach(region => {
-        const link = prev.regions.find(({ id }) => id === region.link_id);
+        if (!region.visible && region.link_id) {
+          const link = prev.regions.find(({ id }) => id === region.link_id);
 
-        if (link) {          
-          curr.visible === curr.visible || prev.visible;
+          if (link) {          
+            region.visible = link.visible;
+          }
+          else {
+            console.log("Warning: invalid link.");            
+          }  
         }
-        else {
-          console.log("Warning: invalid link.");            
-        }  
       });
-    }
+    }    
+  }
+  else {
+    // Set visibility                
+    frames.forEach(frame => {
+      frame.regions.forEach(region => {
+        region.visible = true;
+      });
+    });
   }
 
   // Nodes with visible trajectories
@@ -1231,8 +1237,7 @@ function setCurrentLabel(label) {
   settings.currentLabel = label;
 }
 
-function receiveScore(score, totalScore, timeStamp) {
-  userInfo.score = score;
+function receiveScore(totalScore, timeStamp) {
   userInfo.total_score = totalScore;
   userInfo.score_time_stamp = timeStamp;
 
@@ -1484,7 +1489,7 @@ DataStore.dispatchToken = AppDispatcher.register(action => {
       break;
 
     case Constants.RECEIVE_SCORE:
-      receiveScore(action.score, action.totalScore, action.timeStamp);
+      receiveScore(action.totalScore, action.timeStamp);
       DataStore.emitChange();
       break;
 

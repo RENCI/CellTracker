@@ -281,11 +281,10 @@ export function saveSegmentationData(id, data) {
           pollUpdatedTracking(data.task_id);
         }
         */
-        const score = +data.score;
         const totalScore = +data.total_score;
 
-        if (!isNaN(score) && !isNaN(totalScore)) {
-          ServerActionCreators.receiveScore(score, totalScore, Date.now());
+        if (!isNaN(totalScore)) {
+          ServerActionCreators.receiveScore(totalScore, Date.now());
         }
 
         getAllUserInfo();
