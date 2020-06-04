@@ -760,36 +760,23 @@ def save_frame_seg_data(request, exp_id, frame_no):
     try:
         u = request.user
         total_score = u.user_profile.score
-        if 'last_edit' in seg_data:
-            last_edit_data = json.loads(seg_data['last_edit'])
-            edit_type = last_edit_data['type'].lower()
-            edit_reg_id = last_edit_data['id']
-            img_file, err_msg = get_exp_image(exp_id, frame_no)
-            if err_msg:
-                return JsonResponse({'message': err_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        edit_data = json.loads(seg_data['regions'])
+        if edit_data:
+            for reg in edit_data:
+                if 'new_edits' in reg and reg['new_edits']:
+                    edit_reg_data = reg['vertices']
+                    img_file, err_msg = get_exp_image(exp_id, frame_no)
+                    if err_msg:
+                        return JsonResponse({'message': err_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    score, err_msg = get_edit_score(img_file, edit_reg_data)
+                    if err_msg:
+                        return JsonResponse({'message': err_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    total_score = score + total_score
+                if 'new_changes' in reg:
+                    total_score = int(reg['new_changes']) + total_score
 
-            if edit_type == 'edit':
-                edit_data = json.loads(seg_data['regions'])
-            else: # edit type is remove
-                edit_seg_data = get_experiment_frame_seg_data(exp_id, frame_no, username=request.user.username)
-                edit_data = edit_seg_data.data
-
-            edit_reg_data = []
-            if edit_data:
-                for reg in edit_data:
-                    if reg['id'] == edit_reg_id:
-                        edit_reg_data = reg['vertices']
-                        break
-            if edit_reg_data:
-                score, err_msg = get_edit_score(img_file, edit_reg_data, edit_type=edit_type)
-                if err_msg:
-                    return JsonResponse({'message': err_msg}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            else:
-                return JsonResponse({'message': "No last edit region data"}, status=status.HTTP_400_BAD_REQUEST)
-
-            total_score = score + total_score
-            u.user_profile.score = total_score
-            u.user_profile.save()
+        u.user_profile.score = total_score
+        u.user_profile.save()
 
         save_user_seg_data_to_db(request.user, exp_id, frame_no, seg_data['regions'], num_edited)
         # task = add_tracking.apply_async((exp_id, request.user.username, int(frame_no)),
@@ -797,10 +784,7 @@ def save_frame_seg_data(request, exp_id, frame_no):
         # return JsonResponse({'task_id': task.task_id}, status=status.HTTP_200_OK)
         sync_user_edit_frame_from_db_to_irods.apply_async((exp_id, request.user.username, int(frame_no)),
                                                           countdown=1)
-        if 'last_edit' in seg_data:
-            return JsonResponse({'score': score, 'total_score': total_score}, status=status.HTTP_200_OK)
-        else:
-            return JsonResponse({'total_score': total_score}, status=status.HTTP_200_OK)
+        return JsonResponse({'total_score': total_score}, status=status.HTTP_200_OK)
     except AttributeError as ex:
         return JsonResponse({'message': 'Scoring raised AttributeError'},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
