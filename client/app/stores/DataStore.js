@@ -1238,6 +1238,7 @@ function setCurrentLabel(label) {
 }
 
 function receiveScore(totalScore, timeStamp) {
+  userInfo.score = totalScore - userInfo.total_score;
   userInfo.total_score = totalScore;
   userInfo.score_time_stamp = timeStamp;
 

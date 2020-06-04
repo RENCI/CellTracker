@@ -48,6 +48,7 @@ const Score = props => {
     }
   }, [props.userInfo.score_time_stamp]);
 
+  const score = props.userInfo.score ? props.userInfo.score : 0;
   const totalScore = props.userInfo.total_score ? props.userInfo.total_score : 0;
 
   const className = "alert " + alertType;
@@ -55,6 +56,7 @@ const Score = props => {
   return (
     <>    
       <h4>{ scoreLabel }</h4>
+      <div className={ className }>Score update: <strong>{ score }</strong></div>
       <div className={ className }>Total score: <strong>{ totalScore }</strong></div>
     </>
   );
