@@ -163,7 +163,8 @@ def get_experiment_frame_seg_data(exp_id, frame_no, username=None):
     :param username: optional, user name to retrieve segmentation object for
     :return: segmentation data
     """
-    if username:
+    u = User.objects.get(username=username)
+    if username and not is_power_user(u):
         try:
             seg_obj = UserSegmentation.objects.get(exp_id=exp_id, user__username=username,
                                                    frame_no=frame_no)
