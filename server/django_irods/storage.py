@@ -4,6 +4,7 @@ from tempfile import NamedTemporaryFile
 from django.utils.deconstruct import deconstructible
 from django.core.files.storage import Storage
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 from .icommands import GLOBAL_SESSION, GLOBAL_ENVIRONMENT, SessionException
 
@@ -166,7 +167,7 @@ class IrodsStorage(Storage):
 
         # the query below returns name of all data objects/files under the path collection/directory
         qrystr = "select DATA_NAME where DATA_REPL_STATUS != '0' AND " \
-                 "COLL_NAME like '%{}'".format(path)
+                 "{}".format(IrodsStorage.get_absolute_path_query(path))
         stdout = self.session.run("iquest", None, "--no-page", "%s",
                                   qrystr)[0].split("\n")
 
@@ -186,7 +187,7 @@ class IrodsStorage(Storage):
         subdir_list = []
         # the query below returns name of all sub-collections/sub-directories
         # under the path collection/directory
-        qrystr = "select COLL_NAME where COLL_PARENT_NAME like '%{}'".format(path)
+        qrystr = "select COLL_NAME where {}".format(IrodsStorage.get_absolute_path_query(path, parent=True))
         stdout = self.session.run("iquest", None, "--no-page", "%s",
                                   qrystr)[0].split("\n")
         for i in range(len(stdout)):
@@ -202,6 +203,27 @@ class IrodsStorage(Storage):
 
         return subdir_list
 
+    def get_absolute_path_query(path, parent=False):
+        """
+        Get iquest query string that needs absolute path of the input path for the HydroShare iRODS data zone
+        :param path: input path to be converted to absolute path if needed
+        :param parent: indicating whether query string should be checking COLL_PARENT_NAME rather than COLL_NAME
+        :return: iquest query string that has the logical path of the input path as input
+        """
+
+        # iquest has a bug that cannot handle collection name containing single quote as reported here
+        # https://github.com/irods/irods/issues/4887. This is a work around and can be removed after the bug is fixed
+        if "'" in path:
+            path = path.replace("'", "%")
+            qry_str = "COLL_PARENT_NAME like '{}'" if parent else "COLL_NAME like '{}'"
+        else:
+            qry_str = "COLL_PARENT_NAME = '{}'" if parent else "COLL_NAME = '{}'"
+
+        if os.path.isabs(path):
+            # iRODS federated logical path which is already absolute path
+            return qry_str.format(path)
+        return qry_str.format(os.path.join('/', settings.IRODS_ZONE, 'home', settings.IRODS_USER, path))
+
     def listdir(self, path):
         """
         return list of sub-collections/sub-directories and data objects/files
@@ -215,7 +237,7 @@ class IrodsStorage(Storage):
 
         # check first whether the path is an iRODS collection/directory or not, and if not, need
         # to raise SessionException, and if yes, can proceed to get files and sub-dirs under it
-        qrystr = "select COLL_NAME where COLL_NAME like '%{}'".format(path)
+        qrystr = "select COLL_NAME where {}".format(IrodsStorage.get_absolute_path_query(path))
         stdout = self.session.run("iquest", None, "%s", qrystr)[0]
         if "CAT_NO_ROWS_FOUND" in stdout:
             raise SessionException(-1, '', 'folder {} does not exist'.format(path))
