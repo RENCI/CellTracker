@@ -636,7 +636,14 @@ def add_experiment_to_server(request):
             coll.metadata.add('priority', pack_zeros(str(len(exp_list))))
             if frame_no > 0:
                 coll.metadata.add('frame_no', str(frame_no))
-            ExperimentInfo.objects.create(exp_id=exp_id, colormap=exp_lut)
+
+            obj, created = ExperimentInfo.objects.get_or_create(exp_id=exp_id, defaults={'colormap': exp_lut})
+            if not created:
+                # Segmentation object already exists, update it with new json data
+                obj.colormap = exp_lut
+                obj.save()
+
+
             apply_colormap_to_exp_task.apply_async((exp_id, exp_lut,), countdown=1)
             if exp_labels:
                 try:
