@@ -221,10 +221,6 @@ export default function(sketch) {
 
         let color = d3.color(getTrajectoryColor(region.trajectory_id));
 
-if (getTrajectoryColor(region.trajectory_id) === "#000") {
-  console.log(region);
-}
-
         color.opacity = 0.75;
         color = color.toString();
 

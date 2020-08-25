@@ -117,7 +117,9 @@ function updateExperiment() {
     return frame >= experiment.start && frame <= experiment.stop;
   });
 
-  if (experiment.has_segmentation) {
+  const hasSegmentation = experiment.has_segmentation === "true";
+
+  if (hasSegmentation) {
     experiment.segmentationData = experiment.segmentationData.filter(({ frame }) => {
       return frame >= experiment.start && frame <= experiment.stop;
     });
@@ -125,17 +127,15 @@ function updateExperiment() {
   else {
     // Create data with no regions
     experiment.segmentationData = [];
-
-    for (let i = experiment.start; i <= experiment.stop; i++) {
-      experiment.segmentationData.push({
-        frame: i,
-        edited: false,
-        regions: []
-      });
-    }
   }  
 
   resetLoading();  
+
+  if (!hasSegmentation) {
+    for (let i = experiment.start; i <= experiment.stop; i++) {
+      receiveSegmentationFrame(i, []);
+    }
+  }
 }
 
 function receiveExperimentInfo(info) {
