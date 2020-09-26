@@ -271,10 +271,6 @@ class IrodsStorage(Storage):
                                   "file size".format(name))
         return int(stdout)
 
-
-        stdout = self.session.run("ils", None, "-l", name)[0].split()
-        return int(stdout[3])
-
     def get_available_name(self, name):
         """
         Reject duplicate file names rather than renaming them.
